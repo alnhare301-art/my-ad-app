@@ -3,39 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب - الإعلانات</title>
+    <title>روليت سراب - الإحصائيات العامة</title>
     <style>
-        body { font-family: sans-serif; background-color: #0f172a; color: white; text-align: center; padding: 20px; margin: 0; }
-        .roulette-img { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #6366f1; margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 400px; margin: auto; }
-        .btn { 
-            background: #1e293b; color: white; border: 1px solid #334155; padding: 20px 10px; 
-            border-radius: 15px; font-weight: bold; cursor: pointer; text-decoration: none;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-        }
-        .btn:active { background: #6366f1; transform: scale(0.95); }
-        .ad-section { margin-top: 30px; background: #1e293b; padding: 15px; border-radius: 15px; text-align: right; }
-        .ad-item { background: #334155; padding: 10px; border-radius: 10px; margin-top: 10px; display: flex; justify-content: space-between; }
-        .status-on { color: #4ade80; font-size: 12px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #1a1c2c; color: white; padding: 20px; }
+        .card-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: #25283d; padding: 20px; border-radius: 20px; text-align: center; border-bottom: 4px solid #7c4dff; }
+        .card h2 { margin: 0; color: #7c4dff; font-size: 28px; }
+        .card p { margin: 5px 0; color: #a2a5b9; font-size: 14px; }
+        .active-ads { margin-top: 30px; background: #25283d; border-radius: 20px; padding: 15px; }
+        .ad-item { background: #1a1c2c; padding: 15px; border-radius: 15px; margin-top: 10px; display: flex; justify-content: space-between; border-right: 4px solid #ff4081; }
+        .btn-action { background: linear-gradient(45deg, #7c4dff, #ff4081); color: white; padding: 15px; border-radius: 15px; display: block; text-decoration: none; margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <img src="https://files.catbox.moe/5s7y7a.png" class="roulette-img">
-    <h3>لوحة التحكم @Smileettbot</h3>
-    
-    <div class="grid">
-        <a href="https://t.me/Smileettbot?start=create" class="btn"><span>📝 إنشاء روليت</span></a>
-        <a href="https://t.me/Smileettbot?start=ads" class="btn"><span>📢 طلب إعلان</span></a>
-        <a href="https://t.me/Smileettbot?start=stats" class="btn"><span>📊 الإحصائيات</span></a>
-        <a href="https://t.me/Smileettbot?start=welcome" class="btn"><span>🎧 الدعم الفني</span></a>
+    <h1 style="text-align: center;">روليت سراب 🔥</h1>
+    <p style="text-align: center; color: #a2a5b9;">لوحة الإحصائيات العامة 📊</p>
+
+    <div class="card-container">
+        <div class="card"><h2>32</h2><p>إجمالي السحوبات 📦</p></div>
+        <div class="card"><h2>16</h2><p>سحب نشط 🔥</p></div>
     </div>
 
-    <div class="ad-section">
-        <h4 style="margin:0;">📢 إعلانات نشطة الآن:</h4>
+    <div class="active-ads">
+        <h3>📢 أقوى 3 سحوبات (بالمشاركة):</h3>
         <div class="ad-item">
-            <span>قناة سراب الرسمية</span>
-            <span class="status-on">نشط الآن ✅</span>
+            <div><strong>روليت الجائزة الكبرى</strong><br><small>ID: 694c71ba</small></div>
+            <div style="color: #ff4081;">281 مشارك</div>
         </div>
+        <div class="ad-item">
+            <div><strong>مسابقة سراب الأسبوعية</strong><br><small>ID: 994bb7c7</small></div>
+            <div style="color: #ff4081;">140 مشارك</div>
         </div>
+    </div>
+
+    <a href="https://t.me/Smileettbot?start=create" class="btn-action">📝 إنشاء روليت جديد الآن</a>
 </body>
 </html>
