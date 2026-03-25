@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>روليت سراب</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: sans-serif; background-color: #121212; color: white; text-align: center; padding: 20px; }
         .roulette-img { width: 100%; max-width: 250px; border-radius: 20px; border: 2px solid #e63946; margin-bottom: 20px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { background: #1f1f1f; color: white; border: 1px solid #333; padding: 20px; border-radius: 15px; font-weight: bold; cursor: pointer; }
+        .btn { 
+            background: #1f1f1f; color: white; border: 1px solid #333; padding: 20px; 
+            border-radius: 15px; font-weight: bold; cursor: pointer; text-decoration: none;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
         .btn:active { background: #e63946; }
     </style>
 </head>
@@ -17,18 +20,11 @@
     <img src="https://files.catbox.moe/5s7y7a.png" class="roulette-img">
     <h3>لوحة تحكم روليت سراب 🎉</h3>
     <div class="grid">
-        <button class="btn" onclick="send('create_roulette')">📝 إنشاء روليت</button>
-        <button class="btn" onclick="send('request_ad')">📢 طلب إعلان</button>
-        <button class="btn" onclick="send('my_stats')">📊 إحصائياتي</button>
-        <button class="btn" onclick="send('support')">🎧 الدعم الفني</button>
+        <a href="https://t.me/your_bot_username?start=create" class="btn">📝 إنشاء روليت</a>
+        <a href="https://t.me/your_bot_username?start=stats" class="btn">📊 إحصائياتي</a>
+        <a href="https://t.me/your_bot_username?start=ads" class="btn">📢 طلب إعلان</a>
+        <a href="https://t.me/your_bot_username?start=help" class="btn">🎧 الدعم</a>
     </div>
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        function send(action) {
-            tg.sendData(action); // إرسال الإشارة للبوت
-            tg.close();
-        }
-    </script>
+    <p style="font-size: 10px; color: #555; margin-top: 20px;">ملاحظة: استبدل your_bot_username بيوزر بوتك في الكود</p>
 </body>
 </html>
