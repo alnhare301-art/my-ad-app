@@ -3,41 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب</title>
+    <title>روليت سراب - الإحصائيات</title>
     <style>
-        body { font-family: sans-serif; background-color: #121212; color: white; text-align: center; padding: 20px; margin: 0; }
-        .roulette-img { width: 100%; max-width: 250px; border-radius: 20px; border: 2px solid #e63946; margin-bottom: 20px; margin-top: 10px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 400px; margin: auto; }
-        .btn { 
-            background: #1f1f1f; color: white; border: 1px solid #333; padding: 20px 10px; 
-            border-radius: 15px; font-weight: bold; cursor: pointer; text-decoration: none;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-        }
-        .btn:active { background: #e63946; transform: scale(0.95); }
-        .icon { font-size: 24px; }
+        body { font-family: sans-serif; background-color: #0f172a; color: white; text-align: center; padding: 20px; margin: 0; }
+        .roulette-img { width: 100px; border-radius: 50%; border: 2px solid #6366f1; margin-bottom: 10px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: #1e293b; padding: 20px; border-radius: 15px; border-bottom: 4px solid #6366f1; }
+        .stat-card h4 { margin: 0; color: #94a3b8; font-size: 14px; }
+        .stat-card p { margin: 10px 0 0; font-size: 24px; font-weight: bold; color: #818cf8; }
+        .section-title { text-align: right; font-size: 16px; margin: 20px 0 10px; color: #cbd5e1; }
+        .list-item { background: #1e293b; display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+        .btn-main { background: #6366f1; color: white; padding: 15px; border-radius: 12px; display: block; text-decoration: none; font-weight: bold; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <img src="https://files.catbox.moe/5s7y7a.png" class="roulette-img">
-    <h3>مرحباً بك في روليت سراب 🎉</h3>
+    <h2 style="color: #818cf8;">روليت سراب 🔥</h2>
     
-    <div class="grid">
-        <a href="https://t.me/Smileettbot?start=create" class="btn">
-            <span class="icon">📝</span>
-            <span>إنشاء روليت</span>
-        </a>
-        <a href="https://t.me/Smileettbot?start=stats" class="btn">
-            <span class="icon">📊</span>
-            <span>إحصائياتي</span>
-        </a>
-        <a href="https://t.me/Smileettbot?start=ads" class="btn">
-            <span class="icon">📢</span>
-            <span>طلب إعلان</span>
-        </a>
-        <a href="https://t.me/Smileettbot?start=help" class="btn">
-            <span class="icon">🎧</span>
-            <span>الدعم الفني</span>
-        </a>
+    <div class="stats-grid">
+        <div class="stat-card"><h4>إجمالي الروليت</h4><p>32</p></div>
+        <div class="stat-card"><h4>سحب نشط</h4><p>16</p></div>
+    </div>
+
+    <div class="section-title">🔥 أحدث المنشورات (الأكثر تفاعلاً)</div>
+    <div class="list-item">
+        <span>روليت الجائزة الكبرى</span>
+        <span style="color: #fbbf24;">281 مشارك</span>
+    </div>
+    <div class="list-item">
+        <span>مسابقة سراب السريعة</span>
+        <span style="color: #fbbf24;">140 مشارك</span>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <a href="https://t.me/Smileettbot?start=create" class="btn-main">📝 إنشاء روليت جديد</a>
+        <a href="https://t.me/Smileettbot?start=help" style="color: #94a3b8; text-decoration: none; font-size: 14px;">🎧 طلب دعم فني</a>
     </div>
 </body>
 </html>
