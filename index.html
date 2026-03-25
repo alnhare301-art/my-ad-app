@@ -3,64 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم البوت</title>
+    <title>لوحة التحكم</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
-        }
-        .header { margin-bottom: 20px; text-align: center; }
-        .grid-container {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px;
-        }
-        .card {
-            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 20px; border-radius: 15px; text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer;
-            transition: transform 0.2s; border: 1px solid rgba(0,0,0,0.05);
-        }
-        .card:active { transform: scale(0.95); }
-        .card i { font-size: 24px; display: block; margin-bottom: 10px; }
-        .card-title { font-size: 14px; font-weight: bold; }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; text-align: center; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn { background: #0088cc; color: white; padding: 20px; border-radius: 15px; cursor: pointer; font-weight: bold; border: none; }
+        .btn:active { background: #006699; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h2>🛠 لوحة التحكم</h2>
-        <p>مرحباً بك، اختر ما تريد القيام به:</p>
-    </div>
-
-    <div class="grid-container">
-        <div class="card" onclick="sendAction('create_post')">
-            <span>📝</span>
-            <div class="card-title">إنشاء منشور</div>
-        </div>
-        <div class="card" onclick="sendAction('request_ad')">
-            <span>📢</span>
-            <div class="card-title">طلب إعلان</div>
-        </div>
-        <div class="card" onclick="sendAction('my_stats')">
-            <span>📊</span>
-            <div class="card-title">إحصائياتي</div>
-        </div>
-        <div class="card" onclick="sendAction('support')">
-            <span>🎧</span>
-            <div class="card-title">الدعم الفني</div>
-        </div>
+    <h3>🛠 لوحة تحكم البوت</h3>
+    <div class="grid">
+        <div class="btn" onclick="sendToBot('create_post')">📝 إنشاء منشور</div>
+        <div class="btn" onclick="sendToBot('request_ad')">📢 طلب إعلان</div>
+        <div class="btn" onclick="sendToBot('my_stats')">📊 إحصائياتي</div>
+        <div class="btn" onclick="sendToBot('support')">🎧 الدعم</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand();
-
-        function sendAction(action) {
-            // إرسال البيانات للبوت وإغلاق الصفحة
-            tg.sendData(action); 
-            tg.close();
+        function sendToBot(action) {
+            tg.sendData(action); // إرسال الكلمة للبوت
+            tg.close(); // إغلاق النافذة
         }
     </script>
 </body>
