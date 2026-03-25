@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب</title>
+    <title>روليت سراب - الإعلانات</title>
     <style>
         body { font-family: sans-serif; background-color: #0f172a; color: white; text-align: center; padding: 20px; margin: 0; }
-        .roulette-img { width: 100px; border-radius: 50%; border: 2px solid #6366f1; margin-bottom: 20px; }
+        .roulette-img { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #6366f1; margin-bottom: 20px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 400px; margin: auto; }
         .btn { 
             background: #1e293b; color: white; border: 1px solid #334155; padding: 20px 10px; 
@@ -14,26 +14,28 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
         }
         .btn:active { background: #6366f1; transform: scale(0.95); }
-        .icon { font-size: 24px; }
+        .ad-section { margin-top: 30px; background: #1e293b; padding: 15px; border-radius: 15px; text-align: right; }
+        .ad-item { background: #334155; padding: 10px; border-radius: 10px; margin-top: 10px; display: flex; justify-content: space-between; }
+        .status-on { color: #4ade80; font-size: 12px; }
     </style>
 </head>
 <body>
     <img src="https://files.catbox.moe/5s7y7a.png" class="roulette-img">
-    <h3>لوحة التحكم - @Smileettbot</h3>
+    <h3>لوحة التحكم @Smileettbot</h3>
     
     <div class="grid">
-        <a href="https://t.me/Smileettbot?start=create" class="btn">
-            <span class="icon">📝</span><span>إنشاء روليت</span>
-        </a>
-        <a href="https://t.me/Smileettbot?start=ads" class="btn">
-            <span class="icon">📢</span><span>نظام الإعلانات</span>
-        </a>
-        <a href="https://t.me/Smileettbot?start=stats" class="btn">
-            <span class="icon">📊</span><span>الإحصائيات</span>
-        </a>
-        <a href="https://t.me/Smileettbot?start=welcome" class="btn">
-            <span class="icon">🎧</span><span>الدعم الفني</span>
-        </a>
+        <a href="https://t.me/Smileettbot?start=create" class="btn"><span>📝 إنشاء روليت</span></a>
+        <a href="https://t.me/Smileettbot?start=ads" class="btn"><span>📢 طلب إعلان</span></a>
+        <a href="https://t.me/Smileettbot?start=stats" class="btn"><span>📊 الإحصائيات</span></a>
+        <a href="https://t.me/Smileettbot?start=welcome" class="btn"><span>🎧 الدعم الفني</span></a>
     </div>
+
+    <div class="ad-section">
+        <h4 style="margin:0;">📢 إعلانات نشطة الآن:</h4>
+        <div class="ad-item">
+            <span>قناة سراب الرسمية</span>
+            <span class="status-on">نشط الآن ✅</span>
+        </div>
+        </div>
 </body>
 </html>
