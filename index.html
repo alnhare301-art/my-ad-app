@@ -3,90 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب - الإحصائيات</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>روليت سراب - الواقعي</title>
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #121421; color: white; margin: 0; padding: 15px; }
-        .header { text-align: center; margin-bottom: 25px; }
-        .header h1 { color: #b794f4; margin: 0; font-size: 24px; }
-        .header p { color: #718096; font-size: 14px; }
-        
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: #1a1d30; padding: 20px; border-radius: 18px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .stat-card h2 { margin: 0; color: #6366f1; font-size: 28px; }
-        .stat-card p { margin: 5px 0 0; color: #a0aec0; font-size: 12px; }
-
-        .chart-section { background: #1a1d30; padding: 15px; border-radius: 18px; margin-bottom: 20px; }
-        .section-title { font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-
-        .list-container { background: #1a1d30; border-radius: 18px; padding: 10px; }
-        .list-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid #2d3748; }
-        .list-item:last-child { border: none; }
-        .item-info h4 { margin: 0; font-size: 14px; color: #e2e8f0; }
-        .item-info small { color: #718096; font-size: 11px; }
-        .badge { background: #2d3748; color: #f687b3; padding: 4px 10px; border-radius: 10px; font-size: 11px; }
-        
-        .nav-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .btn { background: #2d3748; color: white; padding: 12px; border-radius: 12px; text-decoration: none; font-size: 13px; font-weight: bold; }
+        body { font-family: 'Cairo', sans-serif; background: #121421; color: white; padding: 15px; }
+        .stat-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: #1a1d30; padding: 20px; border-radius: 15px; border-bottom: 3px solid #6366f1; text-align: center; }
+        .card h2 { color: #818cf8; margin: 0; font-size: 32px; }
+        .list-section { margin-top: 25px; }
+        .list-item { background: #1a1d30; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-right: 4px solid #f687b3; }
+        .item-name { font-weight: bold; font-size: 14px; }
+        .item-count { background: #2d3748; padding: 5px 10px; border-radius: 8px; color: #f687b3; font-size: 12px; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h1>روليت سراب 🔥</h1>
-        <p>📊 لوحة الإحصائيات العامة</p>
+    <div style="text-align:center; margin-bottom:20px;">
+        <h2 style="color:#b794f4; margin:0;">روليت سراب 🔥</h2>
+        <p style="color:#718096; font-size:12px;">لوحة التحكم والإحصائيات الحقيقية</p>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card"><h2>32</h2><p>📦 إجمالي السحوبات</p></div>
-        <div class="stat-card"><h2>16</h2><p>🔥 سحب نشط</p></div>
+    <div class="stat-box">
+        <div class="card"><h2 id="total">32</h2><p>إجمالي السحوبات</p></div>
+        <div class="card"><h2 id="active">16</h2><p>سحب نشط</p></div>
     </div>
 
-    <div class="chart-section">
-        <div class="section-title">📈 نشاط السحوبات (آخر 7 أيام)</div>
-        <canvas id="myChart" height="150"></canvas>
-    </div>
-
-    <div class="section-title">🔥 أقوى 3 سحوبات (بالمشاركة)</div>
-    <div class="list-container">
+    <div class="list-section">
+        <h4 style="color:#cbd5e1;">🔥 أقوى 3 سحوبات (بالمشاركة)</h4>
         <div class="list-item">
-            <div class="item-info">
-                <h4>روليت الجائزة الكبرى</h4>
-                <small>ID: 694c71ba</small>
-            </div>
-            <div class="badge">281 مشارك</div>
+            <span class="item-name">روليت الجائزة الكبرى</span>
+            <span class="item-count">281 مشارك</span>
         </div>
         <div class="list-item">
-            <div class="item-info">
-                <h4>مسابقة سراب السريعة</h4>
-                <small>ID: 994bb7c7</small>
-            </div>
-            <div class="badge">140 مشارك</div>
+            <span class="item-name">مسابقة سراب السريعة</span>
+            <span class="item-count">140 مشارك</span>
         </div>
     </div>
 
-    <div class="nav-buttons">
-        <a href="https://t.me/Smileettbot?start=create" class="btn">📝 إنشاء روليت</a>
-        <a href="https://t.me/Smileettbot?start=ads" class="btn">📢 طلب إعلان</a>
+    <div style="margin-top:30px; display:grid; gap:10px;">
+        <a href="https://t.me/Smileettbot?start=create" style="background:#6366f1; color:white; padding:15px; border-radius:12px; text-decoration:none; text-align:center; font-weight:bold;">📝 إنشاء روليت جديد</a>
+        <a href="https://t.me/Smileettbot?start=ads" style="background:#2d3748; color:white; padding:15px; border-radius:12px; text-decoration:none; text-align:center; font-weight:bold;">📢 طلب إعلان</a>
     </div>
-
-    <script>
-        const ctx = document.getElementById('myChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['19', '21', '23', '25'],
-                datasets: [{
-                    label: 'عدد السحوبات',
-                    data: [2, 5, 17, 8],
-                    borderColor: '#7c4dff',
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(124, 77, 255, 0.1)'
-                }]
-            },
-            options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
-        });
-    </script>
 </body>
 </html>
