@@ -3,51 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إعلان ويب مصغر</title>
+    <title>لوحة تحكم البوت</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #000000);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
+            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
         }
-        .ad-card {
+        .header { margin-bottom: 20px; text-align: center; }
+        .grid-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px;
+        }
+        .card {
             background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            width: 80%;
+            padding: 20px; border-radius: 15px; text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer;
+            transition: transform 0.2s; border: 1px solid rgba(0,0,0,0.05);
         }
-        button {
-            background-color: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
+        .card:active { transform: scale(0.95); }
+        .card i { font-size: 24px; display: block; margin-bottom: 10px; }
+        .card-title { font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="ad-card">
-        <h2>📢 إعلان مميز</h2>
-        <p id="ad-text">مرحباً بك في تطبيق الويب الخاص بالبوت!</p>
-        <button onclick="Telegram.WebApp.close()">إغلاق التطبيق</button>
+    <div class="header">
+        <h2>🛠 لوحة التحكم</h2>
+        <p>مرحباً بك، اختر ما تريد القيام به:</p>
+    </div>
+
+    <div class="grid-container">
+        <div class="card" onclick="sendAction('create_post')">
+            <span>📝</span>
+            <div class="card-title">إنشاء منشور</div>
+        </div>
+        <div class="card" onclick="sendAction('request_ad')">
+            <span>📢</span>
+            <div class="card-title">طلب إعلان</div>
+        </div>
+        <div class="card" onclick="sendAction('my_stats')">
+            <span>📊</span>
+            <div class="card-title">إحصائياتي</div>
+        </div>
+        <div class="card" onclick="sendAction('support')">
+            <span>🎧</span>
+            <div class="card-title">الدعم الفني</div>
+        </div>
     </div>
 
     <script>
-        // إخبار تليجرام أن التطبيق جاهز
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand(); // فتح التطبيق بكامل الشاشة
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        function sendAction(action) {
+            // إرسال البيانات للبوت وإغلاق الصفحة
+            tg.sendData(action); 
+            tg.close();
+        }
     </script>
 </body>
 </html>
