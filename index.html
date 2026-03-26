@@ -1,55 +1,108 @@
-<div class="news-ticker">
-    <div class="ticker-content">
-        <span>🔥 انضم الآن لقناة التوصيات والجوائز اليومية.. سحوبات بقيمة 100 TON! 🚀</span>
-        <a href="https://t.me/your_channel" class="ticker-btn">انضم الآن</a>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة روليت سراب</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <style>
+        :root { --primary: #6366f1; --accent: #f687b3; --bg: #0f172a; --card: #1e293b; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 80px; overflow-x: hidden; }
+        
+        /* شريط التنبيهات المتحرك */
+        .ticker-wrap { background: linear-gradient(90deg, var(--primary), #a855f7); padding: 8px 0; position: fixed; top: 0; width: 100%; z-index: 1000; display: flex; align-items: center; }
+        .ticker { white-space: nowrap; animation: ticker 15s linear infinite; font-weight: bold; font-size: 13px; flex: 1; }
+        .ticker-btn { background: white; color: var(--primary); padding: 4px 12px; border-radius: 8px; text-decoration: none; font-size: 11px; margin: 0 15px; z-index: 1001; }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        .container { padding: 70px 15px 20px; text-align: center; }
+        .logo { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 10px; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+        
+        /* قسم المحفظة */
+        .wallet-card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #334155; margin-bottom: 20px; }
+        .wallet-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-family: 'Cairo'; }
+        .btn-dep { background: #f1f5f9; color: #0f172a; }
+        .btn-with { background: #334155; color: white; }
+
+        /* الإحصائيات */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-box { background: var(--card); padding: 15px; border-radius: 15px; border-bottom: 3px solid var(--primary); }
+        .stat-box h2 { margin: 0; color: var(--primary); }
+
+        /* القائمة السفلية */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #1a1d30; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #334155; z-index: 1000; }
+        .nav-item { color: #94a3b8; text-decoration: none; font-size: 12px; display: flex; flex-direction: column; align-items: center; }
+        .nav-item.active { color: var(--primary); }
+
+        .section-title { text-align: right; color: var(--accent); border-right: 4px solid var(--accent); padding-right: 10px; margin: 20px 0 10px; font-size: 16px; }
+        .ad-item { background: var(--card); padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+    <div class="ticker-wrap">
+        <div class="ticker" id="ticker-text">🔥 جاري تحميل آخر الأخبار من البوت...</div>
+        <a href="#" id="ticker-link" class="ticker-btn">انضم</a>
     </div>
-</div>
 
-<style>
-    /* تنسيق الشريط المتحرك */
-    .news-ticker {
-        background: linear-gradient(90deg, #6366f1, #a855f7);
-        color: white;
-        padding: 10px 0;
-        overflow: hidden;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    }
+    <div class="container">
+        <img src="https://files.catbox.moe/5s7y7a.png" class="logo">
+        <h2 style="margin:0;">روليت سراب 🔥</h2>
+        <p style="font-size:12px; color:#94a3b8;">منصة السحوبات المتكاملة</p>
 
-    .ticker-content {
-        display: inline-block;
-        white-space: nowrap;
-        padding-right: 100%;
-        animation: ticker 20s linear infinite;
-        font-weight: bold;
-        font-size: 14px;
-    }
+        <div class="wallet-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-size:11px; color:#94a3b8;">حالة المحفظة</span>
+                <div id="ton-button"></div>
+            </div>
+            <h1 style="margin:5px 0;">0.00 <span style="font-size:16px; color:#0098ea;">TON</span></h1>
+            <div class="wallet-btns">
+                <button class="btn btn-dep">📥 إيداع</button>
+                <button class="btn btn-with">📤 سحب</button>
+            </div>
+        </div>
 
-    .ticker-btn {
-        background: white;
-        color: #6366f1;
-        padding: 5px 15px;
-        border-radius: 8px;
-        text-decoration: none;
-        margin-right: 20px;
-        font-size: 12px;
-        font-weight: bold;
-        transition: 0.3s;
-    }
+        <div class="stats-grid">
+            <div class="stat-box"><h2>32</h2><p style="margin:0; font-size:11px;">إجمالي السحوبات</p></div>
+            <div class="stat-box"><h2>16</h2><p style="margin:0; font-size:11px;">سحوبات نشطة</p></div>
+        </div>
 
-    .ticker-btn:hover { background: #f1f5f9; transform: scale(1.05); }
+        <div class="section-title">🕒 آخر السحوبات والمنشورات</div>
+        <div id="posts-list">
+            <div class="ad-item">
+                <div style="text-align:right;"><strong>روليت الجائزة الكبرى</strong><br><small style="color:#94a3b8;">منذ 5 دقائق</small></div>
+                <button class="btn" style="background:var(--primary); color:white; padding:5px 10px; font-size:11px;">فتح</button>
+            </div>
+        </div>
+    </div>
 
-    @keyframes ticker {
-        0% { transform: translate3d(100%, 0, 0); }
-        100% { transform: translate3d(-100%, 0, 0); }
-    }
+    <nav class="nav-bar">
+        <a href="#" class="nav-item active">🏠<span>الرئيسية</span></a>
+        <a href="#" class="nav-item">🎁<span>السحوبات</span></a>
+        <a href="#" class="nav-item">📈<span>الإحصائيات</span></a>
+        <a href="#" class="nav-item">⚙️<span>الإعدادات</span></a>
+    </nav>
 
-    /* تعديل المسافة في الـ Body لكي لا يغطي الشريط المحتوى */
-    body { padding-top: 60px !important; }
-</style>
+    <script>
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://alnhare301-art.github.io/my-ad-app/tonconnect-manifest.json',
+            buttonRootId: 'ton-button'
+        });
+
+        // كود جلب النص المتحرك من البوت (عبر Firebase)
+        async function updateTicker() {
+            try {
+                const res = await fetch('https://your-firebase-url/ticker.json');
+                const data = await res.json();
+                if(data) {
+                    document.getElementById('ticker-text').innerText = data.text;
+                    document.getElementById('ticker-link').href = data.link;
+                }
+            } catch(e) {}
+        }
+        updateTicker();
+    </script>
+</body>
+</html>
