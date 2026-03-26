@@ -3,32 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب - الإعلانات</title>
+    <title>روليت سراب - الإحصائيات</title>
     <style>
-        body { font-family: sans-serif; background: #121421; color: white; padding: 15px; }
-        .ad-card { 
-            background: #1a1d30; padding: 15px; border-radius: 15px; margin-bottom: 10px; 
+        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; padding: 15px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 20px; text-align: center; border-bottom: 3px solid #6366f1; }
+        .card h2 { color: #818cf8; font-size: 30px; margin: 0; }
+        
+        .section-title { font-size: 16px; margin: 20px 0; color: #94a3b8; border-right: 3px solid #f687b3; padding-right: 10px; }
+        
+        .ad-item { 
+            background: #1e293b; padding: 15px; border-radius: 15px; margin-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
-            border-right: 4px solid #7c4dff;
         }
-        .ad-info h4 { margin: 0; font-size: 15px; color: #e2e8f0; }
-        .btn-view { 
-            background: #2d3748; color: #b794f4; padding: 8px 15px; 
-            border-radius: 10px; text-decoration: none; font-size: 12px; font-weight: bold;
-        }
+        .views { color: #f687b3; font-size: 12px; font-weight: bold; }
+        .btn-view { background: #334155; color: white; padding: 8px 12px; border-radius: 10px; text-decoration: none; font-size: 11px; }
     </style>
 </head>
 <body>
-    <h2 style="text-align:center; color:#b794f4;">قسم الإعلانات 📢</h2>
-    
-    <div id="ads-list">
-        <div class="ad-card">
-            <div class="ad-info">
-                <h4>قناة المسابقات الكبرى</h4>
+    <div style="text-align:center; margin-bottom:25px;">
+        <h2 style="color:#b794f4; margin:0;">روليت سراب 🔥</h2>
+        <p style="color:#64748b; font-size:12px;">لوحة الإحصائيات والمنشورات الأخيرة</p>
+    </div>
+
+    <div class="stat-grid">
+        <div class="card"><h2>32</h2><p>إجمالي السحوبات</p></div>
+        <div class="card"><h2>16</h2><p>سحب نشط</p></div>
+    </div>
+
+    <div class="section-title">🕒 أحدث المنشورات والإعلانات</div>
+
+    <div id="latest-ads">
+        <div class="ad-item">
+            <div>
+                <strong>قناة سراب للمسابقات</strong><br>
+                <small style="color:#64748b;">منذ 5 دقائق</small>
             </div>
-            <a href="https://t.me/YourChannel" class="btn-view">فتح القناة</a>
+            <div style="text-align:center;">
+                <span class="views">👁 841 مشاهدة</span><br>
+                <a href="#" class="btn-view">فتح المنشور</a>
+            </div>
         </div>
-        
-        </div>
+    </div>
 </body>
 </html>
