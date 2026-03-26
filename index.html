@@ -5,45 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>روليت سراب - الإحصائيات</title>
     <style>
-        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; padding: 15px; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .card { background: #1e293b; padding: 20px; border-radius: 20px; text-align: center; border-bottom: 3px solid #6366f1; }
-        .card h2 { color: #818cf8; font-size: 30px; margin: 0; }
-        .card p { font-size: 12px; color: #94a3b8; }
-        
-        .section-title { font-size: 16px; margin: 20px 0; color: #94a3b8; border-right: 3px solid #f687b3; padding-right: 10px; }
-        
-        .ad-item { 
-            background: #1e293b; padding: 15px; border-radius: 15px; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
+        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; padding: 15px; margin: 0; }
+        .roulette-img { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #6366f1; object-fit: cover; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 400px; margin: auto; }
+        .btn { 
+            background: #1e293b; color: white; border: 1px solid #334155; padding: 20px 10px; 
+            border-radius: 15px; font-weight: bold; cursor: pointer; text-decoration: none;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
         }
+        .btn:active { background: #6366f1; transform: scale(0.95); }
+        .section-title { text-align: right; font-size: 16px; margin: 25px 0 10px; color: #94a3b8; border-right: 3px solid #f687b3; padding-right: 10px; }
+        .ad-item { background: #1e293b; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px dashed #334155; }
         .views { color: #f687b3; font-size: 12px; font-weight: bold; }
         .btn-view { background: #334155; color: white; padding: 8px 12px; border-radius: 10px; text-decoration: none; font-size: 11px; }
     </style>
 </head>
 <body>
-    <div style="text-align:center; margin-bottom:25px;">
-        <h2 style="color:#b794f4; margin:0;">روليت سراب 🔥</h2>
-        <p style="color:#64748b; font-size:12px;">لوحة الإحصائيات والمنشورات الأخيرة</p>
+    <div style="text-align:center;">
+        <img src="https://files.catbox.moe/5s7y7a.png" class="roulette-img">
+        <h3>لوحة التحكم @Smileettbot</h3>
+    </div>
+    
+    <div class="grid">
+        <a href="https://t.me/Smileettbot?start=create" class="btn"><span>📝 إنشاء روليت</span></a>
+        <a href="https://t.me/Smileettbot?start=ads" class="btn"><span>📢 طلب إعلان</span></a>
+        <a href="https://t.me/Smileettbot?start=stats" class="btn"><span>📊 الإحصائيات</span></a>
+        <a href="https://t.me/Smileettbot?start=welcome" class="btn"><span>🎧 الدعم الفني</span></a>
     </div>
 
-    <div class="stat-grid">
-        <div class="card"><h2>32</h2><p>إجمالي السحوبات</p></div>
-        <div class="card"><h2>16</h2><p>سحب نشط</p></div>
-        <div class="card" style="grid-column: span 2;"><h2>841</h2><p>إجمالي المشاركين</p></div>
-    </div>
-
-    <div class="section-title">🕒 أحدث المنشورات والإعلانات</div>
-
+    <div class="section-title">🕒 أحدث المنشورات (الواقعية)</div>
     <div id="latest-ads">
         <div class="ad-item">
-            <div>
-                <strong>منشور سراب المربوط</strong><br>
-                <small style="color:#64748b;">نشط الآن</small>
-            </div>
+            <div><strong>منشور سراب المربوط</strong><br><small style="color:#64748b;">نشط الآن</small></div>
             <div style="text-align:center;">
                 <span class="views">👁 1,240 مشاهدة</span><br>
-                <a href="#" class="btn-view">فتح المنشور</a>
+                <a href="#" class="btn-view" id="last_post_link">فتح المنشور</a>
             </div>
         </div>
     </div>
