@@ -1,49 +1,55 @@
-<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-
-<div style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 20px; padding: 20px; margin-bottom: 25px; border: 1px solid #334155;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <span id="wallet-status" style="font-size: 12px; color: #94a3b8;">🔴 المحفظة غير متصلة</span>
-        <div id="ton-connect-button"></div> </div>
-
-    <div style="text-align: right; margin-bottom: 20px;">
-        <p style="margin: 0; color: #94a3b8; font-size: 14px;">رصيد محفظة TON</p>
-        <h2 style="margin: 5px 0; color: white; font-size: 32px;">0 <span style="color: #0098ea; font-size: 20px;">TON</span></h2>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <button class="wallet-btn" onclick="depositAction()">📥 إيداع (Deposit)</button>
-        <button class="wallet-btn" style="background: #334155;" onclick="withdrawAction()">📤 سحب (Withdraw)</button>
+<div class="news-ticker">
+    <div class="ticker-content">
+        <span>🔥 انضم الآن لقناة التوصيات والجوائز اليومية.. سحوبات بقيمة 100 TON! 🚀</span>
+        <a href="https://t.me/your_channel" class="ticker-btn">انضم الآن</a>
     </div>
 </div>
 
 <style>
-    .wallet-btn {
-        background: #f1f5f9; color: #0f172a; border: none; padding: 12px; 
-        border-radius: 15px; font-family: 'Cairo'; font-weight: bold; cursor: pointer;
+    /* تنسيق الشريط المتحرك */
+    .news-ticker {
+        background: linear-gradient(90deg, #6366f1, #a855f7);
+        color: white;
+        padding: 10px 0;
+        overflow: hidden;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
-    /* تنسيق زر TON الرسمي ليناسب تصميمك */
-    #ton-connect-button button { border-radius: 12px !important; }
+
+    .ticker-content {
+        display: inline-block;
+        white-space: nowrap;
+        padding-right: 100%;
+        animation: ticker 20s linear infinite;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .ticker-btn {
+        background: white;
+        color: #6366f1;
+        padding: 5px 15px;
+        border-radius: 8px;
+        text-decoration: none;
+        margin-right: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .ticker-btn:hover { background: #f1f5f9; transform: scale(1.05); }
+
+    @keyframes ticker {
+        0% { transform: translate3d(100%, 0, 0); }
+        100% { transform: translate3d(-100%, 0, 0); }
+    }
+
+    /* تعديل المسافة في الـ Body لكي لا يغطي الشريط المحتوى */
+    body { padding-top: 60px !important; }
 </style>
-
-<script>
-    // تهيئة اتصال محفظة TON
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: 'https://alnhare301-art.github.io/my-ad-app/tonconnect-manifest.json',
-        buttonRootId: 'ton-connect-button'
-    });
-
-    // مراقبة حالة الاتصال
-    tonConnectUI.onStatusChange(wallet => {
-        if (wallet) {
-            document.getElementById('wallet-status').innerText = "🟢 متصل عبر " + wallet.device.appName;
-            document.getElementById('wallet-status').style.color = "#22c55e";
-        } else {
-            document.getElementById('wallet-status').innerText = "🔴 المحفظة غير متصلة";
-            document.getElementById('wallet-status').style.color = "#f43f5e";
-        }
-    });
-
-    function depositAction() {
-        alert("سيتم فتح واجهة الدفع عبر TON قريباً...");
-    }
-</script>
