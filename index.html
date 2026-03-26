@@ -1,38 +1,49 @@
-<div style="display: flex; justify-content: space-between; align-items: center; background: #1a1d30; padding: 10px 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #334155;">
-    <div style="text-align: right;">
-        <span style="color: #94a3b8; font-size: 12px;">رصيدك الحالي</span>
-        <h3 id="user-balance" style="margin: 0; color: #f687b3;">0.00$</h3>
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+
+<div style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 20px; padding: 20px; margin-bottom: 25px; border: 1px solid #334155;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <span id="wallet-status" style="font-size: 12px; color: #94a3b8;">🔴 المحفظة غير متصلة</span>
+        <div id="ton-connect-button"></div> </div>
+
+    <div style="text-align: right; margin-bottom: 20px;">
+        <p style="margin: 0; color: #94a3b8; font-size: 14px;">رصيد محفظة TON</p>
+        <h2 style="margin: 5px 0; color: white; font-size: 32px;">0 <span style="color: #0098ea; font-size: 20px;">TON</span></h2>
     </div>
-    <button id="connect-wallet" onclick="connectWallet()" style="background: linear-gradient(45deg, #6366f1, #a855f7); color: white; border: none; padding: 10px 15px; border-radius: 12px; font-family: 'Cairo'; cursor: pointer; font-weight: bold;">
-        🔗 ربط المحفظة
-    </button>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button class="wallet-btn" onclick="depositAction()">📥 إيداع (Deposit)</button>
+        <button class="wallet-btn" style="background: #334155;" onclick="withdrawAction()">📤 سحب (Withdraw)</button>
+    </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<style>
+    .wallet-btn {
+        background: #f1f5f9; color: #0f172a; border: none; padding: 12px; 
+        border-radius: 15px; font-family: 'Cairo'; font-weight: bold; cursor: pointer;
+    }
+    /* تنسيق زر TON الرسمي ليناسب تصميمك */
+    #ton-connect-button button { border-radius: 12px !important; }
+</style>
+
 <script>
-    let userWallet = null;
+    // تهيئة اتصال محفظة TON
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: 'https://alnhare301-art.github.io/my-ad-app/tonconnect-manifest.json',
+        buttonRootId: 'ton-connect-button'
+    });
 
-    async function connectWallet() {
-        if (window.ethereum) {
-            try {
-                // طلب الاتصال بالمحفظة (MetaMask مثلاً)
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                userWallet = accounts[0];
-                
-                // تحديث الزر ليظهر أول واخر حرف من المحفظة
-                document.getElementById('connect-wallet').innerText = 
-                    userWallet.substring(0, 6) + "..." + userWallet.substring(userWallet.length - 4);
-                document.getElementById('connect-wallet').style.background = "#22c55e"; // لون أخضر عند النجاح
-
-                // إضافة رصيد تجريبي (مثلاً 50$) عند أول ربط
-                document.getElementById('user-balance').innerText = "50.00$";
-                alert("✅ تم ربط المحفظة بنجاح! تم إضافة 50$ رصيد ترحيبي.");
-                
-            } catch (error) {
-                alert("❌ فشل الاتصال بالمحفظة.");
-            }
+    // مراقبة حالة الاتصال
+    tonConnectUI.onStatusChange(wallet => {
+        if (wallet) {
+            document.getElementById('wallet-status').innerText = "🟢 متصل عبر " + wallet.device.appName;
+            document.getElementById('wallet-status').style.color = "#22c55e";
         } else {
-            alert("⚠️ يرجى تثبيت محفظة MetaMask أو استخدام متصفح يدعم Web3");
+            document.getElementById('wallet-status').innerText = "🔴 المحفظة غير متصلة";
+            document.getElementById('wallet-status').style.color = "#f43f5e";
         }
+    });
+
+    function depositAction() {
+        alert("سيتم فتح واجهة الدفع عبر TON قريباً...");
     }
 </script>
