@@ -1,36 +1,38 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم سراب</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; text-align: center; padding: 20px; }
-        .logo { width: 100px; height: 100px; border-radius: 50%; border: 3px solid #6366f1; margin-bottom: 15px; }
-        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
-        .stat-box { background: #1e293b; padding: 15px; border-radius: 15px; border-bottom: 3px solid #6366f1; }
-        .stat-box h2 { color: #818cf8; margin: 0; }
-        .section-title { text-align: right; color: #f687b3; border-right: 4px solid #f687b3; padding-right: 10px; margin: 20px 0; font-size: 16px; }
-        .ad-card { background: #1e293b; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border: 1px solid #334155; }
-        .btn-link { background: #6366f1; color: white; padding: 8px 15px; border-radius: 10px; text-decoration: none; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <img src="https://files.catbox.moe/5s7y7a.png" class="logo">
-    <h1>روليت سراب 🔥</h1>
-
-    <div class="stats">
-        <div class="stat-box"><h2>32</h2><p>سحوبات</p></div>
-        <div class="stat-box"><h2>16</h2><p>نشط</p></div>
+<div style="display: flex; justify-content: space-between; align-items: center; background: #1a1d30; padding: 10px 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #334155;">
+    <div style="text-align: right;">
+        <span style="color: #94a3b8; font-size: 12px;">رصيدك الحالي</span>
+        <h3 id="user-balance" style="margin: 0; color: #f687b3;">0.00$</h3>
     </div>
+    <button id="connect-wallet" onclick="connectWallet()" style="background: linear-gradient(45deg, #6366f1, #a855f7); color: white; border: none; padding: 10px 15px; border-radius: 12px; font-family: 'Cairo'; cursor: pointer; font-weight: bold;">
+        🔗 ربط المحفظة
+    </button>
+</div>
 
-    <div class="section-title">📢 الإعلانات المعتمدة</div>
-    <div id="ads-list">
-        <div class="ad-card">
-            <div><strong>روليت الجائزة الكبرى</strong><br><small style="color:#94a3b8;">👁 1.1k مشاهدة</small></div>
-            <a href="#" class="btn-link">فتح القناة</a>
-        </div>
-    </div>
-</body>
-</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<script>
+    let userWallet = null;
+
+    async function connectWallet() {
+        if (window.ethereum) {
+            try {
+                // طلب الاتصال بالمحفظة (MetaMask مثلاً)
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userWallet = accounts[0];
+                
+                // تحديث الزر ليظهر أول واخر حرف من المحفظة
+                document.getElementById('connect-wallet').innerText = 
+                    userWallet.substring(0, 6) + "..." + userWallet.substring(userWallet.length - 4);
+                document.getElementById('connect-wallet').style.background = "#22c55e"; // لون أخضر عند النجاح
+
+                // إضافة رصيد تجريبي (مثلاً 50$) عند أول ربط
+                document.getElementById('user-balance').innerText = "50.00$";
+                alert("✅ تم ربط المحفظة بنجاح! تم إضافة 50$ رصيد ترحيبي.");
+                
+            } catch (error) {
+                alert("❌ فشل الاتصال بالمحفظة.");
+            }
+        } else {
+            alert("⚠️ يرجى تثبيت محفظة MetaMask أو استخدام متصفح يدعم Web3");
+        }
+    }
+</script>
