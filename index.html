@@ -3,140 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب | النسخة الملكية</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>روليت سراب | VIP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #f59e0b; --primary: #6366f1; --bg: #020617; --card: #0f172a; --accent: #10b981; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: #f8fafc; margin: 0; padding-top: 60px; }
+        :root { --gold: #fbbf24; --primary: #8b5cf6; --bg: #030712; --card: #111827; --accent: #10b981; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: #f3f4f6; margin: 0; padding-bottom: 80px; overflow-x: hidden; }
 
-        /* شريط علوي احترافي مع زر ثابت */
-        .top-bar { position: fixed; top: 0; width: 100%; height: 50px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); z-index: 2000; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .ticker-container { flex-grow: 1; overflow: hidden; background: linear-gradient(90deg, #4f46e5, #9333ea); height: 100%; display: flex; align-items: center; }
-        .ticker-move { white-space: nowrap; animation: ticker 20s linear infinite; font-weight: 800; font-size: 13px; padding-right: 50px; }
+        /* شريط علوي أنيق */
+        .top-nav { background: rgba(3, 7, 18, 0.9); backdrop-filter: blur(15px); position: fixed; top: 0; width: 100%; z-index: 2000; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .ticker-bar { background: linear-gradient(90deg, #6366f1, #a855f7); height: 35px; display: flex; align-items: center; }
+        .ticker-text { white-space: nowrap; animation: ticker 25s linear infinite; font-weight: bold; font-size: 13px; width: 100%; }
         @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        .ticker-action-btn { background: #fff; color: #000; padding: 0 15px; height: 100%; display: flex; align-items: center; text-decoration: none; font-weight: bold; font-size: 12px; border-left: 2px solid var(--bg); }
 
-        .container { padding: 20px 15px; max-width: 500px; margin: 0 auto; }
+        .container { padding: 60px 15px 20px; max-width: 500px; margin: 0 auto; }
         
-        /* الهيدر والشعار */
-        .hero { text-align: center; margin-bottom: 30px; position: relative; }
-        .main-logo { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--gold); box-shadow: 0 0 30px rgba(245, 158, 11, 0.3); margin-bottom: 10px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        /* الهيدر */
+        .hero { text-align: center; margin-bottom: 25px; }
+        .main-logo { width: 85px; height: 85px; border-radius: 50%; border: 3px solid var(--gold); box-shadow: 0 0 25px rgba(251, 191, 36, 0.2); margin-bottom: 8px; }
 
-        /* الإحصائيات بالأسهم */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 30px; }
-        .stat-item { background: var(--card); padding: 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.03); position: relative; }
-        .stat-item h4 { margin: 0; font-size: 22px; color: var(--gold); }
-        .stat-item p { margin: 2px 0 0; font-size: 11px; color: #94a3b8; }
-        .stat-arrow { position: absolute; left: 15px; top: 15px; color: var(--accent); font-weight: bold; }
+        /* إحصائيات بأسهم */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+        .stat-item { background: var(--card); padding: 12px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.03); position: relative; }
+        .stat-item h4 { margin: 0; font-size: 19px; color: var(--gold); display: flex; align-items: center; gap: 5px; }
+        .stat-item p { margin: 0; font-size: 10px; color: #94a3b8; }
+        .arrow-up { color: var(--accent); font-size: 12px; }
 
-        /* الأقسام */
-        .section-label { display: flex; align-items: center; gap: 10px; margin: 25px 0 15px; font-weight: 800; font-size: 16px; color: var(--gold); }
-        .section-label::before { content: '🔥'; }
+        /* القائمة السفلية (التنقل) */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #0f172a; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.1); z-index: 3000; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
+        .nav-item { color: #64748b; text-decoration: none; font-size: 11px; text-align: center; font-weight: bold; }
+        .nav-item.active { color: var(--gold); }
+        .nav-icon { display: block; font-size: 20px; margin-bottom: 2px; }
 
-        /* المنشورات الممولة (بارزة) */
-        .featured-ad { background: linear-gradient(145deg, #1e293b, #0f172a); padding: 15px; border-radius: 20px; border-right: 5px solid var(--gold); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        /* المنشورات الممولة (الأحدث فوق) */
+        .section-title { font-weight: 900; font-size: 17px; color: var(--gold); margin: 25px 0 12px; border-right: 4px solid var(--gold); padding-right: 10px; }
+        .ad-card { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 14px; border-radius: 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(251, 191, 36, 0.15); transition: 0.3s; }
         .ad-content { display: flex; flex-direction: column; gap: 3px; }
-        .ad-title { font-weight: 800; font-size: 15px; color: #fff; }
-        .ad-meta { font-size: 10px; color: var(--accent); display: flex; align-items: center; gap: 10px; }
-        .btn-join { background: var(--gold); color: #000; padding: 8px 20px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 13px; }
+        .ad-title { font-weight: bold; font-size: 14px; color: #fff; }
+        .ad-timer { font-size: 10px; color: var(--accent); font-weight: bold; }
+        .btn-open { background: var(--gold); color: #000; padding: 7px 18px; border-radius: 10px; text-decoration: none; font-weight: 800; font-size: 12px; }
 
-        /* المنشورات الحديثة */
-        .recent-post { background: rgba(255,255,255,0.02); padding: 12px 15px; border-radius: 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
-        .post-text { font-size: 13px; color: #cbd5e1; }
-        .post-link { color: var(--primary); font-weight: bold; text-decoration: none; font-size: 12px; }
-
+        /* أحدث المنشورات */
+        .post-card { background: rgba(255,255,255,0.03); padding: 12px 15px; border-radius: 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
+        .post-info { font-size: 13px; color: #cbd5e1; }
+        .post-btn { color: var(--primary); font-weight: bold; text-decoration: none; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <div class="ticker-container">
-            <div class="ticker-move" id="ticker-text">🚀 جاري تحميل آخر التحديثات من بوت سراب...</div>
-        </div>
-        <a href="#" id="ticker-btn" class="ticker-action-btn">مشاهدة 👁️</a>
+    <div class="top-nav">
+        <div class="ticker-bar"><div class="ticker-text" id="ticker-text">...</div></div>
     </div>
 
     <div class="container">
         <div class="hero">
             <img src="https://files.catbox.moe/5s7y7a.png" class="main-logo">
-            <h2 style="margin:0;">روليت سراب <span style="color:var(--gold)">VIP</span></h2>
-            <p style="font-size: 11px; opacity: 0.6;">نظام السحوبات المتطور والمنشورات الموثقة</p>
+            <h2 style="margin:0; font-size: 22px;">روليت سراب <span style="color:var(--gold)">VIP</span></h2>
         </div>
 
         <div class="stats-grid">
-            <div class="stat-item"><span class="stat-arrow">▲</span><h4 id="ads-count">0</h4><p>إعلانات ممولة</p></div>
-            <div class="stat-item"><span class="stat-arrow">▲</span><h4>104k+</h4><p>مستخدم نشط</p></div>
-            <div class="stat-item"><span class="stat-arrow">▲</span><h4 id="today-stats">0</h4><p>منشورات اليوم</p></div>
-            <div class="stat-item"><span class="stat-arrow">▲</span><h4>98%</h4><p>نسبة الثقة</p></div>
+            <div class="stat-item"><h4><span id="ads-count">0</span> <span class="arrow-up">▲</span></h4><p>إعلانات ممولة</p></div>
+            <div class="stat-item"><h4>104k+ <span class="arrow-up">▲</span></h4><p>مستخدم نشط</p></div>
+            <div class="stat-item"><h4><span id="today-posts">0</span> <span class="arrow-up">▲</span></h4><p>منشورات اليوم</p></div>
+            <div class="stat-item"><h4>نشط ✅</h4><p>حالة النظام</p></div>
         </div>
 
-        <div class="section-label">المنشورات الممولة</div>
-        <div id="featured-ads-area">
-            </div>
+        <div class="section-title">المنشورات الممولة (أعلى 5)</div>
+        <div id="ads-list"></div>
 
-        <div class="section-label">أحدث المنشورات</div>
-        <div id="latest-posts-area">
-            </div>
+        <div class="section-title">أحدث التحديثات</div>
+        <div id="posts-list"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="#" class="nav-item active"><span class="nav-icon">🏠</span>الرئيسية</a>
+        <a href="https://t.me/Gift_News" class="nav-item"><span class="nav-icon">📣</span>القناة</a>
+        <a href="#" id="ticker-link" class="nav-item"><span class="nav-icon">🔗</span>الرابط</a>
+        <a href="https://t.me/Y5_B_B" class="nav-item"><span class="nav-icon">🛠</span>الدعم</a>
     </div>
 
     <script>
         const dbUrl = "https://sarab-app-84448-default-rtdb.firebaseio.com";
 
-        async function syncUI() {
+        async function syncData() {
             try {
                 const res = await fetch(`${dbUrl}/.json`);
                 const data = await res.json();
                 
-                // 1. الشريط العلوي
+                // 1. الشريط العلوي ورابط القائمة
                 if(data.ticker) {
                     document.getElementById('ticker-text').innerText = data.ticker.text;
-                    document.getElementById('ticker-btn').href = data.ticker.link || "#";
+                    document.getElementById('ticker-link').href = data.ticker.link || "#";
                 }
 
-                // 2. المنشورات الممولة (المميزة)
-                const adsArea = document.getElementById('featured-ads-area');
+                // 2. معالجة الإعلانات (الأحدث أولاً + 5 فقط)
+                const adsList = document.getElementById('ads-list');
                 const adsData = data.active_ads || {};
-                const keys = Object.keys(adsData);
+                const keys = Object.keys(adsData).reverse(); // عكس القائمة لتصبح الأحدث فوق
+                
                 document.getElementById('ads-count').innerText = keys.length;
                 
                 let adsHTML = "";
-                keys.forEach(k => {
+                // عرض أول 5 فقط، والباقي لا يظهر (نظام انتظار تلقائي)
+                keys.slice(0, 5).forEach(k => {
                     const ad = adsData[k];
                     adsHTML += `
-                        <div class="featured-ad">
+                        <div class="ad-card">
                             <div class="ad-content">
                                 <span class="ad-title">${ad.title}</span>
-                                <div class="ad-meta">
-                                    <span>⏳ ينتهي: ${ad.end_at}</span>
-                                    <span>👁️ ${ad.views || 0}</span>
-                                </div>
+                                <div class="ad-timer">⌛ ينتهي: ${ad.end_at} | 👁️ ${ad.views || 0}</div>
                             </div>
-                            <a href="${ad.post_url}" class="btn-join">دخول 🔓</a>
+                            <a href="${ad.post_url}" class="btn-open">دخول 🔓</a>
                         </div>`;
                 });
-                adsArea.innerHTML = adsHTML || "<p style='text-align:center; opacity:0.3'>لا توجد إعلانات ممولة حالياً</p>";
+                adsList.innerHTML = adsHTML || "<p style='text-align:center; opacity:0.3; font-size:12px;'>لا توجد إعلانات ممولة حالياً</p>";
 
-                // 3. أحدث المنشورات
-                const postsArea = document.getElementById('latest-posts-area');
-                const posts = data.latest_posts || [];
-                document.getElementById('today-stats').innerText = posts.length + 5;
+                // 3. أحدث المنشورات (الأحدث فوق)
+                const postsList = document.getElementById('posts-list');
+                const posts = (data.latest_posts || []).reverse();
+                document.getElementById('today-posts').innerText = posts.length + 5;
                 
                 let postsHTML = "";
-                posts.reverse().slice(0, 7).forEach(p => {
+                posts.slice(0, 8).forEach(p => {
                     postsHTML += `
-                        <div class="recent-post">
-                            <span class="post-text">📄 ${p.text.substring(0, 30)}...</span>
-                            <a href="${p.url}" class="post-link">عرض التفاصيل</a>
+                        <div class="post-card">
+                            <span class="post-info">📄 ${p.text.substring(0, 30)}...</span>
+                            <a href="${p.url}" class="post-btn">فتح</a>
                         </div>`;
                 });
-                postsArea.innerHTML = postsHTML;
+                postsList.innerHTML = postsHTML;
 
-            } catch(e) { console.log("Updating..."); }
+            } catch(e) {}
         }
 
-        setInterval(syncUI, 3000);
-        syncUI();
+        setInterval(syncData, 3000);
+        syncData();
     </script>
 </body>
 </html>
