@@ -3,140 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب | VIP</title>
+    <title>روليت سراب | الإحصائيات</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --gold: #fbbf24; --primary: #8b5cf6; --bg: #030712; --card: #111827; --accent: #10b981; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: #f3f4f6; margin: 0; padding-bottom: 80px; overflow-x: hidden; }
+        :root { --main-purple: #8b5cf6; --neon-blue: #3b82f6; --dark-bg: #0f172a; --card-bg: #1e293b; }
+        body { font-family: 'Cairo', sans-serif; background: var(--dark-bg); color: white; margin: 0; padding-bottom: 90px; }
 
-        /* شريط علوي أنيق */
-        .top-nav { background: rgba(3, 7, 18, 0.9); backdrop-filter: blur(15px); position: fixed; top: 0; width: 100%; z-index: 2000; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .ticker-bar { background: linear-gradient(90deg, #6366f1, #a855f7); height: 35px; display: flex; align-items: center; }
-        .ticker-text { white-space: nowrap; animation: ticker 25s linear infinite; font-weight: bold; font-size: 13px; width: 100%; }
-        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        /* الشريط العلوي مع زر المشاهدة */
+        .header-strip { position: fixed; top: 0; width: 100%; height: 45px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); z-index: 2000; display: flex; align-items: center; border-bottom: 1px solid rgba(139, 92, 246, 0.3); }
+        .ticker-container { flex-grow: 1; overflow: hidden; background: linear-gradient(90deg, var(--main-purple), var(--neon-blue)); height: 100%; display: flex; align-items: center; }
+        .ticker-content { white-space: nowrap; animation: ticker-kf 20s linear infinite; font-weight: bold; font-size: 13px; }
+        @keyframes ticker-kf { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .watch-btn { background: #fff; color: #000; text-decoration: none; padding: 0 15px; height: 100%; display: flex; align-items: center; font-weight: 900; font-size: 12px; }
 
-        .container { padding: 60px 15px 20px; max-width: 500px; margin: 0 auto; }
-        
-        /* الهيدر */
-        .hero { text-align: center; margin-bottom: 25px; }
-        .main-logo { width: 85px; height: 85px; border-radius: 50%; border: 3px solid var(--gold); box-shadow: 0 0 25px rgba(251, 191, 36, 0.2); margin-bottom: 8px; }
+        .container { padding: 65px 15px 20px; max-width: 500px; margin: 0 auto; }
 
-        /* إحصائيات بأسهم */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
-        .stat-item { background: var(--card); padding: 12px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.03); position: relative; }
-        .stat-item h4 { margin: 0; font-size: 19px; color: var(--gold); display: flex; align-items: center; gap: 5px; }
-        .stat-item p { margin: 0; font-size: 10px; color: #94a3b8; }
-        .arrow-up { color: var(--accent); font-size: 12px; }
+        /* الشعار المتحرك */
+        .logo-wrap { text-align: center; margin-bottom: 30px; }
+        .logo-frame { width: 100px; height: 100px; border-radius: 50%; padding: 5px; background: linear-gradient(45deg, var(--main-purple), var(--neon-blue)); display: inline-block; animation: rotateFrame 4s linear infinite; }
+        .main-logo { width: 100%; height: 100%; border-radius: 50%; background: var(--dark-bg); object-fit: cover; }
+        @keyframes rotateFrame { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* القائمة السفلية (التنقل) */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #0f172a; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.1); z-index: 3000; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
-        .nav-item { color: #64748b; text-decoration: none; font-size: 11px; text-align: center; font-weight: bold; }
-        .nav-item.active { color: var(--gold); }
-        .nav-icon { display: block; font-size: 20px; margin-bottom: 2px; }
+        /* كروت الإحصائيات (مثل الصورة المرفقة) */
+        .stats-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--card-bg); padding: 20px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-card h2 { margin: 0; color: var(--main-purple); font-size: 28px; }
+        .stat-card p { margin: 5px 0 0; font-size: 11px; opacity: 0.7; }
 
-        /* المنشورات الممولة (الأحدث فوق) */
-        .section-title { font-weight: 900; font-size: 17px; color: var(--gold); margin: 25px 0 12px; border-right: 4px solid var(--gold); padding-right: 10px; }
-        .ad-card { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 14px; border-radius: 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(251, 191, 36, 0.15); transition: 0.3s; }
-        .ad-content { display: flex; flex-direction: column; gap: 3px; }
-        .ad-title { font-weight: bold; font-size: 14px; color: #fff; }
-        .ad-timer { font-size: 10px; color: var(--accent); font-weight: bold; }
-        .btn-open { background: var(--gold); color: #000; padding: 7px 18px; border-radius: 10px; text-decoration: none; font-weight: 800; font-size: 12px; }
+        /* شريط الرسم البياني */
+        .chart-box { background: var(--card-bg); padding: 15px; border-radius: 20px; margin-bottom: 25px; }
+        .chart-title { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 
-        /* أحدث المنشورات */
-        .post-card { background: rgba(255,255,255,0.03); padding: 12px 15px; border-radius: 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
-        .post-info { font-size: 13px; color: #cbd5e1; }
-        .post-btn { color: var(--primary); font-weight: bold; text-decoration: none; font-size: 12px; }
+        /* الأقسام (تبويبات) */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* الإعلانات الممولة (5 فقط) */
+        .ad-item { background: linear-gradient(90deg, #2e1065, #1e293b); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--main-purple); }
+        .ad-info b { font-size: 14px; display: block; }
+        .ad-info span { font-size: 10px; color: var(--neon-blue); }
+
+        /* القائمة السفلية */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #111827; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid rgba(259, 92, 246, 0.2); z-index: 3000; }
+        .nav-link { color: #64748b; text-decoration: none; font-size: 11px; text-align: center; cursor: pointer; }
+        .nav-link.active { color: var(--main-purple); }
+        .nav-link i { display: block; font-size: 22px; margin-bottom: 3px; }
     </style>
 </head>
 <body>
 
-    <div class="top-nav">
-        <div class="ticker-bar"><div class="ticker-text" id="ticker-text">...</div></div>
+    <div class="header-strip">
+        <div class="ticker-container">
+            <div class="ticker-content" id="ticker-text">🚀 جاري تحميل البيانات...</div>
+        </div>
+        <a href="#" id="ticker-url" class="watch-btn">عرض 👁️</a>
     </div>
 
     <div class="container">
-        <div class="hero">
-            <img src="https://files.catbox.moe/5s7y7a.png" class="main-logo">
-            <h2 style="margin:0; font-size: 22px;">روليت سراب <span style="color:var(--gold)">VIP</span></h2>
+        <div id="home-tab" class="tab-content active">
+            <div class="logo-wrap">
+                <div class="logo-frame">
+                    <img src="https://files.catbox.moe/5s7y7a.png" class="main-logo">
+                </div>
+                <h3 style="margin:10px 0 0;">روليت سراب <span style="color:var(--main-purple)">PRO</span></h3>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-card"><h2 id="total-users">104k</h2><p>👥 إجمالي المشاركين</p></div>
+                <div class="stat-card"><h2 id="ads-count-val">0</h2><p>🔥 سحب نشط</p></div>
+            </div>
+
+            <div class="chart-box">
+                <div class="chart-title">📈 نشاط السحوبات (آخر 7 أيام)</div>
+                <canvas id="myChart" height="150"></canvas>
+            </div>
+
+            <div style="color:var(--main-purple); font-weight:bold; margin-bottom:10px;">🏆 الأقوى (بالمشاركة)</div>
+            <div id="featured-ads"></div>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-item"><h4><span id="ads-count">0</span> <span class="arrow-up">▲</span></h4><p>إعلانات ممولة</p></div>
-            <div class="stat-item"><h4>104k+ <span class="arrow-up">▲</span></h4><p>مستخدم نشط</p></div>
-            <div class="stat-item"><h4><span id="today-posts">0</span> <span class="arrow-up">▲</span></h4><p>منشورات اليوم</p></div>
-            <div class="stat-item"><h4>نشط ✅</h4><p>حالة النظام</p></div>
+        <div id="posts-tab" class="tab-content">
+            <h3 style="color:var(--neon-blue)">📄 أحدث المنشورات</h3>
+            <div id="all-posts-list"></div>
         </div>
-
-        <div class="section-title">المنشورات الممولة (أعلى 5)</div>
-        <div id="ads-list"></div>
-
-        <div class="section-title">أحدث التحديثات</div>
-        <div id="posts-list"></div>
     </div>
 
     <div class="bottom-nav">
-        <a href="#" class="nav-item active"><span class="nav-icon">🏠</span>الرئيسية</a>
-        <a href="https://t.me/Gift_News" class="nav-item"><span class="nav-icon">📣</span>القناة</a>
-        <a href="#" id="ticker-link" class="nav-item"><span class="nav-icon">🔗</span>الرابط</a>
-        <a href="https://t.me/Y5_B_B" class="nav-item"><span class="nav-icon">🛠</span>الدعم</a>
+        <div class="nav-link active" onclick="showTab('home-tab', this)"><i>🏠</i>الرئيسية</div>
+        <div class="nav-link" onclick="showTab('posts-tab', this)"><i>📄</i>المنشورات</div>
+        <a href="https://t.me/Gift_News" class="nav-link"><i>📢</i>القناة</a>
     </div>
 
     <script>
         const dbUrl = "https://sarab-app-84448-default-rtdb.firebaseio.com";
 
-        async function syncData() {
+        function showTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            el.classList.add('active');
+        }
+
+        async function updateData() {
             try {
                 const res = await fetch(`${dbUrl}/.json`);
                 const data = await res.json();
                 
-                // 1. الشريط العلوي ورابط القائمة
+                // التيكر
                 if(data.ticker) {
                     document.getElementById('ticker-text').innerText = data.ticker.text;
-                    document.getElementById('ticker-link').href = data.ticker.link || "#";
+                    document.getElementById('ticker-url').href = data.ticker.link || "#";
                 }
 
-                // 2. معالجة الإعلانات (الأحدث أولاً + 5 فقط)
-                const adsList = document.getElementById('ads-list');
+                // المنشورات الممولة (الأحدث فوق + حد أقصى 5)
+                const adsArea = document.getElementById('featured-ads');
                 const adsData = data.active_ads || {};
-                const keys = Object.keys(adsData).reverse(); // عكس القائمة لتصبح الأحدث فوق
-                
-                document.getElementById('ads-count').innerText = keys.length;
-                
+                const keys = Object.keys(adsData).reverse();
+                document.getElementById('ads-count-val').innerText = keys.length;
+
                 let adsHTML = "";
-                // عرض أول 5 فقط، والباقي لا يظهر (نظام انتظار تلقائي)
                 keys.slice(0, 5).forEach(k => {
                     const ad = adsData[k];
                     adsHTML += `
-                        <div class="ad-card">
-                            <div class="ad-content">
-                                <span class="ad-title">${ad.title}</span>
-                                <div class="ad-timer">⌛ ينتهي: ${ad.end_at} | 👁️ ${ad.views || 0}</div>
+                        <div class="ad-item">
+                            <div class="ad-info">
+                                <b>${ad.title}</b>
+                                <span>⌛ ينتهي: ${ad.end_at}</span>
                             </div>
-                            <a href="${ad.post_url}" class="btn-open">دخول 🔓</a>
+                            <a href="${ad.post_url}" style="background:var(--main-purple); color:white; padding:5px 15px; border-radius:10px; text-decoration:none; font-size:12px;">عرض</a>
                         </div>`;
                 });
-                adsList.innerHTML = adsHTML || "<p style='text-align:center; opacity:0.3; font-size:12px;'>لا توجد إعلانات ممولة حالياً</p>";
+                adsArea.innerHTML = adsHTML;
 
-                // 3. أحدث المنشورات (الأحدث فوق)
-                const postsList = document.getElementById('posts-list');
-                const posts = (data.latest_posts || []).reverse();
-                document.getElementById('today-posts').innerText = posts.length + 5;
-                
+                // أحدث المنشورات
+                const postsList = document.getElementById('all-posts-list');
                 let postsHTML = "";
-                posts.slice(0, 8).forEach(p => {
-                    postsHTML += `
-                        <div class="post-card">
-                            <span class="post-info">📄 ${p.text.substring(0, 30)}...</span>
-                            <a href="${p.url}" class="post-btn">فتح</a>
-                        </div>`;
+                (data.latest_posts || []).reverse().forEach(p => {
+                    postsHTML += `<div class="ad-item" style="border-left-color:var(--neon-blue)"><b>${p.text.substring(0,30)}..</b><a href="${p.url}" style="color:var(--neon-blue); text-decoration:none">فتح</a></div>`;
                 });
                 postsList.innerHTML = postsHTML;
 
             } catch(e) {}
         }
 
-        setInterval(syncData, 3000);
-        syncData();
+        // رسم بياني محاكي للصورة
+        const ctx = document.getElementById('myChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['12-19', '12-21', '12-23', '12-25'],
+                datasets: [{
+                    label: 'عدد السحوبات',
+                    data: [2, 1, 17, 3],
+                    borderColor: '#8b5cf6',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)'
+                }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+        });
+
+        setInterval(updateData, 3000);
+        updateData();
     </script>
 </body>
 </html>
