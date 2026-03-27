@@ -3,157 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب | NEON VIP</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>روليت سراب | Pro UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
-        :root { --neon-purple: #a855f7; --neon-cyan: #22d3ee; --dark-bg: #07070b; --card-bg: #11111d; }
-        body { font-family: 'Cairo', sans-serif; background: var(--dark-bg); color: #e2e8f0; margin: 0; padding-bottom: 100px; overflow-x: hidden; }
+        :root { 
+            --main-neon: #00f2ff; --sub-neon: #7000ff; --dark-surface: #0a0b10; --card-bg: #161822; --text-gray: #94a3b8; 
+        }
+        body { font-family: 'Cairo', sans-serif; background: var(--dark-surface); color: #fff; margin: 0; padding-bottom: 110px; overflow-x: hidden; }
 
-        /* الشريط العلوي */
-        .top-header { position: fixed; top: 0; width: 100%; height: 45px; background: rgba(7, 7, 11, 0.9); backdrop-filter: blur(10px); z-index: 2000; display: flex; align-items: center; border-bottom: 1px solid rgba(168, 85, 247, 0.2); }
-        .ticker-wrap { flex-grow: 1; overflow: hidden; background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan)); height: 100%; display: flex; align-items: center; }
-        .ticker-move { white-space: nowrap; animation: ticker-kf 25s linear infinite; font-weight: 900; font-size: 13px; color: #000; }
+        /* شريط علوي أنيق */
+        .top-bar { position: fixed; top: 0; width: 100%; height: 50px; background: rgba(10, 11, 16, 0.85); backdrop-filter: blur(20px); z-index: 2000; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .news-ticker { flex-grow: 1; overflow: hidden; background: linear-gradient(90deg, var(--sub-neon), var(--main-neon)); height: 32px; display: flex; align-items: center; border-radius: 50px; margin: 0 10px; }
+        .ticker-inner { white-space: nowrap; animation: ticker-kf 25s linear infinite; font-weight: 800; font-size: 12px; color: #000; }
         @keyframes ticker-kf { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        .btn-top-view { background: #fff; color: #000; text-decoration: none; padding: 0 15px; height: 100%; display: flex; align-items: center; font-weight: 900; font-size: 11px; }
+        .btn-visit { background: #fff; color: #000; text-decoration: none; padding: 0 15px; height: 100%; display: flex; align-items: center; font-weight: 900; font-size: 11px; }
 
-        .container { padding: 65px 15px 20px; max-width: 500px; margin: 0 auto; }
+        .wrapper { padding: 75px 18px 20px; max-width: 480px; margin: 0 auto; }
 
-        /* الشعار النبضي */
-        .brand-box { text-align: center; margin-bottom: 30px; }
-        .logo-ring { 
-            width: 90px; height: 90px; border-radius: 50%; padding: 3px; 
-            background: linear-gradient(45deg, var(--neon-purple), var(--neon-cyan));
-            display: inline-block; animation: neon-pulse 2s ease-in-out infinite;
+        /* الشعار والأزرار الرئيسية */
+        .hero-header { text-align: center; margin-bottom: 25px; }
+        .main-logo-frame { 
+            width: 95px; height: 95px; border-radius: 50%; padding: 3px; 
+            background: linear-gradient(45deg, var(--main-neon), var(--sub-neon));
+            display: inline-block; animation: pulse-neon 2.5s infinite;
         }
-        @keyframes neon-pulse { 0%, 100% { box-shadow: 0 0 10px var(--neon-purple); transform: scale(1); } 50% { box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.03); } }
-        .logo-img { width: 100%; height: 100%; border-radius: 50%; background: var(--dark-bg); object-fit: cover; }
+        @keyframes pulse-neon { 0%, 100% { box-shadow: 0 0 15px rgba(0, 242, 255, 0.3); transform: scale(1); } 50% { box-shadow: 0 0 30px rgba(112, 0, 255, 0.5); transform: scale(1.05); } }
+        .logo-img { width: 100%; height: 100%; border-radius: 50%; background: #000; object-fit: cover; }
 
-        /* كروت الإحصائيات */
-        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
-        .stat-card { background: var(--card-bg); border: 1px solid rgba(255,255,255,0.05); padding: 18px; border-radius: 20px; text-align: center; }
-        .stat-card h2 { margin: 0; color: var(--neon-cyan); font-size: 26px; font-weight: 900; text-shadow: 0 0 10px rgba(34, 211, 238, 0.3); }
-        .stat-card p { margin: 3px 0 0; font-size: 11px; opacity: 0.6; }
-
-        /* الأزرار */
-        .btn-nav-main {
-            background: linear-gradient(135deg, var(--neon-purple), #6366f1);
-            color: white; border: none; width: 100%; padding: 14px; border-radius: 15px;
-            font-family: 'Cairo'; font-weight: 800; font-size: 15px; cursor: pointer; margin-bottom: 25px;
-            box-shadow: 0 5px 15px rgba(168, 85, 247, 0.3);
+        /* أزرار الإجراءات السريعة */
+        .action-btns { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+        .btn-primary { 
+            background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(0, 242, 255, 0.4);
+            color: var(--main-neon); padding: 14px; border-radius: 16px; font-weight: 800; font-size: 14px;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
+        .btn-primary:active { transform: scale(0.96); background: rgba(0, 242, 255, 0.1); }
+        .btn-archive-full { background: var(--sub-neon); color: #fff; border: none; box-shadow: 0 8px 20px rgba(112, 0, 255, 0.3); }
 
-        /* المنشورات */
-        .title-label { font-weight: 900; font-size: 16px; color: var(--neon-purple); margin-bottom: 12px; border-right: 4px solid var(--neon-purple); padding-right: 10px; }
-        .card-post { 
-            background: var(--card-bg); border: 1px solid rgba(255,255,255,0.03);
-            padding: 15px; border-radius: 20px; margin-bottom: 12px; 
+        /* شبكة الإحصائيات */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 30px; }
+        .stat-card { background: var(--card-bg); padding: 18px; border-radius: 20px; text-align: center; border-bottom: 3px solid rgba(255,255,255,0.05); }
+        .stat-card h2 { margin: 0; color: #fff; font-size: 24px; font-weight: 900; }
+        .stat-card p { margin: 2px 0 0; font-size: 11px; color: var(--text-gray); }
+
+        /* قوائم المنشورات */
+        .section-label { font-weight: 900; font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .section-label span { width: 12px; height: 12px; background: var(--main-neon); border-radius: 3px; box-shadow: 0 0 10px var(--main-neon); }
+
+        .list-container { display: flex; flex-direction: column; gap: 12px; }
+        .item-card { 
+            background: var(--card-bg); padding: 16px; border-radius: 22px; 
             display: flex; justify-content: space-between; align-items: center;
-            position: relative; transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.03); position: relative;
         }
-        .card-post:hover { border-color: var(--neon-purple); }
+        .item-content b { font-size: 14px; color: #f1f5f9; display: block; margin-bottom: 4px; }
+        .item-content span { font-size: 11px; color: var(--text-gray); display: flex; align-items: center; gap: 6px; }
+        .view-count { color: var(--main-neon); font-weight: 700; }
 
-        .p-info b { font-size: 14px; color: #fff; display: block; }
-        .p-info span { font-size: 10px; color: #84849a; margin-top: 3px; display: flex; gap: 8px; }
-        .views-tag { color: var(--neon-cyan); font-weight: 900; }
+        .btn-open { background: rgba(255,255,255,0.05); color: #fff; padding: 8px 18px; border-radius: 12px; text-decoration: none; font-size: 12px; font-weight: 700; border: 1px solid rgba(255,255,255,0.1); }
+        .more-dots { font-size: 22px; cursor: pointer; color: var(--text-gray); padding: 0 10px; }
 
-        .dot-btn { color: #4b5563; font-size: 22px; cursor: pointer; padding: 0 10px; }
-        .btn-go { background: #fff; color: #000; padding: 6px 15px; border-radius: 10px; text-decoration: none; font-size: 11px; font-weight: 900; }
-
-        /* قائمة الثلاث نقاط */
-        .pop-menu {
-            display: none; position: absolute; left: 50px; top: 45px; background: #1e1e2e; 
-            border: 1px solid var(--neon-purple); border-radius: 12px; z-index: 100; min-width: 110px;
+        /* القائمة المنسدلة */
+        .drop-list {
+            display: none; position: absolute; left: 50px; top: 50px; background: #1c1e29; 
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; z-index: 100; min-width: 120px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5); overflow: hidden;
         }
-        .pop-item { padding: 10px; font-size: 12px; cursor: pointer; color: #fff; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .drop-item { padding: 12px; font-size: 12px; cursor: pointer; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .drop-item:hover { background: var(--sub-neon); }
 
-        /* القائمة السفلية */
-        .bottom-bar { 
-            position: fixed; bottom: 0; width: 100%; background: #07070b; 
-            display: flex; justify-content: space-around; padding: 15px 0; 
-            border-top: 1px solid rgba(168, 85, 247, 0.1); z-index: 3000;
+        /* الناف بار السفلي */
+        .nav-dock { 
+            position: fixed; bottom: 20px; left: 20px; right: 20px; 
+            background: rgba(22, 24, 34, 0.95); backdrop-filter: blur(15px);
+            height: 65px; border-radius: 24px; display: flex; justify-content: space-around; 
+            align-items: center; border: 1px solid rgba(255,255,255,0.08); z-index: 3000;
         }
-        .nav-link { color: #4b5563; text-decoration: none; font-size: 11px; text-align: center; font-weight: bold; }
-        .nav-link.active { color: var(--neon-purple); }
-        .nav-link i { display: block; font-size: 22px; margin-bottom: 4px; }
+        .nav-act { color: #64748b; text-decoration: none; font-size: 11px; text-align: center; transition: 0.3s; }
+        .nav-act.active { color: var(--main-neon); transform: translateY(-5px); }
+        .nav-act i { display: block; font-size: 24px; margin-bottom: 2px; }
 
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .content-panel { display: none; }
+        .content-panel.active { display: block; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="top-header">
-        <div class="ticker-wrap"><div class="ticker-move" id="ticker-text">🚀 روليت سراب: جاري مزامنة البيانات...</div></div>
-        <a href="#" id="ticker-url" class="btn-top-view">عرض الرابط</a>
+    <div class="top-bar">
+        <div class="news-ticker"><div class="ticker-inner" id="ticker-text">🔥 روليت سراب: جاري المزامنة مع القناة الرئيسية...</div></div>
+        <a href="#" id="ticker-url" class="btn-visit">زيارة</a>
     </div>
 
-    <div class="container">
-        <div id="tab-home" class="tab-panel active">
-            <div class="brand-box">
-                <div class="logo-ring"><img src="https://files.catbox.moe/5s7y7a.png" class="logo-img"></div>
-                <h2 style="margin-top:10px; font-weight:900;">روليت سراب <span style="color:var(--neon-purple)">VIP</span></h2>
+    <div class="wrapper">
+        <div id="panel-home" class="content-panel active">
+            <div class="hero-header">
+                <div class="main-logo-frame"><img src="https://files.catbox.moe/5s7y7a.png" class="logo-img"></div>
+                <h2 style="margin:12px 0 0; font-weight:900; letter-spacing: -0.5px;">سراب <span style="color:var(--main-neon)">PRO</span></h2>
             </div>
 
-            <div class="stats-row">
-                <div class="stat-card"><h2>104k+</h2><p>مشارك نشط</p></div>
+            <div class="action-btns">
+                <button class="btn-primary" onclick="alert('سيتم عرض سحوباتك المشتركة قريباً')">🎟️ سحوباتي المشترك بها</button>
+                <button class="btn-primary btn-archive-full" onclick="showTab('panel-archive', 'nav-archive')">📂 الأرشيف الكامل للمنشورات</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card"><h2>104k+</h2><p>عضو نشط</p></div>
                 <div class="stat-card"><h2 id="ads-count">0</h2><p>إعلان ممول</p></div>
             </div>
 
-            <button class="btn-nav-main" onclick="openArchive()">📂 الأرشيف الكامل للمنشورات</button>
-
-            <div class="title-label">📢 منشورات ممولة</div>
-            <div id="ads-list"></div>
+            <div class="section-label"><span></span> منشورات ممولة</div>
+            <div id="ads-container" class="list-container"></div>
         </div>
 
-        <div id="tab-archive" class="tab-panel">
-            <div class="title-label">📑 أرشيف المنشورات (الأحدث فوق)</div>
-            <div id="posts-list"></div>
+        <div id="panel-archive" class="content-panel">
+            <div class="section-label"><span></span> أحدث المنشورات (تحديث تلقائي)</div>
+            <div id="posts-container" class="list-container"></div>
         </div>
     </div>
 
-    <div class="bottom-bar">
-        <div class="nav-link active" id="nav-home" onclick="switchTab('tab-home', this)"><i>🏠</i>الرئيسية</div>
-        <div class="nav-link" id="nav-archive" onclick="switchTab('tab-archive', this)"><i>📑</i>المنشورات</div>
-        <a href="https://t.me/Gift_News" class="nav-link"><i>📣</i>القناة</a>
-        <a href="https://t.me/ttsnn" class="nav-link"><i>📢</i>قناتنا</a>
+    <div class="nav-dock">
+        <div class="nav-act active" id="nav-home" onclick="showTab('panel-home', 'nav-home')"><i>🏠</i>الرئيسية</div>
+        <div class="nav-act" id="nav-archive" onclick="showTab('panel-archive', 'nav-archive')"><i>📑</i>المنشورات</div>
+        <a href="https://t.me/Gift_News" class="nav-act"><i>📣</i>القناة</a>
+        <a href="https://t.me/ttsnn" class="nav-act"><i>📢</i>قناتنا</a>
     </div>
 
     <script>
-        const dbURL = "https://sarab-app-84448-default-rtdb.firebaseio.com";
-        let lastDataHash = ""; 
+        const dbUrl = "https://sarab-app-84448-default-rtdb.firebaseio.com";
+        let cachedData = "";
 
-        function switchTab(id, el) {
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        function showTab(id, navId) {
+            document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-act').forEach(n => n.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            el.classList.add('active');
+            if(document.getElementById(navId)) document.getElementById(navId).classList.add('active');
+            window.scrollTo(0,0);
         }
-        function openArchive() { switchTab('tab-archive', document.getElementById('nav-archive')); }
-        function toggleMenu(idx) {
-            const m = document.getElementById('m-'+idx);
+
+        function toggleDrop(idx) {
+            const m = document.getElementById('drop-'+idx);
             const isVisible = m.style.display === 'block';
-            document.querySelectorAll('.pop-menu').forEach(menu => menu.style.display = 'none');
+            document.querySelectorAll('.drop-list').forEach(d => d.style.display = 'none');
             m.style.display = isVisible ? 'none' : 'block';
         }
 
-        async function refreshData() {
+        async function syncData() {
             try {
-                const res = await fetch(`${dbURL}/.json`);
+                const res = await fetch(`${dbUrl}/.json`);
                 const data = await res.json();
                 
-                // التأكد من وجود تغيير قبل إعادة بناء الصفحة (لمنع الرمشة)
-                const currentHash = JSON.stringify(data);
-                if (currentHash === lastDataHash) return;
-                lastDataHash = currentHash;
+                // منع التحديث المتكرر المزعج
+                if(JSON.stringify(data) === cachedData) return;
+                cachedData = JSON.stringify(data);
 
                 if(data.ticker) {
                     document.getElementById('ticker-text').innerText = data.ticker.text;
                     document.getElementById('ticker-url').href = data.ticker.link || "#";
                 }
 
-                // الإعلانات الممولة
-                const adsArea = document.getElementById('ads-list');
+                // تحديث الإعلانات
+                const adsBox = document.getElementById('ads-container');
                 const ads = data.active_ads || {};
                 const adKeys = Object.keys(ads).reverse();
                 document.getElementById('ads-count').innerText = adKeys.length;
@@ -161,37 +171,37 @@
                 let adsHTML = "";
                 adKeys.slice(0, 5).forEach(k => {
                     const ad = ads[k];
-                    adsHTML += `<div class="card-post">
-                        <div class="p-info"><b>${ad.title}</b><span><span class="views-tag">👁️ ${ad.views || 0}</span> | ينتهي: ${ad.end_at}</span></div>
-                        <a href="${ad.post_url}" class="btn-go">دخول</a>
+                    adsHTML += `<div class="item-card">
+                        <div class="item-content"><b>${ad.title}</b><span><b class="view-count">👁️ ${ad.views || 0}</b> • ينتهي: ${ad.end_at}</span></div>
+                        <a href="${ad.post_url}" class="btn-open">دخول</a>
                     </div>`;
                 });
-                adsArea.innerHTML = adsHTML || "<p style='text-align:center; opacity:0.2'>لا توجد إعلانات حالياً</p>";
+                adsBox.innerHTML = adsHTML || "<p style='text-align:center; opacity:0.3'>لا توجد إعلانات</p>";
 
-                // أرشيف المنشورات (الأحدث فوق)
-                const postsArea = document.getElementById('posts-list');
+                // تحديث الأرشيف (الأحدث فوق)
+                const postsBox = document.getElementById('posts-container');
                 let postsHTML = "";
                 (data.latest_posts || []).reverse().forEach((p, i) => {
-                    postsHTML += `<div class="card-post">
-                        <div class="p-info"><b>📄 ${p.text.substring(0,35)}...</b><span>تم النشر حديثاً</span></div>
+                    postsHTML += `<div class="item-card">
+                        <div class="item-content"><b>📄 ${p.text.substring(0,32)}...</b><span>منذ قليل</span></div>
                         <div style="display:flex; align-items:center;">
-                            <a href="${p.url}" class="btn-go" style="background:transparent; color:var(--neon-purple); border:1px solid var(--neon-purple)">فتح</a>
-                            <div class="dot-btn" onclick="toggleMenu(${i})">⋮</div>
-                            <div class="pop-menu" id="m-${i}">
-                                <div class="pop-item" onclick="alert('تم الإبلاغ')">⚠️ إبلاغ</div>
-                                <div class="pop-item" onclick="alert('منشور موثق برقم تسلسلي')">ℹ️ تفاصيل</div>
+                            <a href="${p.url}" class="btn-open" style="color:var(--main-neon); border-color:rgba(0,242,255,0.2)">فتح</a>
+                            <div class="more-dots" onclick="toggleDrop(${i})">⋮</div>
+                            <div class="drop-list" id="drop-${i}">
+                                <div class="drop-item" onclick="alert('تم الإبلاغ بنجاح')">⚠️ إبلاغ</div>
+                                <div class="drop-item" onclick="alert('كود المنشور: SAR-${Math.floor(Math.random()*9000)+1000}')">ℹ️ تفاصيل</div>
                             </div>
                         </div>
                     </div>`;
                 });
-                postsArea.innerHTML = postsHTML;
+                postsBox.innerHTML = postsHTML;
 
             } catch(e) {}
         }
 
-        document.addEventListener('click', (e) => { if(!e.target.classList.contains('dot-btn')) document.querySelectorAll('.pop-menu').forEach(m => m.style.display='none'); });
-        setInterval(refreshData, 3000);
-        refreshData();
+        document.addEventListener('click', (e) => { if(!e.target.classList.contains('more-dots')) document.querySelectorAll('.drop-list').forEach(m => m.style.display='none'); });
+        setInterval(syncData, 4000);
+        syncData();
     </script>
 </body>
 </html>
