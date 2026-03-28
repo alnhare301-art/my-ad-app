@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب | محرر الأزرار الملكي</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #000000; --card: #0a0a0a; --primary: #7C3AED; --gold: #D4AF37; --text: #E5E7EB; }
         body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; text-align: right; margin: 0; }
-        .editor-container { border: 1px solid var(--gold); border-radius: 15px; padding: 15px; background: var(--card); margin-top: 20px; }
+        .editor-container { border: 1px solid var(--gold); border-radius: 15px; padding: 15px; background: var(--card); margin-top: 10px; }
         .row-box { border-bottom: 1px solid #333; padding: 10px 0; margin-bottom: 10px; }
-        .btn-preview { display: inline-block; padding: 8px 12px; margin: 4px; border-radius: 6px; background: var(--primary); border: 1px solid var(--gold); font-size: 12px; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; background: #111; border: 1px solid var(--gold); color: #fff; border-radius: 8px; }
+        .btn-preview { display: inline-block; padding: 8px 12px; margin: 4px; border-radius: 6px; background: var(--primary); border: 1px solid var(--gold); font-size: 12px; color: white; }
+        input { width: 100%; padding: 10px; margin: 5px 0; background: #111; border: 1px solid var(--gold); color: #fff; border-radius: 8px; box-sizing: border-box; }
         .main-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .add-row { background: var(--primary); color: white; }
         .save-send { background: #10b981; color: white; border: 1px solid var(--gold); }
@@ -21,28 +20,17 @@
 </head>
 <body>
     <h3 style="text-align:center; color:var(--gold);">💎 منسق أزرار روليت سراب</h3>
-    
-    <div id="editor-area" class="editor-container">
-        <div id="rows-display"></div>
-        <button class="main-btn add-row" onclick="addRow()">➕ إضافة صف جديد</button>
-    </div>
-    
+    <div id="editor-area" class="editor-container"><div id="rows-display"></div></div>
+    <button class="main-btn add-row" onclick="addRow()">➕ إضافة صف جديد</button>
     <button class="main-btn save-send" onclick="submitToBot()">✅ اعتماد الأزرار والمتابعة</button>
 
-    <div id="btnModal" class="modal">
-        <div class="modal-content">
-            <h4 style="color:var(--gold)">إعدادات الزر</h4>
-            <input type="text" id="bText" placeholder="اسم الزر">
-            <input type="text" id="bVal" placeholder="الرابط أو الكود">
-            <select id="bColor">
-                <option value="purple">أرجواني (افتراضي)</option>
-                <option value="red">أحمر</option>
-                <option value="green">أخضر</option>
-            </select>
-            <button onclick="saveBtn()" style="background:#10b981; color:white; padding:10px; width:100%; border-radius:8px; border:none;">حفظ</button>
-            <button onclick="closeM()" style="background:#444; color:white; padding:10px; width:100%; border-radius:8px; border:none; margin-top:5px;">إلغاء</button>
-        </div>
-    </div>
+    <div id="btnModal" class="modal"><div class="modal-content">
+        <h4 style="color:var(--gold)">إعدادات الزر</h4>
+        <input type="text" id="bText" placeholder="اسم الزر">
+        <input type="text" id="bVal" placeholder="الرابط (https://...)">
+        <button onclick="saveBtn()" style="background:#10b981; color:white; padding:10px; width:100%; border-radius:8px; border:none;">حفظ</button>
+        <button onclick="closeM()" style="background:#444; color:white; padding:10px; width:100%; border-radius:8px; border:none; margin-top:5px;">إلغاء</button>
+    </div></div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -55,21 +43,13 @@
             rows.push({ id: id, buttons: [] });
             render();
         }
-
         function openM(id) { activeRowId = id; document.getElementById('btnModal').style.display = 'flex'; }
         function closeM() { document.getElementById('btnModal').style.display = 'none'; }
-
         function saveBtn() {
             const row = rows.find(r => r.id === activeRowId);
-            row.buttons.push({
-                text: document.getElementById('bText').value,
-                val: document.getElementById('bVal').value,
-                color: document.getElementById('bColor').value
-            });
-            closeM();
-            render();
+            row.buttons.push({ text: document.getElementById('bText').value, val: document.getElementById('bVal').value });
+            closeM(); render();
         }
-
         function render() {
             const cont = document.getElementById('rows-display');
             cont.innerHTML = rows.map(r => `
@@ -79,10 +59,10 @@
                 </div>
             `).join('');
         }
-
         function submitToBot() {
-            if(rows.length === 0) return alert("يرجى إضافة أزرار أولاً!");
+            if(rows.length === 0) return alert("يرجى إضافة أزرار!");
             tg.sendData(JSON.stringify(rows));
+            tg.close();
         }
     </script>
 </body>
