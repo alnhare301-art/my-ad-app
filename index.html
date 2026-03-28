@@ -3,25 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب | الملكية</title>
+    <title>روليت سراب | النظام الشامل</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #000000; --card: #0a0a0a; --primary: #7C3AED; --gold: #D4AF37; --text: #E5E7EB; }
         body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-top: 65px; padding-bottom: 80px; }
-        
-        /* الهيدر */
         header { position: fixed; top: 0; width: 100%; height: 60px; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 2px solid var(--gold); z-index: 2000; }
-        
-        /* كروت الإحصائيات والإعلانات */
         .stat-box { background: var(--card); border: 1px solid var(--gold); border-radius: 12px; padding: 10px; text-align: center; }
-        .item-card { background: var(--card); border: 1px solid var(--gold); border-right: 5px solid var(--primary); border-radius: 12px; padding: 12px; margin: 10px; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* نظام منسق الأزرار (يظهر فقط عند الطلب) */
         #editor-view { display: none; padding: 15px; }
-        .btn-preview { background: var(--primary); border: 1px solid var(--gold); color: white; padding: 8px; margin: 3px; border-radius: 6px; display: inline-block; font-size: 12px; }
-        
-        /* القائمة السفلية */
+        .editor-container { background: var(--card); border: 1px solid var(--gold); border-radius: 15px; padding: 15px; margin-top: 10px; }
+        .btn-preview { background: var(--primary); border: 1px solid var(--gold); color: white; padding: 8px; margin: 3px; border-radius: 6px; display: inline-block; font-size: 11px; }
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #000; border-top: 2px solid var(--gold); display: flex; justify-content: space-around; align-items: center; z-index: 2000; }
         .nav-item { color: #666; text-align: center; font-size: 11px; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
@@ -35,56 +27,56 @@
 
     <div id="home-view">
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 10px;">
-            <div class="stat-box"><b style="color:var(--primary)">104</b><p style="font-size:9px;margin:0">سحب</p></div>
-            <div class="stat-box"><b style="color:var(--primary)">24k</b><p style="font-size:9px;margin:0">مشارك</p></div>
+            <div class="stat-box"><b style="color:var(--primary)">104k</b><p style="font-size:9px;margin:0">مستخدم</p></div>
             <div class="stat-box"><b style="color:var(--primary)">1k</b><p style="font-size:9px;margin:0">فائز</p></div>
             <div class="stat-box"><b style="color:var(--primary)">99%</b><p style="font-size:9px;margin:0">موثوق</p></div>
+            <div class="stat-box"><b style="color:var(--primary)">24/7</b><p style="font-size:9px;margin:0">دعم</p></div>
         </div>
-        <h4 style="margin: 15px; color: var(--gold);">💎 سحوبات ممولة</h4>
-        <div id="ads-area">
-            <div class="item-card"><span>سحب على 1000 نجمة ⭐</span><button style="background:var(--primary);color:white;border:none;padding:5px 10px;border-radius:5px;">شارك</button></div>
-        </div>
+        <h4 style="margin: 15px; color: var(--gold);">📢 آخر الإعلانات الممولة</h4>
+        <div id="ads-area" style="padding: 0 10px;"></div>
     </div>
 
     <div id="editor-view">
-        <h3 style="color:var(--gold); text-align:center;">🎨 منسق الأزرار الملكي</h3>
-        <div id="rows-display" style="min-height: 100px; border: 1px dashed var(--gold); margin-bottom: 10px; padding: 10px;"></div>
-        <button onclick="addRow()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px; margin-bottom:5px;">➕ إضافة صف</button>
-        <button onclick="sendToBot()" style="width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:8px;">✅ اعتماد ونشر</button>
+        <h3 style="color:var(--gold); text-align:center;">🎨 منسق الأزرار</h3>
+        <div class="editor-container">
+            <div id="rows-display" style="min-height:50px; border: 1px dashed #333; margin-bottom:10px; padding:5px;"></div>
+            <input type="text" id="btnTxt" placeholder="اسم الزر" style="width:100%; padding:10px; margin-bottom:5px; background:#111; border:1px solid #444; color:white; border-radius:8px;">
+            <input type="text" id="btnUrl" placeholder="الرابط (https://...)" style="width:100%; padding:10px; margin-bottom:10px; background:#111; border:1px solid #444; color:white; border-radius:8px;">
+            <button onclick="addRow()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px;">➕ إضافة الزر</button>
+        </div>
+        <button onclick="sendToBot()" style="width:100%; padding:15px; background:#10b981; color:white; border:none; border-radius:10px; margin-top:15px; font-weight:bold;">✅ حفظ الأزرار وإرسال للبوت</button>
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-item active" onclick="showV('home')">🏠<br>الرئيسية</div>
-        <div class="nav-item" onclick="showV('editor')">🎨<br>المحرر</div>
+        <div id="nav-home" class="nav-item active" onclick="showV('home')">🏠<br>الرئيسية</div>
+        <div id="nav-editor" class="nav-item" onclick="showV('editor')">🎨<br>المحرر</div>
         <div class="nav-item">🎡<br>العجلة</div>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
         let rows = [];
-        
-        // التحقق إذا كان المستخدم دخل للمحرر أم للواجهة العامة
         if(window.location.search.includes('mode=editor')) { showV('editor'); }
 
         function showV(v) {
             document.getElementById('home-view').style.display = v === 'home' ? 'block' : 'none';
             document.getElementById('editor-view').style.display = v === 'editor' ? 'block' : 'none';
+            document.getElementById('nav-home').classList.toggle('active', v === 'home');
+            document.getElementById('nav-editor').classList.toggle('active', v === 'editor');
         }
 
         function addRow() {
-            const txt = prompt("أدخل نص الزر:");
-            const url = prompt("أدخل الرابط (https://...):");
-            if(txt && url) {
-                rows.push({ buttons: [{ text: txt, val: url }] });
-                render();
+            const t = document.getElementById('btnTxt').value;
+            const u = document.getElementById('btnUrl').value;
+            if(t && u) {
+                rows.push({ buttons: [{ text: t, val: u }] });
+                document.getElementById('rows-display').innerHTML += `<div><span class="btn-preview">${t}</span></div>`;
+                document.getElementById('btnTxt').value = ''; document.getElementById('btnUrl').value = '';
             }
         }
 
-        function render() {
-            document.getElementById('rows-display').innerHTML = rows.map(r => `<div>${r.buttons.map(b => `<span class="btn-preview">${b.text}</span>`).join('')}</div>`).join('');
-        }
-
         function sendToBot() {
+            if(rows.length === 0) return alert("أضف أزراراً أولاً");
             tg.sendData(JSON.stringify(rows));
             tg.close();
         }
