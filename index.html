@@ -5,82 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>روليت سراب | السلطة المطلقة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg: #0F172A; --card: #1E293B; --primary: #7C3AED;
             --success: #22C55E; --text: #E5E7EB; --text-dim: #94A3B8;
         }
-        * { box-sizing: border-box; transition: all 0.3s ease; }
+        * { box-sizing: border-box; transition: all 0.2s ease; }
         body {
             font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text);
-            margin: 0; padding-top: 70px; padding-bottom: 20px; line-height: 1.6;
+            margin: 0; padding-top: 70px; padding-bottom: 90px; line-height: 1.6;
         }
 
         /* 1. الهيدر الثابت */
         header {
-            position: fixed; top: 0; width: 100%; height: 65px; background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between;
+            position: fixed; top: 0; width: 100%; height: 60px; background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(15px); display: flex; align-items: center; justify-content: space-between;
             padding: 0 15px; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .logo-area { display: flex; align-items: center; gap: 10px; }
-        .logo-img-small { width: 35px; height: 35px; border-radius: 8px; border: 1px solid var(--primary); }
+        .logo-img-small { width: 35px; height: 35px; border-radius: 8px; }
         .user-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .user-avatar { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--primary); }
 
-        /* قائمة المستخدم المنبثقة */
-        .user-modal {
-            display: none; position: fixed; top: 75px; left: 15px; background: var(--card);
-            width: 280px; border-radius: 15px; padding: 20px; z-index: 1001;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid rgba(124, 58, 237, 0.3);
-        }
-        .user-modal h4 { margin: 0; color: var(--primary); }
-        .user-info-row { display: flex; justify-content: space-between; font-size: 13px; margin: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; }
-
-        /* 2. الشريط الإعلاني العلوي */
+        /* 2. الشريط الإعلاني المتحرك (Marquee Style) */
         .promo-banner {
             margin: 10px 15px; background: linear-gradient(90deg, var(--primary), #4c1d95);
-            border-radius: 12px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+            border-radius: 12px; height: 45px; display: flex; align-items: center;
             overflow: hidden; position: relative;
         }
-        .promo-text { font-weight: 700; font-size: 14px; animation: fadeEffect 3s infinite; }
-        .btn-enter { background: #fff; color: #000; padding: 6px 15px; border-radius: 8px; text-decoration: none; font-weight: 900; font-size: 12px; }
-        @keyframes fadeEffect { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .marquee-container { width: 100%; overflow: hidden; white-space: nowrap; }
+        .marquee-text {
+            display: inline-block; padding-left: 100%; animation: marquee-kf 15s linear infinite;
+            font-weight: 800; font-size: 13px; color: #fff;
+        }
+        @keyframes marquee-kf { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .btn-enter-inline { 
+            position: absolute; left: 5px; background: #fff; color: #000; 
+            padding: 4px 12px; border-radius: 8px; text-decoration: none; 
+            font-weight: 900; font-size: 11px; z-index: 5; box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+        }
 
-        /* 3. قسم الإحصائيات */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; }
-        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); text-align: center; }
-        .stat-card h3 { margin: 0; color: var(--primary); font-size: 22px; }
-        .stat-card p { margin: 0; font-size: 11px; color: var(--text-dim); }
-
-        /* 4. أزرار التحكم السريع */
-        .quick-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 0 15px 15px; }
-        .btn-act { background: var(--card); border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
-        .btn-act:hover { background: var(--primary); border-color: var(--primary); }
-
-        /* 5. قسم الإعلانات (الممولة) */
-        .section-title { padding: 0 15px; font-weight: 900; font-size: 16px; display: flex; align-items: center; gap: 8px; }
-        .section-title::before { content: ''; width: 4px; height: 18px; background: var(--primary); border-radius: 10px; }
-        
-        .ads-container { padding: 10px 15px; }
+        /* 3. كروت السحوبات (الأزرار في نفس السطر) */
         .ad-item { 
-            background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 12px;
-            border: 1px solid rgba(255,255,255,0.05); position: relative;
+            background: var(--card); border-radius: 15px; padding: 12px 15px; margin: 10px 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-right: 4px solid var(--primary); /* اللون الجانبي */
+            position: relative;
         }
-        .ad-featured { border: 1px solid var(--primary); box-shadow: 0 0 15px rgba(124, 58, 237, 0.2); }
-        .ad-featured::after { content: 'مميز'; position: absolute; top: -10px; left: 15px; background: var(--primary); font-size: 10px; padding: 2px 8px; border-radius: 5px; }
+        .ad-featured { border-right-color: #fbbf24; border-right-width: 6px; }
         
-        .ad-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .ad-title { font-weight: 800; font-size: 15px; display: block; }
-        .ad-meta { font-size: 11px; color: var(--text-dim); display: flex; gap: 10px; }
-        .btn-join { 
-            width: 100%; margin-top: 12px; padding: 10px; border-radius: 8px; border: none;
-            background: var(--primary); color: white; font-weight: 800; cursor: pointer;
-        }
-        .btn-success { background: var(--success) !important; }
+        .item-info { flex: 1; min-width: 0; }
+        .item-title { font-weight: 800; font-size: 14px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .item-meta { font-size: 10px; color: var(--text-dim); display: flex; gap: 8px; margin-top: 2px; }
 
-        /* 6. نافذة الإحصائيات (الرسم البياني) */
-        #chart-container { display: none; padding: 15px; background: var(--card); margin: 15px; border-radius: 15px; }
+        .btn-inline-action { 
+            background: var(--primary); color: white; border: none; 
+            padding: 8px 15px; border-radius: 10px; font-weight: 800; 
+            font-size: 11px; cursor: pointer; white-space: nowrap; margin-right: 10px;
+        }
+        .btn-success { background: var(--success); }
+
+        /* 4. الإحصائيات */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 10px 15px; }
+        .stat-box { background: var(--card); padding: 10px 5px; border-radius: 10px; text-align: center; }
+        .stat-box h4 { margin: 0; color: var(--primary); font-size: 16px; }
+        .stat-box p { margin: 0; font-size: 9px; color: var(--text-dim); }
+
+        /* 5. القائمة السفلية (Bottom Navigation) */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; height: 70px;
+            background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(15px);
+            display: flex; justify-content: space-around; align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000;
+            padding-bottom: 5px;
+        }
+        .nav-item { color: var(--text-dim); text-decoration: none; text-align: center; font-size: 10px; font-weight: 700; }
+        .nav-item i { display: block; font-size: 20px; margin-bottom: 4px; }
+        .nav-item.active { color: var(--primary); }
+
+        .section-label { padding: 10px 15px 5px; font-weight: 900; font-size: 14px; color: var(--primary); }
 
         .container { max-width: 500px; margin: 0 auto; }
     </style>
@@ -90,104 +93,58 @@
     <header>
         <div class="logo-area">
             <img src="https://files.catbox.moe/5s7y7a.png" class="logo-img-small">
-            <span style="font-weight: 900; font-size: 18px;">روليت سراب</span>
+            <span style="font-weight: 900;">روليت سراب</span>
         </div>
-        <div class="user-trigger" onclick="toggleUserModal()">
-            <span style="font-size: 18px;">🔔</span>
+        <div class="user-trigger">
             <img src="https://files.catbox.moe/5s7y7a.png" class="user-avatar">
         </div>
     </header>
 
-    <div id="userModal" class="user-modal">
-        <h4>ملف المستخدم</h4>
-        <div class="user-info-row"><span>الاسم:</span> <b id="u-name">المستخدم</b></div>
-        <div class="user-info-row"><span>ID الحساب:</span> <b id="u-id">#55012</b></div>
-        <div class="user-info-row"><span>مشاركات حالية:</span> <b>12</b></div>
-        <div class="user-info-row"><span>سحوبات شارك بها:</span> <b>142</b></div>
-        <div class="user-info-row"><span>سحوبات أنشأها:</span> <b>3</b></div>
-        <button class="btn-join" onclick="toggleUserModal()">إغلاق</button>
-    </div>
-
     <div class="container">
         <div class="promo-banner">
-            <div class="promo-text" id="promo-msg">🔥 فرصة الفوز بـ 5000 نجمة!</div>
-            <a href="#" id="promo-link" class="btn-enter">الدخول الآن</a>
-        </div>
-
-        <div class="quick-actions">
-            <button class="btn-act" onclick="toggleChart()">📊 الإحصائيات</button>
-            <button class="btn-act" onclick="toggleUserModal()">👤 ملفي</button>
-            <button class="btn-act" onclick="alert('سحوباتك المشترك بها قريباً')">🎁 سحوباتي</button>
-        </div>
-
-        <div id="chart-container">
-            <canvas id="activityChart"></canvas>
-            <div class="user-info-row" style="margin-top:10px"><span>سحوبات اليوم:</span> <b>+45</b></div>
-            <div class="user-info-row"><span>سحوبات الأسبوع:</span> <b>+312</b></div>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card"><h3>104</h3><p>سحوبات نشطة</p></div>
-            <div class="stat-card"><h3>24.5k</h3><p>إجمالي المشاركين</p></div>
-            <div class="stat-card"><h3>1.2k</h3><p>الفائزين</p></div>
-            <div class="stat-card"><h3>99%</h3><p>عمليات التحقق</p></div>
-        </div>
-
-        <div class="section-title">السحوبات الممولة</div>
-        <div id="ads-area" class="ads-container">
+            <div class="marquee-container">
+                <span class="marquee-text" id="promo-msg">تحميل البيانات... انتظر قليلاً...</span>
             </div>
+            <a href="#" id="promo-link" class="btn-enter-inline">دخول ⚡</a>
+        </div>
 
-        <div class="section-title">أحدث المنشورات</div>
-        <div id="posts-area" class="ads-container">
-            </div>
+        <div class="stats-row">
+            <div class="stat-box"><h4>104</h4><p>سحب</p></div>
+            <div class="stat-box"><h4>24k</h4><p>مشارك</p></div>
+            <div class="stat-box"><h4>1k</h4><p>فائز</p></div>
+            <div class="stat-box"><h4>99%</h4><p>ثقة</p></div>
+        </div>
 
+        <div class="section-label">💎 سحوبات ممولة</div>
+        <div id="ads-area"></div>
+
+        <div class="section-label">📄 أحدث السحوبات</div>
+        <div id="posts-area"></div>
     </div>
+
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active"><i>🏠</i>الرئيسية</a>
+        <a href="#" class="nav-item"><i>🎁</i>السحوبات</a>
+        <a href="https://t.me/Gift_News" class="nav-item"><i>📣</i>القناة</a>
+        <a href="https://t.me/ttsnn" class="nav-item"><i>📢</i>قناتنا</a>
+        <a href="#" class="nav-item"><i>👤</i>حسابي</a>
+    </nav>
 
     <script>
         const dbURL = "https://sarab-app-84448-default-rtdb.firebaseio.com";
         
-        function toggleUserModal() {
-            const m = document.getElementById('userModal');
-            m.style.display = m.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function toggleChart() {
-            const c = document.getElementById('chart-container');
-            c.style.display = c.style.display === 'block' ? 'none' : 'block';
-            if(c.style.display === 'block') initChart();
-        }
-
-        function initChart() {
-            const ctx = document.getElementById('activityChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
-                    datasets: [{
-                        label: 'نشاط السحوبات',
-                        data: [12, 19, 15, 25, 22, 30, 45],
-                        borderColor: '#7C3AED',
-                        tension: 0.4,
-                        fill: true,
-                        backgroundColor: 'rgba(124, 58, 237, 0.1)'
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } } }
-            });
-        }
-
         async function sync() {
             try {
                 const res = await fetch(`${dbURL}/.json`);
                 const data = await res.json();
 
-                // 1. الشريط الإعلاني
+                // تحديث الشريط المتحرك
                 if(data.ticker) {
                     document.getElementById('promo-msg').innerText = data.ticker.text;
                     document.getElementById('promo-link').href = data.ticker.link || "#";
                 }
 
-                // 2. السحوبات الممولة (5 عناصر)
+                // تحديث الإعلانات الممولة (الزر في نفس السطر)
                 const adsArea = document.getElementById('ads-area');
                 const ads = data.active_ads || {};
                 const adKeys = Object.keys(ads).reverse().slice(0, 5);
@@ -196,31 +153,32 @@
                     const ad = ads[k];
                     adsHTML += `
                         <div class="ad-item ${ad.featured ? 'ad-featured' : ''}">
-                            <div class="ad-header">
-                                <span class="ad-title">${ad.title}</span>
-                                <span style="color:var(--success)">★ ${ad.rating || '5.0'}</span>
+                            <div class="item-info">
+                                <span class="item-title">${ad.title}</span>
+                                <div class="item-meta">
+                                    <span>👥 ${ad.participants || 0}</span>
+                                    <span>⏳ ${ad.end_at}</span>
+                                </div>
                             </div>
-                            <div class="ad-meta">
-                                <span>👥 ${ad.participants || 0} مشارك</span>
-                                <span>⏳ ${ad.end_at}</span>
-                            </div>
-                            <button class="btn-join" onclick="window.location.href='${ad.post_url}'">المشاركة من القناة</button>
+                            <button class="btn-inline-action" onclick="window.location.href='${ad.post_url}'">شارك</button>
                         </div>`;
                 });
                 adsArea.innerHTML = adsHTML;
 
-                // 3. أحدث المنشورات (10 عناصر)
+                // تحديث أحدث المنشورات
                 const postsArea = document.getElementById('posts-area');
                 let postsHTML = "";
                 (data.latest_posts || []).reverse().slice(0, 10).forEach(p => {
                     postsHTML += `
-                        <div class="ad-item">
-                            <span class="ad-title">${p.text.substring(0,40)}...</span>
-                            <div class="ad-meta" style="margin-top:5px">
-                                <span>📅 ${new Date().toLocaleTimeString('ar-SA')}</span>
-                                <span class="views-tag">👁️ ${p.views || 0}</span>
+                        <div class="ad-item" style="border-right-color: var(--success)">
+                            <div class="item-info">
+                                <span class="item-title">${p.text.substring(0,35)}...</span>
+                                <div class="item-meta">
+                                    <span>🕒 الآن</span>
+                                    <span>👁️ ${p.views || 0}</span>
+                                </div>
                             </div>
-                            <button class="btn-join btn-success" onclick="window.location.href='${p.url}'">شارك في السحب</button>
+                            <button class="btn-inline-action btn-success" onclick="window.location.href='${p.url}'">دخول</button>
                         </div>`;
                 });
                 postsArea.innerHTML = postsHTML;
