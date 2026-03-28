@@ -3,52 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب VIP</title>
+    <title>تنسيق الأزرار الاحترافي</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #000; --card: #0a0a0a; --gold: #D4AF37; --primary: #7C3AED; }
-        body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; padding: 15px; text-align: right; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .box { background: var(--card); border: 1px solid var(--gold); padding: 15px; border-radius: 12px; text-align: center; }
-        #editor-ui { display: none; background: var(--card); border: 2px solid var(--gold); padding: 20px; border-radius: 15px; position: fixed; inset: 10px; z-index: 100; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #111; border: 1px solid #444; color: white; border-radius: 8px; }
-        .btn-send { background: #10b981; color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        :root { --bg: #000; --gold: #D4AF37; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; padding: 15px; text-align: right; }
+        .config-card { background: #0a0a0a; border: 1px solid var(--gold); padding: 15px; border-radius: 12px; }
+        select, input { width: 100%; padding: 12px; margin: 10px 0; background: #111; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
+        .save-btn { background: #10b981; color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="main-ui">
-        <h2 style="color:var(--gold); text-align:center;">💎 إحصائيات روليت سراب</h2>
-        <div class="stat-grid">
-            <div class="box"><b style="color:var(--primary)">104k</b><br>مستخدم</div>
-            <div class="box"><b style="color:var(--primary)">1.1k</b><br>فائز</div>
-        </div>
-        <div class="box" style="border-right: 5px solid var(--primary);">📢 الإعلان الممول: سحب الليلة على 10k نجمة!</div>
-    </div>
+    <div class="config-card">
+        <h3 style="color:var(--gold); text-align:center;">🎨 تنسيق الزر (API المطورين)</h3>
+        
+        <label>نص الزر:</label>
+        <input type="text" id="t" placeholder="مثال: اشترك في المسابقة">
 
-    <div id="editor-ui">
-        <h3 style="color:var(--gold)">🎨 منسق الأزرار</h3>
-        <label>نص الزر:</label><input type="text" id="t" placeholder="اشترك هنا">
-        <label>الرابط:</label><input type="text" id="u" placeholder="https://t.me/...">
-        <label>اللون:</label>
-        <select id="c">
-            <option value="🔹">أزرق</option>
-            <option value="🟣">أرجواني</option>
-            <option value="🔥">ناري</option>
+        <label>الرابط (URL):</label>
+        <input type="text" id="u" placeholder="https://t.me/...">
+
+        <label>نمط الزر (اللون/النوع):</label>
+        <select id="s">
+            <option value="default">الافتراضي (شفاف)</option>
+            <option value="premium">نمط مميز (Premium Style)</option>
+            <option value="star">نمط النجوم (Stars/Gold Style)</option>
         </select>
-        <button class="btn-send" onclick="save()">✅ حفظ وإرسال للبوت</button>
+
+        <button class="save-btn" onclick="submit()">✅ حفظ التنسيق وإرساله</button>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
-        // إذا الرابط يحتوي على mode=editor يفتح المحرر فوراً
-        if(window.location.search.includes('mode=editor')) {
-            document.getElementById('main-ui').style.display = 'none';
-            document.getElementById('editor-ui').style.display = 'block';
-        }
-        function save() {
-            const data = [{ buttons: [{ text: document.getElementById('t').value, val: document.getElementById('u').value, icon: document.getElementById('c').value }] }];
-            tg.sendData(json.stringify(data));
+        function submit() {
+            const data = [{
+                buttons: [{
+                    text: document.getElementById('t').value,
+                    url: document.getElementById('u').value,
+                    style: document.getElementById('s').value
+                }]
+            }];
+            tg.sendData(JSON.stringify(data));
             tg.close();
         }
     </script>
