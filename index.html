@@ -3,49 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تنسيق الأزرار الاحترافي</title>
+    <title>مؤسسة نبيل المصبحي للمقاولات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --bg: #000; --gold: #D4AF37; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; padding: 15px; text-align: right; }
-        .config-card { background: #0a0a0a; border: 1px solid var(--gold); padding: 15px; border-radius: 12px; }
-        select, input { width: 100%; padding: 12px; margin: 10px 0; background: #111; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
-        .save-btn { background: #10b981; color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        :root { --gold: #D4AF37; --bg: #0b0b0b; --card: #151515; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: #fff; margin: 0; padding-bottom: 50px; }
+        
+        /* الهيدر والترحيب */
+        header { padding: 40px 20px; text-align: center; background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://files.catbox.moe/pgisea.webp'); background-size: cover; border-bottom: 3px solid var(--gold); }
+        header h1 { color: var(--gold); margin: 0; font-size: 24px; font-weight: 900; }
+        header p { font-size: 14px; margin-top: 10px; color: #ccc; }
+
+        /* قسم أعمالنا */
+        .section-title { padding: 20px; color: var(--gold); border-right: 4px solid var(--gold); margin: 20px; background: var(--card); font-weight: bold; }
+        .gallery { display: grid; grid-template-columns: 1fr; gap: 15px; padding: 0 20px; }
+        .work-card { background: var(--card); border-radius: 15px; overflow: hidden; border: 1px solid #333; }
+        .work-card img { width: 100%; height: auto; display: block; transition: 0.3s; }
+        .work-card:hover img { transform: scale(1.05); }
+
+        /* قسم التواصل */
+        .contact-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 20px; }
+        .contact-item { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; text-decoration: none; color: #fff; border: 1px solid #222; transition: 0.3s; }
+        .contact-item i { font-size: 24px; margin-bottom: 8px; display: block; }
+        .contact-item:hover { border-color: var(--gold); background: #1a1a1a; }
+        
+        /* ألوان التواصل */
+        .whatsapp { color: #25D366; }
+        .tiktok { color: #fff; }
+        .snapchat { color: #FFFC00; }
+        .youtube { color: #FF0000; }
+
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
     </style>
 </head>
 <body>
-    <div class="config-card">
-        <h3 style="color:var(--gold); text-align:center;">🎨 تنسيق الزر (API المطورين)</h3>
+
+    <header>
+        <h1>مؤسسة نبيل المصبحي</h1>
+        <p>للمقاولات العامة وأعمال الديكور</p>
+    </header>
+
+    <div class="section-title">🖼️ من أعمالنا</div>
+    <div class="gallery">
+        <div class="work-card">
+            <img src="https://files.catbox.moe/pgisea.webp" alt="عمل 1">
+        </div>
+        <div class="work-card">
+            <img src="https://files.catbox.moe/yp7l4u.webp" alt="عمل 2">
+        </div>
+        <div class="work-card">
+            <img src="https://files.catbox.moe/xm6xv8.webp" alt="عمل 3">
+        </div>
+    </div>
+
+    <div class="section-title">📞 تواصل معنا</div>
+    <div class="contact-grid">
+        <a href="https://wa.me/966555419231" class="contact-item">
+            <i class="fab fa-whatsapp whatsapp"></i>
+            <span>واتساب</span>
+        </a>
         
-        <label>نص الزر:</label>
-        <input type="text" id="t" placeholder="مثال: اشترك في المسابقة">
+        <a href="https://www.tiktok.com/@pye1t" class="contact-item">
+            <i class="fab fa-tiktok tiktok"></i>
+            <span>تيك توك</span>
+        </a>
 
-        <label>الرابط (URL):</label>
-        <input type="text" id="u" placeholder="https://t.me/...">
+        <a href="https://www.snapchat.com/add/nab1g" class="contact-item">
+            <i class="fab fa-snapchat-ghost snapchat"></i>
+            <span>سناب شات</span>
+        </a>
 
-        <label>نمط الزر (اللون/النوع):</label>
-        <select id="s">
-            <option value="default">الافتراضي (شفاف)</option>
-            <option value="premium">نمط مميز (Premium Style)</option>
-            <option value="star">نمط النجوم (Stars/Gold Style)</option>
-        </select>
+        <a href="#" class="contact-item">
+            <i class="fab fa-youtube youtube"></i>
+            <span>يوتيوب</span>
+        </a>
+    </div>
 
-        <button class="save-btn" onclick="submit()">✅ حفظ التنسيق وإرساله</button>
+    <div class="footer">
+        © جميع الحقوق محفوظة لمؤسسة نبيل المصبحي 2026
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        function submit() {
-            const data = [{
-                buttons: [{
-                    text: document.getElementById('t').value,
-                    url: document.getElementById('u').value,
-                    style: document.getElementById('s').value
-                }]
-            }];
-            tg.sendData(JSON.stringify(data));
-            tg.close();
-        }
+        tg.expand();
+        tg.ready();
     </script>
 </body>
 </html>
