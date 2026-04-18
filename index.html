@@ -8,170 +8,97 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --gold: #FFD700; --bg: #000000; --card-bg: #111111; --text: #ffffff; }
+        :root { --gold: #D4AF37; --bg: #000; --card: #121212; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { background: var(--bg); color: var(--text); line-height: 1.6; padding-bottom: 100px; }
+        body { background: var(--bg); color: #fff; padding-bottom: 90px; }
 
-        /* شريط متحرك علوي */
-        .marquee { background: var(--gold); color: #000; padding: 10px 0; font-weight: 900; overflow: hidden; white-space: nowrap; position: sticky; top: 0; z-index: 9999; }
-        .marquee-inner { display: inline-block; animation: marquee 15s linear infinite; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        /* ترويسة ثابتة */
+        .header-fixed { position: sticky; top: 0; background: var(--bg); border-bottom: 2px solid var(--gold); z-index: 1000; padding: 15px; text-align: center; }
+        .header-fixed h1 { color: var(--gold); font-size: 20px; }
 
-        /* ترويسة الموقع */
-        header { padding: 40px 20px; text-align: center; border-bottom: 4px solid var(--gold); background: #050505; }
-        header h1 { color: var(--gold); font-size: 28px; margin-bottom: 10px; }
-
-        /* روابط التواصل السريعة */
-        .quick-contact { display: flex; justify-content: center; gap: 20px; padding: 15px; background: #0a0a0a; border-bottom: 1px solid #333; }
-        .quick-contact a { color: var(--gold); font-size: 24px; text-decoration: none; }
+        /* حل مشكلة الصور: حاوية تضمن الأبعاد */
+        .img-container { width: 100%; background: #222; min-height: 200px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .img-container img { width: 100%; height: auto; display: block; object-fit: cover; }
 
         /* الأقسام */
-        .page { display: none; padding: 20px; animation: fadeIn 0.5s ease; }
-        .page.active { display: block; }
+        .content-sec { display: none; padding: 15px; animation: fadeIn 0.3s ease-in; }
+        .content-sec.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* البطاقات */
-        .section-title { color: var(--gold); font-size: 22px; margin-bottom: 20px; border-right: 5px solid var(--gold); padding-right: 15px; }
-        .card { background: var(--card-bg); border-radius: 15px; border: 1px solid #222; margin-bottom: 20px; overflow: hidden; }
-        .card img { width: 100%; height: auto; border-bottom: 2px solid var(--gold); }
-        .card-body { padding: 20px; }
-        .card-body h3 { color: var(--gold); margin-bottom: 10px; }
+        /* بطاقات الأعمال */
+        .post-card { background: var(--card); border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; overflow: hidden; }
+        .post-info { padding: 12px; border-top: 1px solid var(--gold); }
 
-        /* شبكة التواصل */
-        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .contact-btn { background: #1a1a1a; padding: 25px 10px; border-radius: 15px; text-align: center; text-decoration: none; border: 1px solid #333; transition: 0.3s; }
-        .contact-btn i { font-size: 35px; display: block; margin-bottom: 10px; }
-        .contact-btn span { color: #fff; font-weight: bold; }
-        .btn-wa { color: #25D366; } .btn-sn { color: #FFFC00; } .btn-tk { color: #fff; }
-
-        /* لوحة الإدارة */
-        .admin-box { background: #000; border: 2px dashed var(--gold); padding: 20px; border-radius: 15px; margin-bottom: 30px; }
-        .admin-box input, .admin-box textarea { width: 100%; padding: 12px; margin-bottom: 10px; background: #111; border: 1px solid #444; color: #fff; border-radius: 8px; }
-        .admin-box button { background: var(--gold); color: #000; width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; }
+        /* أزرار التواصل - واضحة جداً */
+        .contact-list { display: flex; flex-direction: column; gap: 12px; }
+        .contact-link { display: flex; align-items: center; padding: 15px; background: #1a1a1a; border-radius: 10px; text-decoration: none; color: #fff; border: 1px solid #444; }
+        .contact-link i { font-size: 24px; margin-left: 15px; width: 30px; }
+        .c-wa { color: #25D366; } .c-sn { color: #FFFC00; } .c-tk { color: #fff; }
 
         /* شريط التنقل السفلي */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 80px; background: #000; border-top: 3px solid var(--gold); display: flex; justify-content: space-around; align-items: center; z-index: 9999; }
-        .nav-item { color: #888; text-align: center; font-size: 12px; cursor: pointer; flex: 1; text-decoration: none; }
-        .nav-item.active { color: var(--gold); }
-        .nav-item i { font-size: 24px; display: block; margin-bottom: 5px; }
+        .nav-tab { position: fixed; bottom: 0; width: 100%; background: #080808; border-top: 2px solid var(--gold); display: flex; height: 75px; z-index: 2000; }
+        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #666; font-size: 11px; cursor: pointer; }
+        .tab-item.active { color: var(--gold); }
+        .tab-item i { font-size: 20px; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
-    <div class="marquee">
-        <div class="marquee-inner">✨ مؤسسة نبيل المصبحي للمقاولات العامة وأعمال الديكور ✨ دقة في التنفيذ وفخامة في التصميم ✨ تواصل معنا الآن ✨</div>
-    </div>
-
-    <header>
+    <div class="header-fixed">
         <h1>مؤسسة نبيل المصبحي</h1>
-        <p style="color: #888;">للمقاولات العامة والديكور والزجاج والحديد</p>
-    </header>
-
-    <div class="quick-contact">
-        <a href="https://wa.me/966555419231"><i class="fab fa-whatsapp"></i></a>
-        <a href="https://www.snapchat.com/add/nab1g"><i class="fab fa-snapchat"></i></a>
-        <a href="https://www.tiktok.com/@pye1t"><i class="fab fa-tiktok"></i></a>
     </div>
 
-    <div id="home" class="page active">
-        <h2 class="section-title">🏠 من نحن</h2>
-        <div class="card">
-            <img src="https://files.catbox.moe/pgisea.webp">
-            <div class="card-body">
-                <h3>أهلاً بكم في مؤسستنا</h3>
-                <p>نحن متخصصون في تنفيذ أرقى الديكورات المنزلية والواجهات الزجاجية والأعمال الحديدية والمقاولات العامة.</p>
+    <div id="home" class="content-sec active">
+        <div class="post-card">
+            <div class="img-container">
+                <img src="https://files.catbox.moe/pgisea.webp" onerror="this.src='https://via.placeholder.com/400x300?text=جاري+تحميل+الصورة'">
+            </div>
+            <div class="post-info">
+                <h3>مرحباً بكم</h3>
+                <p>مؤسسة نبيل المصبحي للمقاولات وأعمال الديكور - الرياض.</p>
             </div>
         </div>
     </div>
 
-    <div id="today" class="page">
-        <h2 class="section-title">📸 أعمال اليوم</h2>
-        
-        <div id="admin-panel" style="display:none;" class="admin-box">
-            <h3 style="color:var(--gold); margin-bottom:15px;">إضافة عمل جديد (للمالك)</h3>
-            <input type="text" id="pImg" placeholder="رابط الصورة المباشر">
-            <textarea id="pTxt" placeholder="وصف العمل..."></textarea>
-            <button onclick="addPost()">نشر في الموقع</button>
+    <div id="works" class="content-sec">
+        <h2 style="color:var(--gold); margin-bottom:15px;">🖼️ معرض الأعمال</h2>
+        <div class="post-card">
+            <div class="img-container"><img src="https://files.catbox.moe/xm6xv8.webp" onerror="this.src='https://via.placeholder.com/400x300?text=الصورة+تحت+المعالجة'"></div>
+            <div class="post-info"><p>تنفيذ ديكورات جبسية حديثة مع إنارة مخفية.</p></div>
         </div>
-
-        <div id="feed">
-            <div class="card">
-                <img src="https://files.catbox.moe/xm6xv8.webp">
-                <div class="card-body"><p>تنفيذ أعمال الديكور الداخلي والإنارة المخفية.</p></div>
-            </div>
+        <div class="post-card">
+            <div class="img-container"><img src="https://files.catbox.moe/yp7l4u.webp"></div>
+            <div class="post-info"><p>تركيب واجهات زجاجية (سترکشر) بأعلى جودة.</p></div>
         </div>
     </div>
 
-    <div id="glass" class="page">
-        <h2 class="section-title">💎 قسم الزجاج</h2>
-        <div class="card"><img src="https://files.catbox.moe/yp7l4u.webp"></div>
-        <div class="card"><img src="https://files.catbox.moe/pgisea.webp"></div>
-    </div>
-
-    <div id="iron" class="page">
-        <h2 class="section-title">🛠️ قسم الحديد</h2>
-        <div style="text-align:center; padding:50px 20px;">
-            <i class="fas fa-hammer" style="font-size:50px; color:var(--gold); margin-bottom:20px;"></i>
-            <h3>سيفتح قريباً</h3>
-            <p style="color:#666;">انتظرونا لعرض أفضل أعمال الحديد والمظلات والساتر.</p>
+    <div id="contact" class="content-sec">
+        <h2 style="color:var(--gold); margin-bottom:15px;">📞 تواصل معنا</h2>
+        <div class="contact-list">
+            <a href="https://wa.me/966555419231" class="contact-link"><i class="fab fa-whatsapp c-wa"></i> واتساب المؤسسة</a>
+            <a href="https://www.snapchat.com/add/nab1g" class="contact-link"><i class="fab fa-snapchat-ghost c-sn"></i> سناب شات</a>
+            <a href="https://www.tiktok.com/@pye1t" class="contact-link"><i class="fab fa-tiktok c-tk"></i> تيك توك</a>
+            <a href="tel:966555419231" class="contact-link"><i class="fas fa-phone-alt"></i> إتصال مباشر</a>
         </div>
     </div>
 
-    <div id="contact" class="page">
-        <h2 class="section-title">📞 تواصل معنا مباشرة</h2>
-        <div class="contact-grid">
-            <a href="https://wa.me/966555419231" class="contact-btn">
-                <i class="fab fa-whatsapp btn-wa"></i>
-                <span>واتساب</span>
-            </a>
-            <a href="https://www.snapchat.com/add/nab1g" class="contact-btn">
-                <i class="fab fa-snapchat-ghost btn-sn"></i>
-                <span>سناب شات</span>
-            </a>
-            <a href="https://www.tiktok.com/@pye1t" class="contact-btn">
-                <i class="fab fa-tiktok btn-tk"></i>
-                <span>تيك توك</span>
-            </a>
-            <a href="https://wa.me/966555419231" class="contact-btn">
-                <i class="fas fa-phone-alt" style="color:#10b981"></i>
-                <span>إتصال</span>
-            </a>
-        </div>
-    </div>
-
-    <nav class="nav-bar">
-        <div class="nav-item active" onclick="nav('home', this)"><i class="fas fa-home"></i>الرئيسية</div>
-        <div class="nav-item" onclick="nav('today', this)"><i class="fas fa-camera"></i>أعمال اليوم</div>
-        <div class="nav-item" onclick="nav('glass', this)"><i class="fas fa-gem"></i>الزجاج</div>
-        <div class="nav-item" onclick="nav('iron', this)"><i class="fas fa-hammer"></i>الحديد</div>
-        <div class="nav-item" onclick="nav('contact', this)"><i class="fas fa-address-book"></i>التواصل</div>
+    <nav class="nav-tab">
+        <div class="tab-item active" onclick="showPage('home', this)"><i class="fas fa-home"></i>الرئيسية</div>
+        <div class="tab-item" onclick="showPage('works', this)"><i class="fas fa-th-large"></i>أعمالنا</div>
+        <div class="tab-item" onclick="showPage('contact', this)"><i class="fas fa-phone"></i>التواصل</div>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.ready();
 
-        // تفعيل لوحة الإدارة للمالك
-        if (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id === 7660779461) {
-            document.getElementById('admin-panel').style.display = 'block';
-        }
-
-        function nav(p, el) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById(p).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        function showPage(id, el) {
+            document.querySelectorAll('.content-sec').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
-            window.scrollTo(0,0);
-        }
-
-        function addPost() {
-            const img = document.getElementById('pImg').value;
-            const txt = document.getElementById('pTxt').value;
-            if(!img) return alert("يرجى وضع رابط الصورة");
-            const card = `<div class="card"><img src="${img}"><div class="card-body"><p>${txt}</p></div></div>`;
-            document.getElementById('feed').insertAdjacentHTML('afterbegin', card);
-            document.getElementById('pImg').value = ""; document.getElementById('pTxt').value = "";
-            alert("تم تحديث أعمال اليوم بنجاح!");
+            window.scrollTo(0, 0);
         }
     </script>
 </body>
