@@ -3,192 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مؤسسة نبيل المصبحي للمقاولات</title>
+    <title>مؤسسة نبيل المصبحي</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { 
-            --gold: #D4AF37; 
-            --bg: #0b0b0b; 
-            --card: #151515; 
-            --text: #ffffff;
-        }
-        
+        :root { --gold: #D4AF37; --bg: #0b0b0b; --card: #151515; }
         * { box-sizing: border-box; }
-        
-        body { 
-            font-family: 'Cairo', sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            margin: 0; 
-            padding-bottom: 80px; /* مساحة لشريط التنقل */
-            overflow-x: hidden;
-        }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: #fff; margin: 0; padding-bottom: 80px; }
 
-        /* شريط ترحيبي متحرك */
-        .marquee-container {
-            background: var(--gold);
-            color: #000;
-            padding: 8px 0;
-            font-weight: bold;
-            overflow: hidden;
-            white-space: nowrap;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        
-        .marquee-text {
-            display: inline-block;
-            padding-left: 100%;
-            animation: marquee 20s linear infinite;
-        }
-        
-        @keyframes marquee {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(-100%, 0); }
-        }
-
-        /* الهيدر */
-        header { 
-            padding: 50px 20px; 
-            text-align: center; 
-            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://files.catbox.moe/pgisea.webp'); 
-            background-size: cover; 
-            background-position: center;
-            border-bottom: 2px solid var(--gold); 
-        }
-        
-        header h1 { color: var(--gold); margin: 0; font-size: 26px; font-weight: 900; text-shadow: 2px 2px 4px #000; }
-        header p { font-size: 15px; margin-top: 10px; color: #ddd; }
+        /* شريط ترحيبي */
+        .marquee-container { background: var(--gold); color: #000; padding: 8px 0; font-weight: bold; overflow: hidden; white-space: nowrap; position: sticky; top: 0; z-index: 1000; }
+        .marquee-text { display: inline-block; animation: marquee 20s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
         /* الأقسام */
         .section { padding: 20px; display: none; }
         .section.active { display: block; animation: fadeIn 0.4s ease; }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .section-header { 
-            color: var(--gold); 
-            border-right: 4px solid var(--gold); 
-            padding-right: 15px; 
-            margin-bottom: 25px; 
-            font-size: 20px; 
-            font-weight: bold;
-        }
+        .work-card { background: var(--card); border-radius: 15px; overflow: hidden; border: 1px solid #333; margin-bottom: 20px; }
+        .work-card img { width: 100%; height: auto; display: block; min-height: 200px; background: #222; }
+        .card-content { padding: 15px; }
 
-        /* معرض الصور */
-        .gallery { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        .work-card { 
-            background: var(--card); 
-            border-radius: 15px; 
-            overflow: hidden; 
-            border: 1px solid #333; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        .work-card img { width: 100%; height: auto; display: block; }
-
-        /* أزرار التواصل */
-        .contact-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .contact-item { 
-            background: var(--card); padding: 20px; border-radius: 15px; 
-            text-align: center; text-decoration: none; color: #fff; border: 1px solid #222; 
-        }
-        .contact-item i { font-size: 28px; margin-bottom: 10px; display: block; }
-        .whatsapp { color: #25D366; }
-        .tiktok { color: #fff; }
-        .snapchat { color: #FFFC00; }
-
-        /* شريط التنقل السفلي */
-        .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; height: 70px;
-            background: #050505; border-top: 2px solid var(--gold);
-            display: flex; justify-content: space-around; align-items: center; z-index: 2000;
-        }
-        .nav-btn { color: #777; text-align: center; font-size: 12px; cursor: pointer; flex: 1; }
+        /* أزرار التنقل */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #050505; border-top: 2px solid var(--gold); display: flex; z-index: 2000; }
+        .nav-btn { color: #777; text-align: center; font-size: 11px; cursor: pointer; flex: 1; padding-top: 15px; }
         .nav-btn.active { color: var(--gold); }
         .nav-btn i { font-size: 20px; display: block; margin-bottom: 4px; }
 
-        /* قسم قريباً */
-        .soon { text-align: center; padding: 60px 20px; color: #888; }
-        .soon i { font-size: 50px; color: var(--gold); margin-bottom: 15px; }
+        /* نموذج إضافة منشور جديد */
+        .admin-box { background: #1a1a1a; padding: 15px; border-radius: 12px; border: 1px dashed var(--gold); margin-bottom: 20px; }
+        input, textarea { width: 100%; padding: 10px; margin: 5px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 8px; }
+        .add-btn { background: var(--gold); color: #000; border: none; width: 100%; padding: 10px; border-radius: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="marquee-container">
-        <div class="marquee-text">
-            ✨ مرحباً بكم في مؤسسة نبيل المصبحي للمقاولات العامة وأعمال الديكور.. فخامة التصميم ودقة التنفيذ ✨ متخصصون في الزجاج والحديد والمقاولات العامة ✨
+        <div class="marquee-text">✨ مرحباً بكم في مؤسسة نبيل المصبحي للمقاولات العامة وأعمال الديكور ✨</div>
+    </div>
+
+    <div id="home-sec" class="section active">
+        <h2 style="color:var(--gold)">🏠 الرئيسية</h2>
+        <div class="work-card">
+            <img src="https://files.catbox.moe/pgisea.webp" loading="lazy">
+            <div class="card-content">مؤسسة نبيل المصبحي للمقاولات - خبرة وإتقان.</div>
         </div>
     </div>
 
-    <header id="main-header">
-        <h1>مؤسسة نبيل المصبحي</h1>
-        <p>الرائدون في عالم المقاولات والديكور</p>
-    </header>
+    <div id="today-sec" class="section">
+        <h2 style="color:var(--gold)">📸 أعمال اليوم</h2>
+        
+        <div id="admin-ui" style="display:none;" class="admin-box">
+            <h4>➕ إضافة عمل جديد</h4>
+            <input type="text" id="postImg" placeholder="رابط الصورة">
+            <textarea id="postDesc" placeholder="وصف العمل..."></textarea>
+            <button class="add-btn" onclick="addNewPost()">نشر في أعمال اليوم</button>
+        </div>
 
-    <div id="home-sec" class="section active">
-        <div class="section-header">🏠 الرئيسية</div>
-        <div class="work-card">
-            <img src="https://files.catbox.moe/pgisea.webp">
-            <div style="padding:15px; line-height: 1.6;">
-                نحن في مؤسسة نبيل المصبحي نلتزم بتقديم أرقى خدمات المقاولات والديكور، مع التركيز على الجودة والابتكار في كل مشروع.
+        <div id="posts-container">
+            <div class="work-card">
+                <img src="https://files.catbox.moe/xm6xv8.webp">
+                <div class="card-content">بدء أعمال الديكور في مشروع سكني جديد.</div>
             </div>
         </div>
     </div>
 
     <div id="glass-sec" class="section">
-        <div class="section-header">💎 أعمال الزجاج</div>
-        <div class="gallery">
-            <div class="work-card"><img src="https://files.catbox.moe/pgisea.webp"></div>
-            <div class="work-card"><img src="https://files.catbox.moe/yp7l4u.webp"></div>
-            <div class="work-card"><img src="https://files.catbox.moe/xm6xv8.webp"></div>
-        </div>
+        <h2 style="color:var(--gold)">💎 قسم الزجاج</h2>
+        <div class="work-card"><img src="https://files.catbox.moe/yp7l4u.webp"></div>
+        <div class="work-card"><img src="https://files.catbox.moe/pgisea.webp"></div>
     </div>
 
     <div id="iron-sec" class="section">
-        <div class="section-header">🛠️ أعمال الحديد</div>
-        <div class="soon">
-            <i class="fas fa-tools"></i>
-            <h3>سيفتح قريباً</h3>
-            <p>ترقبوا معرض أعمالنا المتميز في مجال الحديد والصلب.</p>
-        </div>
-    </div>
-
-    <div id="contact-sec" class="section">
-        <div class="section-header">📞 تواصل معنا</div>
-        <div class="contact-grid">
-            <a href="https://wa.me/966555419231" class="contact-item"><i class="fab fa-whatsapp whatsapp"></i>واتساب</a>
-            <a href="https://www.tiktok.com/@pye1t" class="contact-item"><i class="fab fa-tiktok tiktok"></i>تيك توك</a>
-            <a href="https://www.snapchat.com/add/nab1g" class="contact-item"><i class="fab fa-snapchat-ghost snapchat"></i>سناب شات</a>
-            <a href="#" class="contact-item"><i class="fab fa-youtube color:red;"></i>يوتيوب</a>
+        <h2 style="color:var(--gold)">🛠️ قسم الحديد</h2>
+        <div style="text-align:center; padding:50px; color:#666;">
+            <i class="fas fa-tools" style="font-size:40px"></i><br>قريباً
         </div>
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-btn active" onclick="showSection('home-sec', this)"><i class="fas fa-home"></i>الرئيسية</div>
-        <div class="nav-btn" onclick="showSection('glass-sec', this)"><i class="fas fa-gem"></i>أعمالنا</div>
-        <div class="nav-btn" onclick="showSection('iron-sec', this)"><i class="fas fa-hard-hat"></i>الحديد</div>
-        <div class="nav-btn" onclick="showSection('contact-sec', this)"><i class="fas fa-phone"></i>تواصل</div>
+        <div class="nav-btn active" onclick="showSec('home-sec', this)"><i class="fas fa-home"></i>الرئيسية</div>
+        <div class="nav-btn" onclick="showSec('today-sec', this)"><i class="fas fa-calendar-day"></i>أعمال اليوم</div>
+        <div class="nav-btn" onclick="showSec('glass-sec', this)"><i class="fas fa-gem"></i>الزجاج</div>
+        <div class="nav-btn" onclick="showSec('iron-sec', this)"><i class="fas fa-hard-hat"></i>الحديد</div>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        function showSection(id, btn) {
+        // إظهار واجهة الإدارة إذا كنت المالك
+        if (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id === 7660779461) {
+            document.getElementById('admin-ui').style.display = 'block';
+        }
+
+        function showSec(id, btn) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+        }
 
-            // إخفاء الهيدر في غير الرئيسية لزيادة المساحة
-            document.getElementById('main-header').style.display = (id === 'home-sec') ? 'block' : 'none';
+        function addNewPost() {
+            const img = document.getElementById('postImg').value;
+            const desc = document.getElementById('postDesc').value;
+            if(!img) return alert("يرجى وضع رابط الصورة");
+
+            const container = document.getElementById('posts-container');
+            const newCard = `
+                <div class="work-card">
+                    <img src="${img}">
+                    <div class="card-content">${desc}</div>
+                </div>
+            `;
+            container.insertAdjacentHTML('afterbegin', newCard);
+            
+            // إرسال البيانات للبوت لحفظها (اختياري)
+            tg.sendData(JSON.stringify({action: "new_post", img: img, text: desc}));
         }
     </script>
 </body>
