@@ -8,97 +8,113 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --gold: #D4AF37; --bg: #000; --card: #121212; }
+        :root { --gold: #D4AF37; --bg: #000; --card: #151515; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { background: var(--bg); color: #fff; padding-bottom: 90px; }
+        body { background: var(--bg); color: #fff; padding-bottom: 90px; overflow-x: hidden; }
 
-        /* ترويسة ثابتة */
-        .header-fixed { position: sticky; top: 0; background: var(--bg); border-bottom: 2px solid var(--gold); z-index: 1000; padding: 15px; text-align: center; }
-        .header-fixed h1 { color: var(--gold); font-size: 20px; }
+        /* شريط الترحيب المتحرك */
+        .marquee { background: var(--gold); color: #000; padding: 10px 0; font-weight: 900; overflow: hidden; position: sticky; top: 0; z-index: 2000; }
+        .marquee-content { display: inline-block; white-space: nowrap; animation: scroll 15s linear infinite; }
+        @keyframes scroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
 
-        /* حل مشكلة الصور: حاوية تضمن الأبعاد */
-        .img-container { width: 100%; background: #222; min-height: 200px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .img-container img { width: 100%; height: auto; display: block; object-fit: cover; }
+        /* الهيدر */
+        header { padding: 30px 15px; text-align: center; border-bottom: 2px solid var(--gold); background: #050505; }
+        header h1 { color: var(--gold); font-size: 24px; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
 
         /* الأقسام */
-        .content-sec { display: none; padding: 15px; animation: fadeIn 0.3s ease-in; }
-        .content-sec.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .page { display: none; padding: 20px; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* بطاقات الأعمال */
-        .post-card { background: var(--card); border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; overflow: hidden; }
-        .post-info { padding: 12px; border-top: 1px solid var(--gold); }
+        /* البطاقات المحسنة للصور */
+        .card { background: var(--card); border-radius: 15px; overflow: hidden; border: 1px solid #333; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .img-box { width: 100%; min-height: 220px; background: #222 url('https://via.placeholder.com/400x250/222/D4AF37?text=جاري+التحميل...') no-repeat center; background-size: contain; position: relative; }
+        .card img { width: 100%; height: auto; display: block; border-bottom: 2px solid var(--gold); }
+        .card-body { padding: 15px; border-top: 1px solid #222; }
+        .card-body h3 { color: var(--gold); font-size: 18px; margin-bottom: 8px; }
 
-        /* أزرار التواصل - واضحة جداً */
-        .contact-list { display: flex; flex-direction: column; gap: 12px; }
-        .contact-link { display: flex; align-items: center; padding: 15px; background: #1a1a1a; border-radius: 10px; text-decoration: none; color: #fff; border: 1px solid #444; }
-        .contact-link i { font-size: 24px; margin-left: 15px; width: 30px; }
-        .c-wa { color: #25D366; } .c-sn { color: #FFFC00; } .c-tk { color: #fff; }
+        /* شبكة التواصل */
+        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .contact-link { background: #111; padding: 25px 10px; border-radius: 12px; text-align: center; text-decoration: none; border: 1px solid #222; transition: 0.3s; color: #fff; }
+        .contact-link i { font-size: 30px; display: block; margin-bottom: 10px; }
+        .wa { color: #25D366; } .sn { color: #FFFC00; } .tk { color: #fff; }
 
         /* شريط التنقل السفلي */
-        .nav-tab { position: fixed; bottom: 0; width: 100%; background: #080808; border-top: 2px solid var(--gold); display: flex; height: 75px; z-index: 2000; }
-        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #666; font-size: 11px; cursor: pointer; }
-        .tab-item.active { color: var(--gold); }
-        .tab-item i { font-size: 20px; margin-bottom: 4px; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; height: 75px; background: #000; border-top: 2px solid var(--gold); display: flex; z-index: 3000; }
+        .nav-item { color: #666; text-align: center; font-size: 11px; cursor: pointer; flex: 1; padding-top: 15px; }
+        .nav-item.active { color: var(--gold); }
+        .nav-item i { font-size: 20px; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="header-fixed">
+    <div class="marquee">
+        <div class="marquee-content">✨ مؤسسة نبيل المصبحي للمقاولات العامة والديكور ترحب بكم ✨ دقة في التنفيذ وفخامة في التصميم ✨</div>
+    </div>
+
+    <header>
         <h1>مؤسسة نبيل المصبحي</h1>
-    </div>
+    </header>
 
-    <div id="home" class="content-sec active">
-        <div class="post-card">
-            <div class="img-container">
-                <img src="https://files.catbox.moe/pgisea.webp" onerror="this.src='https://via.placeholder.com/400x300?text=جاري+تحميل+الصورة'">
-            </div>
-            <div class="post-info">
-                <h3>مرحباً بكم</h3>
-                <p>مؤسسة نبيل المصبحي للمقاولات وأعمال الديكور - الرياض.</p>
+    <div id="home" class="page active">
+        <div class="card">
+            <div class="img-box"><img src="https://images.weserv.nl/?url=https://files.catbox.moe/pgisea.webp"></div>
+            <div class="card-body">
+                <h3>عن المؤسسة</h3>
+                <p>الرائدون في المقاولات العامة وأعمال الديكور والزجاج والحديد.</p>
             </div>
         </div>
     </div>
 
-    <div id="works" class="content-sec">
-        <h2 style="color:var(--gold); margin-bottom:15px;">🖼️ معرض الأعمال</h2>
-        <div class="post-card">
-            <div class="img-container"><img src="https://files.catbox.moe/xm6xv8.webp" onerror="this.src='https://via.placeholder.com/400x300?text=الصورة+تحت+المعالجة'"></div>
-            <div class="post-info"><p>تنفيذ ديكورات جبسية حديثة مع إنارة مخفية.</p></div>
-        </div>
-        <div class="post-card">
-            <div class="img-container"><img src="https://files.catbox.moe/yp7l4u.webp"></div>
-            <div class="post-info"><p>تركيب واجهات زجاجية (سترکشر) بأعلى جودة.</p></div>
+    <div id="today" class="page">
+        <h2 style="color:var(--gold); margin-bottom:15px; border-right:4px solid var(--gold); padding-right:10px;">📸 أعمال اليوم</h2>
+        <div class="card">
+            <div class="img-box"><img src="https://images.weserv.nl/?url=https://files.catbox.moe/xm6xv8.webp"></div>
+            <div class="card-body"><p>تنفيذ ديكورات جبسية مع إضاءة حديثة.</p></div>
         </div>
     </div>
 
-    <div id="contact" class="content-sec">
-        <h2 style="color:var(--gold); margin-bottom:15px;">📞 تواصل معنا</h2>
-        <div class="contact-list">
-            <a href="https://wa.me/966555419231" class="contact-link"><i class="fab fa-whatsapp c-wa"></i> واتساب المؤسسة</a>
-            <a href="https://www.snapchat.com/add/nab1g" class="contact-link"><i class="fab fa-snapchat-ghost c-sn"></i> سناب شات</a>
-            <a href="https://www.tiktok.com/@pye1t" class="contact-link"><i class="fab fa-tiktok c-tk"></i> تيك توك</a>
-            <a href="tel:966555419231" class="contact-link"><i class="fas fa-phone-alt"></i> إتصال مباشر</a>
+    <div id="glass" class="page">
+        <h2 style="color:var(--gold); margin-bottom:15px; border-right:4px solid var(--gold); padding-right:10px;">💎 قسم الزجاج</h2>
+        <div class="card"><div class="img-box"><img src="https://images.weserv.nl/?url=https://files.catbox.moe/yp7l4u.webp"></div></div>
+        <div class="card"><div class="img-box"><img src="https://images.weserv.nl/?url=https://files.catbox.moe/pgisea.webp"></div></div>
+    </div>
+
+    <div id="iron" class="page">
+        <div style="text-align:center; padding:80px 20px; color:#555;">
+            <i class="fas fa-hammer" style="font-size:60px; color:var(--gold); margin-bottom:20px;"></i>
+            <h3>قسم الحديد</h3>
+            <p>سيتم عرض أعمال الحديد والمظلات قريباً.</p>
         </div>
     </div>
 
-    <nav class="nav-tab">
-        <div class="tab-item active" onclick="showPage('home', this)"><i class="fas fa-home"></i>الرئيسية</div>
-        <div class="tab-item" onclick="showPage('works', this)"><i class="fas fa-th-large"></i>أعمالنا</div>
-        <div class="tab-item" onclick="showPage('contact', this)"><i class="fas fa-phone"></i>التواصل</div>
+    <div id="contact" class="page">
+        <h2 style="color:var(--gold); margin-bottom:20px; text-align:center;">📞 قنوات التواصل</h2>
+        <div class="contact-grid">
+            <a href="https://wa.me/966555419231" class="contact-link"><i class="fab fa-whatsapp wa"></i>واتساب</a>
+            <a href="https://www.snapchat.com/add/nab1g" class="contact-link"><i class="fab fa-snapchat-ghost sn"></i>سناب شات</a>
+            <a href="https://www.tiktok.com/@pye1t" class="contact-link"><i class="fab fa-tiktok tk"></i>تيك توك</a>
+            <a href="tel:966555419231" class="contact-link"><i class="fas fa-phone-alt" style="color:#D4AF37"></i>إتصال</a>
+        </div>
+    </div>
+
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="nav('home', this)"><i class="fas fa-home"></i>الرئيسية</div>
+        <div class="nav-item" onclick="nav('today', this)"><i class="fas fa-calendar-day"></i>أعمال اليوم</div>
+        <div class="nav-item" onclick="nav('glass', this)"><i class="fas fa-gem"></i>الزجاج</div>
+        <div class="nav-item" onclick="nav('iron', this)"><i class="fas fa-tools"></i>الحديد</div>
+        <div class="nav-item" onclick="nav('contact', this)"><i class="fas fa-id-card"></i>تواصل</div>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.ready();
-
-        function showPage(id, el) {
-            document.querySelectorAll('.content-sec').forEach(s => s.classList.remove('active'));
+        function nav(id, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
-            window.scrollTo(0, 0);
+            window.scrollTo(0,0);
         }
     </script>
 </body>
