@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب - التجربة الفاخرة</title>
+    <title>روليت سراب - النسخة التفاعلية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --primary: #818cf8;
             --secondary: #c084fc;
             --accent: #fb7185;
             --bg: #0f172a;
-            --glass: rgba(30, 41, 59, 0.6);
+            --glass: rgba(30, 41, 59, 0.7);
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
@@ -33,160 +34,110 @@
             overflow-x: hidden;
         }
 
-        /* حركات الخلفية (النجوم المتلألئة) */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                radial-gradient(white, rgba(255,255,255,.2) 1px, transparent 2px),
-                radial-gradient(white, rgba(255,255,255,.1) 1px, transparent 2px);
-            background-size: 550px 550px, 350px 350px;
-            background-position: 0 0, 40px 60px;
-            animation: stars 20s linear infinite;
-            opacity: 0.1;
-            z-index: -1;
-        }
-
-        @keyframes stars {
-            from { background-position: 0 0, 40px 60px; }
-            to { background-position: 550px 550px, 390px 410px; }
-        }
-
-        /* الشريط العلوي */
-        .header-ticker {
-            position: fixed;
-            top: 0; width: 100%; height: 65px;
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            z-index: 1000;
-            padding: 0 20px;
-        }
-
-        .ticker-container {
-            flex: 1;
-            overflow: hidden;
-            background: rgba(0,0,0,0.3);
-            border-radius: 50px;
-            padding: 8px 20px;
-            margin-left: 10px;
-            border: 1px solid var(--glass-border);
-        }
-
-        .ticker-text {
+        /* --- 1. تأثير الشعار النابض --- */
+        .logo-wrapper {
+            position: relative;
             display: inline-block;
-            white-space: nowrap;
-            font-weight: 600;
-            font-size: 13px;
-            animation: scroll 20s linear infinite;
-            color: var(--primary);
-        }
-
-        @keyframes scroll {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-
-        /* الحاوية الرئيسية */
-        .main-content {
-            padding: 100px 20px 20px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .hero-section {
-            text-align: center;
-            margin-bottom: 30px;
+            animation: floating 3s ease-in-out infinite;
         }
 
         .logo {
             width: 110px; height: 110px;
             border-radius: 50%;
             border: 3px solid white;
-            box-shadow: 0 0 25px var(--primary);
-            animation: float 3s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
         }
 
-        @keyframes float {
+        .logo-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: -5px;
+            border-radius: 50%;
+            background: var(--primary);
+            filter: blur(15px);
+            z-index: 1;
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(0.9); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(0.9); opacity: 0.5; }
+        }
+
+        @keyframes floating {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
 
-        /* صناديق الإحصائيات */
-        .stats-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 25px 0;
+        /* --- 2. تنسيق المحتوى والبطاقات --- */
+        .header-ticker {
+            position: fixed;
+            top: 0; width: 100%; height: 65px;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex; align-items: center; z-index: 1000; padding: 0 20px;
         }
+
+        .ticker-container {
+            flex: 1; overflow: hidden; background: rgba(0,0,0,0.3);
+            border-radius: 50px; padding: 8px 20px; margin-left: 10px; border: 1px solid var(--glass-border);
+        }
+
+        .ticker-text {
+            display: inline-block; white-space: nowrap; font-weight: 600;
+            font-size: 13px; animation: scroll 20s linear infinite; color: var(--primary);
+        }
+
+        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        .main-content { padding: 100px 20px 20px; max-width: 500px; margin: 0 auto; }
 
         .stat-box {
-            background: var(--glass);
-            padding: 20px;
-            border-radius: 24px;
-            border: 1px solid var(--glass-border);
-            text-align: center;
-            transition: 0.3s;
+            background: var(--glass); padding: 20px; border-radius: 24px;
+            border: 1px solid var(--glass-border); text-align: center;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .stat-box h3 { margin: 0; font-size: 28px; background: linear-gradient(to bottom, #fff, var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-box:active { transform: scale(0.95); }
 
-        /* البطاقات */
         .ad-card {
-            background: var(--glass);
-            border-radius: 28px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 1px solid var(--glass-border);
-            position: relative;
-            overflow: hidden;
+            background: var(--glass); border-radius: 28px; padding: 25px;
+            margin-bottom: 25px; border: 1px solid var(--glass-border);
+            position: relative; overflow: hidden;
+            transition: all 0.3s ease;
         }
 
-        .ad-title { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 15px; display: block; }
+        .ad-card:hover { transform: translateY(-5px); border-color: var(--primary); }
 
-        /* --- تأثير الإطار الدوار الملون --- */
+        /* --- 3. زر الدخول بتأثير الإطار الدوار --- */
         .glow-border-box {
-            position: relative;
-            padding: 3px;
-            border-radius: 18px;
-            overflow: hidden;
-            margin-top: 15px;
+            position: relative; padding: 3px; border-radius: 18px;
+            overflow: hidden; margin-top: 15px;
         }
 
         .glow-border-box::before {
-            content: '';
-            position: absolute;
-            inset: -20%;
+            content: ''; position: absolute; inset: -20%;
             background: conic-gradient(from var(--angle), transparent 70%, var(--primary), var(--accent), var(--primary));
             animation: rotate 4s linear infinite;
         }
 
-        @keyframes rotate {
-            from { --angle: 0deg; }
-            to { --angle: 360deg; }
-        }
+        @keyframes rotate { from { --angle: 0deg; } to { --angle: 360deg; } }
 
         .join-btn {
-            position: relative;
-            background: #0f172a;
-            color: white;
-            padding: 14px;
-            border-radius: 16px;
-            display: block;
-            text-align: center;
-            font-weight: 800;
-            text-decoration: none;
-            z-index: 1;
+            position: relative; background: #0f172a; color: white;
+            padding: 14px; border-radius: 16px; display: block;
+            text-align: center; font-weight: 800; text-decoration: none;
+            z-index: 1; transition: 0.2s; border: none; width: 100%; cursor: pointer;
         }
 
-        /* شريط التنقل */
+        .join-btn:active { transform: scale(0.92); }
+
+        /* --- 4. شريط التنقل السفلي السحري --- */
         .nav-wrapper {
-            position: fixed;
-            bottom: 25px; left: 50%;
-            transform: translateX(-50%);
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 400px; height: 75px;
             background: #fff; border-radius: 25px;
             display: flex; justify-content: center; align-items: center;
@@ -219,23 +170,25 @@
 
     <header class="header-ticker">
         <div class="ticker-container">
-            <div class="ticker-text" id="ticker-content">جاري تحميل الأخبار من روليت سراب...</div>
+            <div class="ticker-text" id="ticker-content">مرحباً بك في روليت سراب.. واحتك للحظ والجوائز!</div>
         </div>
     </header>
 
     <div class="main-content">
         <div class="hero-section">
-            <img src="https://files.catbox.moe/5s7y7a.png" class="logo">
+            <div class="logo-wrapper">
+                <img src="https://files.catbox.moe/5s7y7a.png" class="logo">
+            </div>
             <h1 style="margin-top:15px; font-size:32px; font-weight:800;">روليت سراب</h1>
-            <p style="color:var(--primary); font-size:13px;">عالم من المفاجآت والجوائز</p>
+            <p style="color:var(--primary); font-size:13px;">تفاعل مع الحظ بأناقة</p>
         </div>
 
-        <div class="stats-row">
+        <div class="stats-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 25px 0;">
             <div class="stat-box"><h3>104K</h3><p>زيارة اليوم</p></div>
             <div class="stat-box"><h3 id="active-ads-count">0</h3><p>سحب نشط</p></div>
         </div>
 
-        <h2 style="font-size:20px; margin-bottom:20px;">🔥 السحوبات الجارية</h2>
+        <h2 style="font-size:20px; margin-bottom:20px;">🔥 السحوبات النشطة</h2>
         <div id="ads-container"></div>
     </div>
 
@@ -257,14 +210,20 @@
             element.classList.add('active');
         }
 
+        // دالة إطلاق القصاصات الملونة
+        function fireConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#818cf8', '#c084fc', '#fb7185']
+            });
+        }
+
         const dbUrl = "https://sarab-app-84448-default-rtdb.firebaseio.com";
 
         async function updateData() {
             try {
-                const tRes = await fetch(`${dbUrl}/ticker.json`);
-                const tData = await tRes.json();
-                if(tData) document.getElementById('ticker-content').innerText = tData.text;
-
                 const aRes = await fetch(`${dbUrl}/active_ads.json`);
                 const ads = await aRes.json();
                 const container = document.getElementById('ads-container');
@@ -276,19 +235,25 @@
                         count++;
                         container.innerHTML += `
                             <div class="ad-card">
-                                <span class="ad-title">${ad.title}</span>
+                                <span style="font-size:18px; font-weight:800; display:block; margin-bottom:15px;">${ad.title}</span>
                                 <div style="display:flex; justify-content:space-between; font-size:12px; color:#94a3b8;">
                                     <span>👁️ ${ad.views || 0}</span>
                                     <span>ينتهي: ${ad.end_at}</span>
                                 </div>
                                 <div class="glow-border-box">
-                                    <a href="${ad.post_url}" class="join-btn" onclick="incView('${key}', ${ad.views || 0})">دخول السحب الفاخر 🔓</a>
+                                    <button class="join-btn" onclick="handleJoin('${key}', ${ad.views || 0}, '${ad.post_url}')">دخول السحب 🔓</button>
                                 </div>
                             </div>`;
                     });
                 }
                 document.getElementById('active-ads-count').innerText = count;
             } catch(e) { console.log("Error"); }
+        }
+
+        function handleJoin(id, current, url) {
+            fireConfetti(); // إطلاق الاحتفال
+            incView(id, current); // زيادة المشاهدات
+            setTimeout(() => { window.location.href = url; }, 800); // الانتقال للرابط بعد لحظة
         }
 
         async function incView(id, current) {
