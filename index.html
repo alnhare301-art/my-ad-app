@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب - التميز الفاخر</title>
+    <title>روليت سراب - التجربة الفاخرة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* تعريف المتغيرات والألوان الملكية */
         :root {
-            --gold: #D4AF37;
-            --gold-light: #f1d592;
-            --bg-dark: #05070a;
-            --card-bg: rgba(18, 22, 31, 0.85);
-            --glass-border: rgba(212, 175, 55, 0.2);
-            --text-gray: #94a3b8;
+            --primary: #818cf8;
+            --secondary: #c084fc;
+            --accent: #fb7185;
+            --bg: #0f172a;
+            --glass: rgba(30, 41, 59, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         @property --angle {
@@ -26,7 +25,7 @@
 
         body {
             font-family: 'Cairo', sans-serif;
-            background: radial-gradient(circle at top right, #1a1608, #05070a);
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
             color: #f1f5f9;
             margin: 0;
             padding-bottom: 120px;
@@ -34,35 +33,45 @@
             overflow-x: hidden;
         }
 
-        /* الخلفية المنقوشة */
+        /* حركات الخلفية (النجوم المتلألئة) */
         body::before {
             content: '';
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-            opacity: 0.15;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 1px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.1) 1px, transparent 2px);
+            background-size: 550px 550px, 350px 350px;
+            background-position: 0 0, 40px 60px;
+            animation: stars 20s linear infinite;
+            opacity: 0.1;
             z-index: -1;
         }
 
-        /* الهيدر الفاخر */
+        @keyframes stars {
+            from { background-position: 0 0, 40px 60px; }
+            to { background-position: 550px 550px, 390px 410px; }
+        }
+
+        /* الشريط العلوي */
         .header-ticker {
             position: fixed;
             top: 0; width: 100%; height: 65px;
-            background: rgba(5, 7, 10, 0.8);
-            backdrop-filter: blur(20px);
+            background: var(--glass);
+            backdrop-filter: blur(15px);
             border-bottom: 1px solid var(--glass-border);
             display: flex;
             align-items: center;
             z-index: 1000;
-            padding: 0 15px;
+            padding: 0 20px;
         }
 
         .ticker-container {
             flex: 1;
             overflow: hidden;
-            background: rgba(212, 175, 55, 0.05);
+            background: rgba(0,0,0,0.3);
             border-radius: 50px;
-            padding: 6px 20px;
+            padding: 8px 20px;
             margin-left: 10px;
             border: 1px solid var(--glass-border);
         }
@@ -72,8 +81,8 @@
             white-space: nowrap;
             font-weight: 600;
             font-size: 13px;
-            animation: scroll 18s linear infinite;
-            color: var(--gold-light);
+            animation: scroll 20s linear infinite;
+            color: var(--primary);
         }
 
         @keyframes scroll {
@@ -90,30 +99,20 @@
 
         .hero-section {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
-        .logo-wrapper {
-            position: relative;
-            display: inline-block;
-            margin-bottom: 15px;
+        .logo {
+            width: 110px; height: 110px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 25px var(--primary);
+            animation: float 3s ease-in-out infinite;
         }
 
-        .logo { 
-            width: 110px; height: 110px; 
-            border-radius: 50%; 
-            border: 3px solid var(--gold);
-            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
-            background: #000;
-        }
-
-        .brand-name {
-            font-size: 32px;
-            font-weight: 800;
-            background: linear-gradient(to bottom, #fff, var(--gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 10px 0 0;
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
         /* صناديق الإحصائيات */
@@ -121,11 +120,11 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin: 30px 0;
+            margin: 25px 0;
         }
 
         .stat-box {
-            background: var(--card-bg);
+            background: var(--glass);
             padding: 20px;
             border-radius: 24px;
             border: 1px solid var(--glass-border);
@@ -133,122 +132,86 @@
             transition: 0.3s;
         }
 
-        .stat-box h3 { margin: 0; font-size: 28px; color: #fff; }
-        .stat-box p { margin: 5px 0 0; font-size: 12px; color: var(--gold); font-weight: 700; letter-spacing: 1px; }
+        .stat-box h3 { margin: 0; font-size: 28px; background: linear-gradient(to bottom, #fff, var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* تصميم البطاقات المطور */
+        /* البطاقات */
         .ad-card {
-            background: var(--card-bg);
+            background: var(--glass);
             border-radius: 28px;
             padding: 25px;
             margin-bottom: 25px;
             border: 1px solid var(--glass-border);
             position: relative;
-            transition: transform 0.3s ease;
+            overflow: hidden;
         }
 
-        .ad-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+        .ad-title { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 15px; display: block; }
 
-        .ad-title { 
-            font-size: 18px; 
-            font-weight: 800; 
-            color: #fff; 
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .ad-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            color: var(--text-gray);
-            border-top: 1px solid rgba(255,255,255,0.05);
-            padding-top: 15px;
-        }
-
-        /* --- تأثير الإطار الذهبي المتحرك للأزرار --- */
-        .gold-border-animation {
+        /* --- تأثير الإطار الدوار الملون --- */
+        .glow-border-box {
             position: relative;
-            padding: 2px;
+            padding: 3px;
             border-radius: 18px;
             overflow: hidden;
-            display: block;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
-        .gold-border-animation::before {
+        .glow-border-box::before {
             content: '';
             position: absolute;
-            inset: -200%;
-            background: conic-gradient(from var(--angle), transparent 70%, var(--gold), #fff, var(--gold));
-            animation: rotateGold 4s linear infinite;
+            inset: -20%;
+            background: conic-gradient(from var(--angle), transparent 70%, var(--primary), var(--accent), var(--primary));
+            animation: rotate 4s linear infinite;
         }
 
-        @keyframes rotateGold {
+        @keyframes rotate {
             from { --angle: 0deg; }
             to { --angle: 360deg; }
         }
 
         .join-btn {
             position: relative;
-            background: #0a0c10;
-            color: var(--gold);
+            background: #0f172a;
+            color: white;
             padding: 14px;
             border-radius: 16px;
             display: block;
             text-align: center;
             font-weight: 800;
-            font-size: 15px;
             text-decoration: none;
             z-index: 1;
-            transition: 0.3s;
-            border: none;
         }
 
-        .join-btn:hover {
-            background: var(--gold);
-            color: #000;
-        }
-
-        /* شريط التنقل السفلي */
+        /* شريط التنقل */
         .nav-wrapper {
             position: fixed;
-            bottom: 20px;
-            left: 50%;
+            bottom: 25px; left: 50%;
             transform: translateX(-50%);
-            width: 90%;
-            max-width: 420px;
-            height: 75px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 30px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-            z-index: 2000;
+            width: 90%; max-width: 400px; height: 75px;
+            background: #fff; border-radius: 25px;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5); z-index: 2000;
         }
 
-        .nav-link { 
-            text-decoration: none; 
-            color: #1e293b; 
-            text-align: center; 
-            font-size: 11px; 
-            font-weight: 800;
-            transition: 0.3s;
+        .nav-wrapper ul { display: flex; width: 100%; list-style: none; padding: 0; justify-content: space-evenly; }
+        .nav-item { position: relative; width: 60px; height: 60px; }
+        .nav-link { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #334155; }
+        .nav-icon { font-size: 1.6em; line-height: 75px; transition: 0.5s; }
+        .nav-item.active .nav-icon { transform: translateY(-35px); color: #fff; }
+        .nav-text { position: absolute; font-size: 10px; font-weight: 800; opacity: 0; transform: translateY(20px); transition: 0.5s; }
+        .nav-item.active .nav-text { opacity: 1; transform: translateY(15px); }
+
+        .nav-indicator {
+            position: absolute; top: -50%; width: 60px; height: 60px;
+            background: var(--primary); border-radius: 50%;
+            border: 6px solid var(--bg); transition: 0.5s;
         }
 
-        .nav-icon { font-size: 1.6em; display: block; margin-bottom: 2px; }
-        
-        .nav-item.active .nav-link {
-            color: var(--gold);
-            transform: translateY(-5px);
-        }
+        .nav-item:nth-child(1).active ~ .nav-indicator { left: 7%; }
+        .nav-item:nth-child(2).active ~ .nav-indicator { left: 26%; }
+        .nav-item:nth-child(3).active ~ .nav-indicator { left: 45%; }
+        .nav-item:nth-child(4).active ~ .nav-indicator { left: 64%; }
+        .nav-item:nth-child(5).active ~ .nav-indicator { left: 83%; }
 
     </style>
 </head>
@@ -256,66 +219,56 @@
 
     <header class="header-ticker">
         <div class="ticker-container">
-            <div class="ticker-text" id="ticker-content">مرحباً بك في روليت سراب.. السحب القادم سيبدأ خلال دقائق.. حظاً موفقاً لجميع المشتركين!</div>
+            <div class="ticker-text" id="ticker-content">جاري تحميل الأخبار من روليت سراب...</div>
         </div>
-        <a href="#" class="join-btn" style="padding: 8px 15px; font-size: 11px; margin: 0;">الملف الشخصي</a>
     </header>
 
     <div class="main-content">
         <div class="hero-section">
-            <div class="logo-wrapper">
-                <img src="https://files.catbox.moe/5s7y7a.png" class="logo" alt="سراب">
-            </div>
-            <h1 class="brand-name">روليت سراب</h1>
-            <p style="color: var(--gold); font-size: 13px; font-weight: 600; letter-spacing: 2px;">LUXURY EXPERIENCE</p>
+            <img src="https://files.catbox.moe/5s7y7a.png" class="logo">
+            <h1 style="margin-top:15px; font-size:32px; font-weight:800;">روليت سراب</h1>
+            <p style="color:var(--primary); font-size:13px;">عالم من المفاجآت والجوائز</p>
         </div>
 
         <div class="stats-row">
-            <div class="stat-box">
-                <h3 id="total-views">128K</h3>
-                <p>إجمالي الزيارات</p>
-            </div>
-            <div class="stat-box">
-                <h3 id="active-ads-count">0</h3>
-                <p>السحوبات النشطة</p>
-            </div>
+            <div class="stat-box"><h3>104K</h3><p>زيارة اليوم</p></div>
+            <div class="stat-box"><h3 id="active-ads-count">0</h3><p>سحب نشط</p></div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="font-size: 20px; margin: 0; color: #fff;">🏆 السحوبات الفاخرة</h2>
-            <span style="color: #4ade80; font-size: 12px;">● متصل الآن</span>
-        </div>
-
-        <div id="ads-container">
-            </div>
+        <h2 style="font-size:20px; margin-bottom:20px;">🔥 السحوبات الجارية</h2>
+        <div id="ads-container"></div>
     </div>
 
     <nav class="nav-wrapper">
-        <div class="nav-item active">
-            <a href="#" class="nav-link"><ion-icon name="home" class="nav-icon"></ion-icon>الرئيسية</a>
-        </div>
-        <div class="nav-item">
-            <a href="#" class="nav-link"><ion-icon name="trophy-outline" class="nav-icon"></ion-icon>الفائزين</a>
-        </div>
-        <div class="nav-item">
-            <a href="#" class="nav-link"><ion-icon name="headset-outline" class="nav-icon"></ion-icon>الدعم</a>
-        </div>
-        <div class="nav-item">
-            <a href="#" class="nav-link"><ion-icon name="grid-outline" class="nav-icon"></ion-icon>المزيد</a>
-        </div>
+        <ul>
+            <li class="nav-item active" onclick="changeTab(this)"><a href="#" class="nav-link"><span class="nav-icon"><ion-icon name="home"></ion-icon></span><span class="nav-text">الرئيسية</span></a></li>
+            <li class="nav-item" onclick="changeTab(this)"><a href="#" class="nav-link"><span class="nav-icon"><ion-icon name="trophy-outline"></ion-icon></span><span class="nav-text">سحوباتي</span></a></li>
+            <li class="nav-item" onclick="changeTab(this)"><a href="#" class="nav-link"><span class="nav-icon"><ion-icon name="chatbubbles-outline"></ion-icon></span><span class="nav-text">الدعم</span></a></li>
+            <li class="nav-item" onclick="changeTab(this)"><a href="#" class="nav-link"><span class="nav-icon"><ion-icon name="images-outline"></ion-icon></span><span class="nav-text">المعرض</span></a></li>
+            <li class="nav-item" onclick="changeTab(this)"><a href="#" class="nav-link"><span class="nav-icon"><ion-icon name="settings-outline"></ion-icon></span><span class="nav-text">الإعدادات</span></a></li>
+            <div class="nav-indicator"></div>
+        </ul>
     </nav>
 
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script>
+        function changeTab(element) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+        }
+
         const dbUrl = "https://sarab-app-84448-default-rtdb.firebaseio.com";
 
         async function updateData() {
             try {
+                const tRes = await fetch(`${dbUrl}/ticker.json`);
+                const tData = await tRes.json();
+                if(tData) document.getElementById('ticker-content').innerText = tData.text;
+
                 const aRes = await fetch(`${dbUrl}/active_ads.json`);
                 const ads = await aRes.json();
                 const container = document.getElementById('ads-container');
                 container.innerHTML = "";
-                
                 let count = 0;
                 if(ads) {
                     Object.keys(ads).forEach(key => {
@@ -323,22 +276,19 @@
                         count++;
                         container.innerHTML += `
                             <div class="ad-card">
-                                <span class="ad-title">💎 ${ad.title}</span>
-                                <div class="ad-footer">
-                                    <span>مشاهدات: ${ad.views || 0}</span>
-                                    <span style="color:var(--gold)">ينتهي: ${ad.end_at}</span>
+                                <span class="ad-title">${ad.title}</span>
+                                <div style="display:flex; justify-content:space-between; font-size:12px; color:#94a3b8;">
+                                    <span>👁️ ${ad.views || 0}</span>
+                                    <span>ينتهي: ${ad.end_at}</span>
                                 </div>
-                                <div class="gold-border-animation">
-                                    <a href="${ad.post_url}" class="join-btn" onclick="incView('${key}', ${ad.views || 0})">
-                                        دخول السحب الملكي 🔓
-                                    </a>
+                                <div class="glow-border-box">
+                                    <a href="${ad.post_url}" class="join-btn" onclick="incView('${key}', ${ad.views || 0})">دخول السحب الفاخر 🔓</a>
                                 </div>
                             </div>`;
                     });
                 }
                 document.getElementById('active-ads-count').innerText = count;
-                if(count === 0) container.innerHTML = "<p style='text-align:center; color:#64748b; padding: 20px;'>لا توجد سحوبات نشطة حالياً، انتظرنا قريباً!</p>";
-            } catch(e) { console.log("خطأ في تحديث البيانات"); }
+            } catch(e) { console.log("Error"); }
         }
 
         async function incView(id, current) {
