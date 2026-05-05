@@ -3,231 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Roulette - Clean Start</title>
+    <title>Global Game System</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --bg: #05070a; --gold: #fbc531; --cyan: #00d2d3; --pink: #ef5777; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Cairo', sans-serif; background-color: var(--bg); color: white; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        :root { --bg: #0b0e14; --panel: #161b22; --accent: #3867d6; --gold: #fbc531; }
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background-color: var(--bg); color: white; margin: 0; display: flex; flex-direction: column; align-items: center; padding-bottom: 20px; }
+
+        /* شريط الحالة العلوي */
+        .status-bar { width: 100%; background: var(--panel); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
+        .game-id { font-size: 12px; color: #8b949e; }
         
-        .header { width: 100%; padding: 15px; background: #10141d; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e272e; }
-        .balance-chip { background: #000; padding: 6px 18px; border-radius: 50px; border: 2px solid var(--gold); color: var(--gold); font-weight: 900; }
-
-        /* ساحة اللعبة */
-        .board-container { margin: 40px auto; perspective: 1000px; }
-        .game-board { 
-            position: relative; width: 300px; height: 300px; 
-            background: #111; border: 5px solid #222; border-radius: 20px; 
-            overflow: hidden; transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 0 30px rgba(0,0,0,1);
-        }
-
-        #ball { 
-            position: absolute; width: 22px; height: 22px; 
-            background: #fff; border-radius: 50%; 
-            box-shadow: 0 0 20px #fff; z-index: 100; display: none;
-        }
-
-        .countdown-overlay {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 90px; font-weight: 900; z-index: 50; text-shadow: 0 0 20px #000;
-        }
-
-        .controls { width: 90%; max-width: 400px; background: #10141d; padding: 25px; border-radius: 25px; text-align: center; }
-        input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #333; background: #000; color: white; font-size: 20px; margin-bottom: 15px; text-align: center; }
+        /* ساحة اللعب الدائرية */
+        .wheel-section { position: relative; width: 300px; height: 300px; margin: 25px 0; }
+        canvas { width: 100%; height: 100%; border-radius: 50%; border: 4px solid #222; }
+        #pointer { position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%; z-index: 10; display: none; box-shadow: 0 0 15px #fff; }
         
-        .btn-join { width: 100%; padding: 18px; border-radius: 15px; border: none; background: linear-gradient(45deg, var(--cyan), var(--pink)); color: white; font-weight: 900; font-size: 18px; cursor: pointer; }
-        .btn-join:disabled { opacity: 0.3; filter: grayscale(1); }
+        .timer-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 70px; font-weight: 900; color: #fff; text-shadow: 0 0 20px #000; }
 
-        #winner-popup { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.96); 
-            display: none; flex-direction: column; align-items: center; 
-            justify-content: center; z-index: 1000; 
-        }
+        /* قائمة المتسابقين (مثل الفيديو) */
+        .players-list { width: 92%; max-width: 400px; background: var(--panel); border-radius: 15px; padding: 15px; margin-top: 20px; }
+        .player-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #222; }
+        .player-info { display: flex; align-items: center; gap: 10px; }
+        .player-avatar { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #444; }
+        .player-name { font-weight: bold; font-size: 14px; }
+        .player-stats { text-align: left; }
+        .percentage { color: var(--gold); font-weight: 900; font-size: 13px; }
+        .amount { color: #8b949e; font-size: 11px; }
+
+        /* منطقة التحكم والإضافة */
+        .action-area { width: 92%; max-width: 400px; margin-top: 15px; }
+        .input-box { background: #000; border: 1px solid #333; border-radius: 12px; display: flex; align-items: center; padding: 10px; margin-bottom: 10px; }
+        input { flex: 1; background: transparent; border: none; color: white; text-align: center; font-size: 18px; outline: none; }
+        .btn-add { width: 100%; background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; }
+        .btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* رسالة انتظار/بدء */
+        .system-msg { font-size: 14px; color: var(--gold); margin: 10px 0; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div style="font-weight: 900; color: var(--cyan);">GLOBAL</div>
-        <div class="balance-chip">⭐ <span id="balance-val">100,000</span></div>
+    <div class="status-bar">
+        <div class="game-id">Game #<span id="game-num">471813</span></div>
+        <div style="color: var(--gold); font-weight: 900;">⭐ <span id="my-bal">100,000</span></div>
     </div>
 
-    <div class="board-container">
-        <div id="board" class="game-board">
-            <div id="ball"></div>
-            <div id="countdown-display" class="countdown-overlay"></div>
-            <canvas id="wheelCanvas" width="300" height="300"></canvas>
+    <div class="wheel-section" id="wheel-container">
+        <div id="pointer"></div>
+        <div id="countdown" class="timer-overlay"></div>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+    </div>
+
+    <div id="system-status" class="system-msg">بانتظار المشاركين (0/2)...</div>
+
+    <div class="action-area">
+        <div class="input-box">
+            <input type="number" id="bet-input" value="1.0">
         </div>
+        <button id="add-btn" class="btn-add" onclick="joinGame()">إضافة (Add Fighter) ⚔️</button>
     </div>
 
-    <div class="controls">
-        <div id="info-status" style="margin-bottom:10px; color:var(--gold); font-weight: bold;">بانتظار لاعبين (0/2)</div>
-        <input type="number" id="bet-input" value="1000" min="100">
-        <button id="join-btn" class="btn-join" onclick="handleJoin()">مشاركة في الجولة 🚀</button>
-    </div>
-
-    <div id="winner-popup">
-        <div id="winner-content" style="text-align:center;"></div>
-        <p style="margin-top:20px; color:#666;">سيتم تصفير الجولة تلقائياً...</p>
+    <div class="players-list">
+        <div style="font-size: 13px; color: #8b949e; margin-bottom: 10px;">المقاتلون (Fighters)</div>
+        <div id="players-container">
+            </div>
     </div>
 
     <script>
-        const DB_URL = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v4";
-        let myId = "UID_" + Math.floor(Math.random() * 9999);
-        let myBalance = parseInt(localStorage.getItem('g_bal')) || 100000;
+        const DB_URL = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_system";
+        let myId = "ID_" + Math.floor(Math.random() * 9000);
+        let balance = 100000;
         let players = [];
-        let isMoving = false;
+        let isSpinning = false;
 
-        const canvas = document.getElementById('wheelCanvas');
+        const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const ball = document.getElementById('ball');
-        const board = document.getElementById('board');
+        const pointer = document.getElementById('pointer');
 
-        function updateBalance() {
-            document.getElementById('balance-val').innerText = myBalance.toLocaleString();
-            localStorage.setItem('g_bal', myBalance);
-        }
-        updateBalance();
-
-        async function syncGame() {
+        // --- نظام التزامن مع السيرفر ---
+        async function sync() {
             try {
-                const r = await fetch(`${DB_URL}.json`);
-                const data = await r.json();
-
+                const res = await fetch(`${DB_URL}.json`);
+                const data = await res.json();
+                
                 if (!data || !data.players) {
                     players = [];
-                    resetUI();
+                    updateList();
+                    drawWheel();
                     return;
                 }
 
                 players = Object.values(data.players);
                 const state = data.state || "waiting";
 
+                // تحديث الواجهة بناءً على الحالة
                 if (state === "waiting") {
-                    document.getElementById('info-status').innerText = `المشاركون (${players.length}/2)`;
-                    if (players.length >= 2 && players[0].id === myId) startTimer();
+                    document.getElementById('system-status').innerText = `بانتظار المشاركين (${players.length}/32)...`;
+                    if (players.length >= 2 && players[0].id === myId) startSequence();
                 }
 
                 if (state === "counting") {
-                    document.getElementById('countdown-display').innerText = data.timer || "";
+                    document.getElementById('countdown').innerText = data.timer;
+                    document.getElementById('system-status').innerText = "الجولة تبدأ الآن...";
                 }
 
-                if (state === "playing" && !isMoving) {
-                    startPhysics(data.seed || 0.5);
+                if (state === "playing" && !isSpinning) {
+                    startBall(data.seed);
                 }
 
-                drawMap();
+                updateList();
+                drawWheel();
             } catch (e) {}
         }
 
-        function drawMap() {
+        // --- رسم الخريطة (النسب) ---
+        function drawWheel() {
+            ctx.clearRect(0,0,600,600);
             const total = players.reduce((s, p) => s + p.amount, 0);
-            ctx.clearRect(0, 0, 300, 300);
-            if (total === 0) return;
-            let currentX = 0;
+            if (total === 0) {
+                ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(300,300,300,0,Math.PI*2); ctx.fill();
+                return;
+            }
+            let start = 0;
             players.forEach(p => {
-                const w = (p.amount / total) * 300;
-                ctx.fillStyle = p.color;
-                ctx.fillRect(currentX, 0, w, 300);
-                currentX += w;
+                const slice = (p.amount / total) * Math.PI * 2;
+                ctx.beginPath(); ctx.moveTo(300,300); ctx.arc(300,300,300,start,start+slice);
+                ctx.fillStyle = p.color; ctx.fill();
+                start += slice;
+            });
+            // المركز الفارغ (مثل الفيديو)
+            ctx.beginPath(); ctx.arc(300,300,80,0,Math.PI*2); ctx.fillStyle = "#0b0e14"; ctx.fill();
+        }
+
+        // --- تحديث قائمة المشاركين والنسب ---
+        function updateList() {
+            const container = document.getElementById('players-container');
+            const total = players.reduce((s, p) => s + p.amount, 0);
+            container.innerHTML = "";
+            
+            players.sort((a,b) => b.amount - a.amount).forEach(p => {
+                const perc = total > 0 ? ((p.amount/total)*100).toFixed(2) : 0;
+                container.innerHTML += `
+                    <div class="player-item">
+                        <div class="player-info">
+                            <div class="player-avatar" style="background:${p.color}"></div>
+                            <div class="player-name">${p.name}</div>
+                        </div>
+                        <div class="player-stats">
+                            <div class="percentage">${perc}%</div>
+                            <div class="amount">∇ ${p.amount}</div>
+                        </div>
+                    </div>
+                `;
             });
         }
 
-        function resetUI() {
-            ctx.clearRect(0, 0, 300, 300);
-            document.getElementById('info-status').innerText = "بانتظار لاعبين (0/2)";
-            document.getElementById('countdown-display').innerText = "";
-            board.style.transform = "scale(1)";
-            ball.style.display = "none";
-            isMoving = false;
-        }
+        // --- دخول الشخص الجولة ---
+        async function joinGame() {
+            const val = parseFloat(document.getElementById('bet-input').value);
+            document.getElementById('add-btn').disabled = true;
 
-        async function handleJoin() {
-            const val = parseInt(document.getElementById('bet-input').value);
-            if (val > myBalance) return alert("الرصيد لا يكفي");
-
-            myBalance -= val;
-            updateBalance();
-            document.getElementById('join-btn').disabled = true;
-
-            const pData = { id: myId, amount: val, color: `hsl(${Math.random()*360},70%,50%)`, name: "لاعب " + myId.split('_')[1] };
+            const pData = {
+                id: myId, name: "لاعب " + myId.split('_')[1],
+                amount: val, color: `hsl(${Math.random()*360}, 70%, 50%)`
+            };
             await fetch(`${DB_URL}/players/${myId}.json`, { method: 'PUT', body: JSON.stringify(pData) });
         }
 
-        async function startTimer() {
+        // --- نظام العد التنازلي ---
+        async function startSequence() {
             await fetch(`${DB_URL}/state.json`, { method: 'PUT', body: JSON.stringify("counting") });
-            let sec = 5;
+            let timer = 10;
             let iv = setInterval(async () => {
-                await fetch(`${DB_URL}/timer.json`, { method: 'PUT', body: JSON.stringify(sec) });
-                sec--;
-                if (sec < 0) {
+                await fetch(`${DB_URL}/timer.json`, { method: 'PUT', body: JSON.stringify(timer) });
+                timer--;
+                if (timer < 0) {
                     clearInterval(iv);
                     await fetch(`${DB_URL}.json`, { method: 'PATCH', body: JSON.stringify({ state: "playing", seed: Math.random() }) });
                 }
             }, 1000);
         }
 
-        function startPhysics(seed) {
-            isMoving = true;
-            ball.style.display = "block";
-            document.getElementById('countdown-display').innerText = "";
+        // --- حركة الكرة وانهاء الجولة ---
+        function startBall(seed) {
+            isSpinning = true;
+            pointer.style.display = "block";
+            document.getElementById('countdown').innerText = "";
             
             let px = 150, py = 150;
-            let vx = (seed * 35) + 15;
-            let vy = (1 - seed) * 35 + 15;
-            let fric = 0.984;
+            let vx = (seed * 40) + 10; let vy = (1-seed) * 40 + 10;
+            let fric = 0.985;
 
-            function frame() {
+            function anim() {
                 px += vx; py += vy;
-                if (px <= 0 || px >= 278) vx *= -1;
-                if (py <= 0 || py >= 278) vy *= -1;
+                if (px <= 5 || px >= 285) vx *= -1;
+                if (py <= 5 || py >= 285) vy *= -1;
                 vx *= fric; vy *= fric;
-                ball.style.left = px + 'px';
-                ball.style.top = py + 'px';
+                pointer.style.left = px + 'px'; pointer.style.top = py + 'px';
 
-                if (Math.abs(vx) < 8) board.style.transform = "scale(1.35)";
-
-                if (Math.abs(vx) > 0.18) requestAnimationFrame(frame);
-                else conclude(px);
+                if (Math.abs(vx) > 0.2) requestAnimationFrame(anim);
+                else finishGame();
             }
-            frame();
+            anim();
         }
 
-        async function conclude(finalX) {
-            const total = players.reduce((s, p) => s + p.amount, 0);
-            let curX = 0;
-            let win = players[0];
-            players.forEach(p => {
-                const w = (p.amount / total) * 300;
-                if (finalX >= curX && finalX <= curX + w) win = p;
-                curX += w;
-            });
-
-            document.getElementById('winner-content').innerHTML = `
-                <div style="width:90px; height:90px; background:${win.color}; border-radius:50%; margin:0 auto 15px; border:4px solid #fff;"></div>
-                <h2>الفائز: ${win.name}</h2>
-                <h1 style="color:var(--gold)">+${total.toLocaleString()} ⭐</h1>
-            `;
-            document.getElementById('winner-popup').style.display = "flex";
-
-            if (win.id === myId) {
-                myBalance += total;
-                updateBalance();
-                confetti();
-            }
-
-            // تصفير كل شيء (حذف الخريطة والمشاركين)
+        async function finishGame() {
+            // تصفير الجولة تماماً بعد الفوز
             if (players[0].id === myId) {
                 setTimeout(async () => {
                     await fetch(`${DB_URL}.json`, { method: 'DELETE' });
-                    location.reload(); 
+                    location.reload();
                 }, 7000);
             }
         }
 
-        setInterval(syncGame, 1000);
+        setInterval(sync, 1000);
     </script>
 </body>
 </html>
