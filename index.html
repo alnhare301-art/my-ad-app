@@ -3,191 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Territory System</title>
+    <title>Global Territory - Final Fix</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { --bg: #0b0e14; --panel: #161b22; --accent: #3867d6; --gold: #fbc531; }
         * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-        body { background-color: var(--bg); color: white; margin: 0; display: flex; flex-direction: column; align-items: center; padding-bottom: 20px; }
+        body { background-color: var(--bg); color: white; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
 
-        .status-bar { width: 100%; background: var(--panel); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        .status-bar { width: 100%; background: var(--panel); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #222; }
         
-        /* مربع المساحات الكبير */
-        .map-container { position: relative; width: 340px; height: 340px; margin: 25px 0; border: 4px solid #222; border-radius: 15px; overflow: hidden; background: #000; }
+        /* ساحة الميدان */
+        .map-frame { position: relative; width: 320px; height: 320px; margin: 30px auto; border: 5px solid #222; border-radius: 12px; overflow: hidden; background: #000; transition: 0.5s; }
         canvas { width: 100%; height: 100%; display: block; }
         
-        #ball { position: absolute; width: 22px; height: 22px; background: #fff; border-radius: 50%; z-index: 100; display: none; box-shadow: 0 0 20px #fff; border: 2px solid #000; }
-        .countdown { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; font-weight: 900; z-index: 110; text-shadow: 0 0 20px #000; pointer-events: none; }
+        #ball { position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%; z-index: 100; display: none; box-shadow: 0 0 15px #fff; }
+        .timer-txt { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; font-weight: 900; z-index: 110; text-shadow: 0 0 20px #000; }
 
-        /* القائمة والتحكم */
-        .players-list { width: 92%; max-width: 400px; background: var(--panel); border-radius: 15px; padding: 15px; margin-top: 15px; }
-        .player-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid #222; animation: fadeIn 0.3s ease; }
-        .player-avatar { width: 30px; height: 30px; border-radius: 8px; margin-left: 10px; }
-        .percentage { color: var(--gold); font-weight: 900; }
-
-        .input-area { width: 92%; max-width: 400px; margin-top: 15px; }
-        .btn-add { width: 100%; background: var(--accent); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 900; font-size: 18px; cursor: pointer; transition: 0.2s; }
-        .btn-add:active { transform: scale(0.98); }
+        /* التحكم والقائمة */
+        .ui-container { width: 92%; max-width: 400px; }
+        .player-card { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--panel); margin-bottom: 8px; border-radius: 10px; border-right: 5px solid transparent; }
+        .input-bet { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: center; font-size: 20px; font-weight: bold; }
+        .btn-join { width: 100%; background: var(--accent); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: 900; font-size: 18px; cursor: pointer; }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #winner-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center; }
     </style>
 </head>
 <body>
 
     <div class="status-bar">
-        <div style="font-size: 14px; font-weight: bold; color: var(--gold);">⭐ <span id="my-bal">100,000</span></div>
-        <div style="font-size: 12px; color: #8b949e;">Game #<span id="game-id">471813</span></div>
+        <div style="font-weight: 900; color: var(--gold);">⭐ <span id="balance-val">100,000</span></div>
+        <div style="font-size: 12px; color: #666;">ID: #<span id="game-no">471813</span></div>
     </div>
 
-    <div class="map-container" id="map-box">
+    <div class="map-frame" id="map-frame">
         <div id="ball"></div>
-        <div id="timer" class="countdown"></div>
-        <canvas id="mapCanvas" width="600" height="600"></canvas>
+        <div id="timer-display" class="timer-txt"></div>
+        <canvas id="territoryCanvas" width="600" height="600"></canvas>
     </div>
 
-    <div class="input-area">
-        <input type="number" id="bet-amt" value="1.0" style="width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 10px; margin-bottom: 10px; text-align: center; font-size: 18px;">
-        <button id="add-btn" class="btn-add" onclick="join()">إضافة (Add Fighter) ⚔️</button>
+    <div class="ui-container">
+        <input type="number" id="bet-input" class="input-bet" value="1000">
+        <button id="add-btn" class="btn-join" onclick="joinFighter()">دخول الميدان ⚔️</button>
+        <div id="list-players" style="margin-top:20px;"></div>
     </div>
 
-    <div class="players-list">
-        <div style="font-size: 14px; color: #8b949e; margin-bottom: 10px;">المقاتلون والحصص الميدانية</div>
-        <div id="list-container"></div>
+    <div id="winner-screen">
+        <div id="winner-data"></div>
+        <div style="color: #666; margin-top: 20px;">جاري تصفير الميدان...</div>
     </div>
 
     <script>
-        const DB = "https://sarab-app-84448-default-rtdb.firebaseio.com/territory_v1";
-        let myUid = "U" + Math.floor(Math.random() * 999);
+        const DB_PATH = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v5";
+        let myId = "ID" + Math.floor(Math.random() * 9999);
+        let myBal = parseInt(localStorage.getItem('user_bal')) || 100000;
         let players = [];
-        let isActive = false;
+        let running = false;
 
-        const canvas = document.getElementById('mapCanvas');
+        const canvas = document.getElementById('territoryCanvas');
         const ctx = canvas.getContext('2d');
         const ball = document.getElementById('ball');
 
-        async function sync() {
+        function updateHeader() {
+            document.getElementById('balance-val').innerText = myBal.toLocaleString();
+            localStorage.setItem('user_bal', myBal);
+        }
+        updateHeader();
+
+        // 1. المزامنة والتحكم في النظام
+        async function syncSystem() {
             try {
-                const r = await fetch(`${DB}.json`);
-                const data = await r.json();
-                if (!data || !data.players) { players = []; renderEmpty(); return; }
+                const res = await fetch(`${DB_PATH}.json`);
+                const data = await res.json();
+
+                if (!data || !data.players) {
+                    players = [];
+                    resetLocalUI();
+                    return;
+                }
 
                 players = Object.values(data.players);
                 const state = data.state || "waiting";
 
-                if (state === "waiting" && players.length >= 2 && players[0].id === myUid) startTimer();
-                if (state === "counting") document.getElementById('timer').innerText = data.timer;
-                if (state === "playing" && !isActive) runBall(data.seed);
+                if (state === "waiting" && players.length >= 2 && players[0].id === myId) {
+                    startGlobalCountdown();
+                }
 
-                drawTerritory();
-                updateList();
+                if (state === "counting") {
+                    document.getElementById('timer-display').innerText = data.timer || "";
+                }
+
+                if (state === "playing" && !running) {
+                    runPhysics(data.seed || 0.5);
+                }
+
+                drawMap();
+                updateListUI();
             } catch (e) {}
         }
 
-        // رسم تقسيمات المساحة (مربعات ومستطيلات ديناميكية)
-        function drawTerritory() {
+        // 2. رسم خريطة المساحات
+        function drawMap() {
             ctx.clearRect(0,0,600,600);
             const total = players.reduce((s, p) => s + p.amount, 0);
             if (total === 0) return;
 
-            let x = 0, y = 0, w = 600, h = 600;
-            
-            players.forEach((p, index) => {
+            let curX = 0, curY = 0, w = 600, h = 600;
+            players.forEach((p, i) => {
                 const ratio = p.amount / total;
                 ctx.fillStyle = p.color;
-                
-                // التبديل بين التقسيم الأفقي والطولي لإعطاء أشكال متنوعة
-                if (index % 2 === 0) {
-                    let sliceW = w * ratio;
-                    if (index === players.length - 1) sliceW = w; // سد الفجوة الأخيرة
-                    ctx.fillRect(x, y, sliceW, h);
-                    x += sliceW;
-                    w -= sliceW;
+                if (i % 2 === 0) {
+                    let sW = w * ratio;
+                    if (i === players.length - 1) sW = w;
+                    ctx.fillRect(curX, curY, sW, h);
+                    p.coords = {x1: curX, y1: curY, x2: curX+sW, y2: curY+h};
+                    curX += sW; w -= sW;
                 } else {
-                    let sliceH = h * ratio;
-                    if (index === players.length - 1) sliceH = h;
-                    ctx.fillRect(x, y, w, sliceH);
-                    y += sliceH;
-                    h -= sliceH;
+                    let sH = h * ratio;
+                    if (i === players.length - 1) sH = h;
+                    ctx.fillRect(curX, curY, w, sH);
+                    p.coords = {x1: curX, y1: curY, x2: curX+w, y2: curY+sH};
+                    curY += sH; h -= sH;
                 }
-                
-                // حفظ إحداثيات كل لاعب لمعرفة الفائز لاحقاً
-                p.area = {x1: x-600, y1: y-600, x2: x, y2: y}; 
             });
         }
 
-        function updateList() {
-            const container = document.getElementById('list-container');
+        // 3. العد التنازلي (يبدأ من السيرفر)
+        async function startGlobalCountdown() {
+            await fetch(`${DB_PATH}/state.json`, { method: 'PUT', body: JSON.stringify("counting") });
+            let time = 10;
+            let iv = setInterval(async () => {
+                await fetch(`${DB_PATH}/timer.json`, { method: 'PUT', body: JSON.stringify(time) });
+                time--;
+                if (time < 0) {
+                    clearInterval(iv);
+                    await fetch(`${DB_PATH}.json`, { method: 'PATCH', body: JSON.stringify({ state: "playing", seed: Math.random() }) });
+                }
+            }, 1000);
+        }
+
+        // 4. حركة الكرة وتحديد الفائز
+        function runPhysics(seed) {
+            running = true;
+            ball.style.display = "block";
+            document.getElementById('timer-display').innerText = "";
+            
+            let px = 150, py = 150;
+            let vx = (seed * 45) + 15;
+            let vy = (1-seed) * 45 + 15;
+
+            function frame() {
+                px += vx; py += vy;
+                if (px <= 0 || px >= 300) vx *= -1;
+                if (py <= 0 || py >= 300) vy *= -1;
+                vx *= 0.985; vy *= 0.985;
+                ball.style.left = px + 'px'; ball.style.top = py + 'px';
+
+                if (Math.abs(vx) > 0.2) requestAnimationFrame(frame);
+                else calculateWinner(px * 2, py * 2); // نضرب في 2 لأن الكانفس 600 والمربع 300
+            }
+            frame();
+        }
+
+        async function calculateWinner(fx, fy) {
+            const totalPrize = players.reduce((s, p) => s + p.amount, 0);
+            let winner = players[0];
+            
+            players.forEach(p => {
+                if (fx >= p.coords.x1 && fx <= p.coords.x2 && fy >= p.coords.y1 && fy <= p.coords.y2) {
+                    winner = p;
+                }
+            });
+
+            // عرض الفائز فوراً
+            document.getElementById('winner-data').innerHTML = `
+                <div style="width:100px; height:100px; background:${winner.color}; border-radius:20px; margin:0 auto 20px; border:4px solid #fff;"></div>
+                <h2 style="color:#fff">الفائز: ${winner.name}</h2>
+                <h1 style="color:var(--gold)">+${totalPrize.toLocaleString()} ⭐</h1>
+            `;
+            document.getElementById('winner-screen').style.display = "flex";
+
+            // إضافة الرصيد للفائز (محلياً وفي المتصفح)
+            if (winner.id === myId) {
+                myBal += totalPrize;
+                updateHeader();
+                confetti({ particleCount: 150, spread: 70 });
+            }
+
+            // إشعار السيرفر بالتصفير بعد 8 ثوانٍ (يقوم به أول لاعب)
+            if (players[0].id === myId) {
+                setTimeout(async () => {
+                    await fetch(`${DB_PATH}.json`, { method: 'DELETE' });
+                }, 8000);
+            }
+        }
+
+        async function joinFighter() {
+            const amt = parseInt(document.getElementById('bet-input').value);
+            if (amt > myBal) return alert("رصيدك غير كافٍ");
+            myBal -= amt; updateHeader();
+            document.getElementById('add-btn').disabled = true;
+            const pData = { id: myId, name: "لاعب " + myId.substr(2), amount: amt, color: `hsl(${Math.random()*360},70%,50%)` };
+            await fetch(`${DB_PATH}/players/${myId}.json`, { method: 'PUT', body: JSON.stringify(pData) });
+        }
+
+        function updateListUI() {
+            const container = document.getElementById('list-players');
             const total = players.reduce((s, p) => s + p.amount, 0);
             container.innerHTML = "";
             players.sort((a,b) => b.amount - a.amount).forEach(p => {
-                const perc = ((p.amount/total)*100).toFixed(2);
+                const perc = ((p.amount/total)*100).toFixed(1);
                 container.innerHTML += `
-                    <div class="player-item">
-                        <div style="display:flex; align-items:center;">
-                            <div class="player-avatar" style="background:${p.color}"></div>
-                            <span>${p.name}</span>
-                        </div>
+                    <div class="player-card" style="border-right-color:${p.color}">
+                        <span>${p.name}</span>
                         <div style="text-align:left">
-                            <div class="percentage">${perc}%</div>
-                            <div style="font-size:10px; color:#666;">∇ ${p.amount}</div>
+                            <span style="color:var(--gold); font-weight:900;">${perc}%</span><br>
+                            <span style="font-size:10px; color:#555;">${p.amount} ⭐</span>
                         </div>
                     </div>
                 `;
             });
         }
 
-        async function join() {
-            const amt = parseFloat(document.getElementById('bet-amt').value);
-            const pData = { id: myUid, name: "لاعب " + myUid.substr(1), amount: amt, color: `hsl(${Math.random()*360},70%,50%)` };
-            await fetch(`${DB}/players/${myUid}.json`, { method: 'PUT', body: JSON.stringify(pData) });
-            document.getElementById('add-btn').disabled = true;
+        function resetLocalUI() {
+            ctx.clearRect(0,0,600,600);
+            document.getElementById('list-players').innerHTML = "";
+            document.getElementById('winner-screen').style.display = "none";
+            document.getElementById('add-btn').disabled = false;
+            ball.style.display = "none";
+            running = false;
         }
 
-        async function startTimer() {
-            await fetch(`${DB}/state.json`, { method: 'PUT', body: JSON.stringify("counting") });
-            let t = 10;
-            let iv = setInterval(async () => {
-                await fetch(`${DB}/timer.json`, { method: 'PUT', body: JSON.stringify(t) });
-                t--;
-                if (t < 0) {
-                    clearInterval(iv);
-                    await fetch(`${DB}.json`, { method: 'PATCH', body: JSON.stringify({ state: "playing", seed: Math.random() }) });
-                }
-            }, 1000);
-        }
-
-        function runBall(seed) {
-            isActive = true;
-            ball.style.display = "block";
-            document.getElementById('timer').innerText = "";
-            let px = 150, py = 150, vx = (seed * 50) + 10, vy = (1-seed) * 50 + 10;
-            function anim() {
-                px += vx; py += vy;
-                if (px <= 0 || px >= 318) vx *= -1;
-                if (py <= 0 || py >= 318) vy *= -1;
-                vx *= 0.985; vy *= 0.985;
-                ball.style.left = px + 'px'; ball.style.top = py + 'px';
-                if (Math.abs(vx) > 0.2) requestAnimationFrame(anim);
-                else finish();
-            }
-            anim();
-        }
-
-        async function finish() {
-            if (players[0].id === myUid) {
-                setTimeout(async () => {
-                    await fetch(`${DB}.json`, { method: 'DELETE' });
-                    location.reload();
-                }, 8000);
-            }
-        }
-
-        function renderEmpty() {
-            ctx.fillStyle = "#111"; ctx.fillRect(0,0,600,600);
-            document.getElementById('list-container').innerHTML = "<p style='text-align:center; color:#444;'>لا يوجد مقاتلون حالياً</p>";
-        }
-
-        setInterval(sync, 1000);
+        setInterval(syncSystem, 1000);
     </script>
 </body>
 </html>
