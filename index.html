@@ -3,42 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ميدان الروليت المطور</title>
+    <title>ميدان الروليت - النسخة المستقرة</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #D4AF37; --royal-black: #050505; }
-        body { font-family: 'Cairo', sans-serif; background-color: var(--royal-black); color: white; overflow: hidden; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--royal-black); color: white; overflow-x: hidden; touch-action: manipulation; }
         .gold-btn { background: linear-gradient(135deg, #D4AF37, #A67C00); color: black; font-weight: 900; transition: 0.3s; }
-        .gold-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        #ball { transition: transform 0.05s linear; }
+        .gold-btn:disabled { opacity: 0.3; filter: grayscale(1); }
+        canvas { image-rendering: pixelated; }
     </style>
 </head>
 <body>
 
-    <div class="max-w-lg mx-auto p-4">
+    <div class="max-w-lg mx-auto p-4 pb-20">
         <div class="flex justify-between items-center mb-6 bg-white/5 p-3 rounded-2xl border border-white/10">
-            <div class="text-[var(--gold)] font-black text-xl italic">ARENA V2</div>
-            <div class="bg-black/50 px-4 py-2 rounded-xl border border-[var(--gold)]/30">
-                <span id="balanceDisplay" class="text-[var(--gold)] font-bold">0</span> ⭐
+            <div class="text-[var(--gold)] font-black text-xl italic" onclick="emergencyReset()" style="cursor:pointer">ARENA V3</div>
+            <div class="flex items-center gap-2">
+                <button onclick="emergencyReset()" class="text-[10px] bg-red-900/30 px-2 py-1 rounded text-red-500 border border-red-500/30">تصفير الميدان</button>
+                <div class="bg-black/50 px-4 py-2 rounded-xl border border-[var(--gold)]/30">
+                    <span id="balanceDisplay" class="text-[var(--gold)] font-bold">0</span> ⭐
+                </div>
             </div>
         </div>
 
-        <div id="statusCard" class="bg-gradient-to-r from-yellow-900/20 to-black p-4 rounded-2xl mb-4 border border-yellow-600/20">
+        <div class="bg-gradient-to-r from-yellow-900/20 to-black p-4 rounded-2xl mb-4 border border-yellow-600/20">
             <div class="flex justify-between items-center">
                 <div>
                     <div id="statusLabel" class="text-yellow-500 font-black text-lg">بانتظار الأبطال...</div>
-                    <div id="statusTimer" class="text-xs text-gray-400">تحرك الكرة: وضع الاستعداد</div>
+                    <div id="statusTimer" class="text-xs text-gray-400">الكرة في وضع الإحماء</div>
                 </div>
                 <div class="text-right">
                     <div class="text-xs text-gray-500">المشاركون</div>
-                    <div id="playerCount" class="text-2xl font-black text-white">0</div>
+                    <div id="playerCount" class="text-3xl font-black text-white">0</div>
                 </div>
             </div>
         </div>
 
-        <div class="relative w-[300px] h-[300px] mx-auto rounded-3xl overflow-hidden border-4 border-white/10 bg-black shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-            <div id="ball" class="absolute w-5 h-5 bg-white rounded-full z-50 shadow-[0_0_15px_white]"></div>
+        <div class="relative w-[320px] h-[320px] mx-auto rounded-3xl overflow-hidden border-4 border-white/10 bg-[#0a0a0a]">
+            <div id="ball" class="absolute w-5 h-5 bg-white rounded-full z-50 shadow-[0_0_15px_white] left-0 top-0"></div>
             <div id="countdownOverlay" class="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-[60] hidden">
                 <div id="bigTimer" class="text-8xl font-black text-[var(--gold)]"></div>
             </div>
@@ -46,18 +49,18 @@
         </div>
 
         <div class="mt-6 space-y-4">
-            <input type="number" id="betInput" value="1000" step="1000" class="w-full bg-white/5 border-2 border-white/10 p-4 rounded-2xl text-center text-2xl font-black text-[var(--gold)] focus:border-[var(--gold)] outline-none">
-            <button id="joinBtn" class="gold-btn w-full py-5 rounded-2xl text-xl shadow-lg shadow-yellow-900/20">دخول الميدان الآن ⚔️</button>
+            <input type="number" id="betInput" value="1000" class="w-full bg-white/5 border-2 border-white/10 p-4 rounded-2xl text-center text-2xl font-black text-[var(--gold)] outline-none">
+            <button id="joinBtn" class="gold-btn w-full py-5 rounded-2xl text-xl">دخول الميدان ⚔️</button>
         </div>
 
-        <div id="playersList" class="mt-6 space-y-2 overflow-y-auto max-h-[150px]"></div>
+        <div id="playersList" class="mt-6 space-y-2"></div>
     </div>
 
-    <div id="winnerOverlay" class="fixed inset-0 bg-black/98 z-[1000] hidden flex-col items-center justify-center text-center p-6">
-        <div id="winnerColorBox" class="w-32 h-32 rounded-full border-8 border-[var(--gold)] mb-6 animate-bounce"></div>
-        <div class="text-[var(--gold)] text-xl font-bold mb-2">الفائز في هذه الجولة</div>
-        <div id="winnerName" class="text-4xl font-black text-white mb-4"></div>
-        <div id="winnerPrize" class="text-6xl font-black text-yellow-500"></div>
+    <div id="winnerOverlay" class="fixed inset-0 bg-black/98 z-[1000] hidden flex flex-col items-center justify-center text-center p-6">
+        <div id="winnerColorBox" class="w-32 h-32 rounded-3xl border-8 border-[var(--gold)] mb-6 animate-bounce"></div>
+        <div id="winnerName" class="text-4xl font-black text-white mb-2"></div>
+        <div id="winnerPrize" class="text-6xl font-black text-yellow-500 mb-8"></div>
+        <div class="text-gray-500">سيتم تصفير الميدان تلقائياً...</div>
     </div>
 
     <script>
@@ -65,85 +68,75 @@
         const myId = localStorage.getItem("tg_id") || "U" + Math.floor(Math.random()*9999);
         localStorage.setItem("tg_id", myId);
 
-        // إعداد الرصيد الابتدائي (100 ألف)
-        if(!localStorage.getItem("init_v6")) {
-            localStorage.setItem("bal", 100000);
-            localStorage.setItem("init_v6", true);
-        }
-
-        let myBal = parseInt(localStorage.getItem("bal"));
+        let myBal = parseInt(localStorage.getItem("bal")) || 100000;
         let players = [];
         let gameState = "waiting";
-        let isMoving = false;
-        
-        // متغيرات الكرة (فيزياء الكيرم)
-        let bx = 150, by = 150, bvx = 3, bvy = 3;
+        let ballX = 150, ballY = 150, vX = 4, vY = 4;
         const ballElem = document.getElementById("ball");
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        function updateBalDisp() {
+        function saveBal() {
             document.getElementById("balanceDisplay").innerText = myBal.toLocaleString();
             localStorage.setItem("bal", myBal);
         }
-        updateBalDisp();
+        saveBal();
 
-        // 1. تصفير البيانات عند البداية إذا لم يوجد لاعبون (لحل مشكلة اللاعبين الوهميين)
-        async function checkAndReset() {
-            const res = await fetch(`${DB_URL}.json`);
-            const data = await res.json();
-            if (!data || !data.players) {
-                await fetch(`${DB_URL}.json`, { method: 'PUT', body: JSON.stringify({ state: "waiting", players: {} }) });
-            }
+        // تصفير الطوارئ (اضغط على الاسم فوق أو الزر)
+        async function emergencyReset() {
+            await fetch(`${DB_URL}.json`, { method: 'PUT', body: JSON.stringify({ state: "waiting", players: {}, lastReset: Date.now() }) });
+            location.reload();
         }
-        checkAndReset();
 
-        // 2. محرك حركة الكرة (فيزياء متطورة)
+        // فيزياء الكيرم
         function moveBall() {
-            bx += bvx;
-            by += bvy;
+            if (gameState === "finished") return;
 
-            // اصطدام بالجدران مع إضافة "تغيير طفيف في الزاوية" لمنع الحركة الخطية المملة
-            if (bx <= 0 || bx >= 280) {
-                bvx *= -1.02; // تسريع طفيف
-                bvy += (Math.random() - 0.5) * 2; // تغيير زاوية عشوائي (مثل الكيرم)
-                bx = bx <= 0 ? 1 : 279;
+            ballX += vX;
+            ballY += vY;
+
+            // اصطدام الجدران (حدود 300px لأن الكانتينر 320 مع البادينج)
+            if (ballX <= 0 || ballX >= 295) {
+                vX *= -1;
+                vY += (Math.random() - 0.5) * 2; // زاوية عشوائية عند الاصطدام
+                ballX = ballX <= 0 ? 1 : 294;
             }
-            if (by <= 0 || by >= 280) {
-                bvy *= -1.02;
-                bvx += (Math.random() - 0.5) * 2;
-                by = by <= 0 ? 1 : 279;
+            if (ballY <= 0 || ballY >= 295) {
+                vY *= -1;
+                vX += (Math.random() - 0.5) * 2;
+                ballY = ballY <= 0 ? 1 : 294;
             }
 
-            // تحديد سرعة قصوى ودنيا لضمان المتعة
-            const speed = Math.sqrt(bvx*bvx + bvy*bvy);
-            if(speed > 12) { bvx *= 0.9; bvy *= 0.9; }
-            if(speed < 3 && gameState === "waiting") { bvx *= 1.1; bvy *= 1.1; }
+            // منع الكرة من التعلق في خط مستقيم
+            if (Math.abs(vX) < 1) vX = 3;
+            if (Math.abs(vY) < 1) vY = 3;
 
-            ballElem.style.transform = `translate(${bx}px, ${by}px)`;
-            
-            if (gameState !== "playing" || speed > 0.1) {
-                requestAnimationFrame(moveBall);
-            }
+            ballElem.style.transform = `translate(${ballX}px, ${ballY}px)`;
+            requestAnimationFrame(moveBall);
         }
-        moveBall(); // تشغيل الحركة فوراً
+        moveBall();
 
         async function sync() {
             try {
                 const res = await fetch(`${DB_URL}.json`);
                 const data = await res.json();
-                if (!data) return;
-
-                players = data.players ? Object.values(data.players) : [];
-                gameState = data.state || "waiting";
                 
-                document.getElementById("playerCount").innerText = players.length;
-                drawArena();
-                updateUI(data);
+                // تنظيف البيانات إذا كانت فارغة تماماً
+                if (!data || !data.players) {
+                    players = [];
+                    gameState = "waiting";
+                } else {
+                    players = Object.values(data.players).filter(p => p && p.id);
+                    gameState = data.state || "waiting";
+                }
 
-                // منطق العد التنازلي
+                document.getElementById("playerCount").innerText = players.length;
+                updateUI(data);
+                drawArena();
+
+                // منطق العد التنازلي (يبدأ فقط إذا كان هناك 2 أو أكثر فعلياً)
                 if (players.length >= 2 && gameState === "waiting") {
-                    if (myId === players[0].id) { // أول لاعب هو الميقاتي
+                    if (myId === players[0].id) {
                         await fetch(`${DB_URL}.json`, { method: 'PATCH', body: JSON.stringify({ state: "counting", startAt: Date.now() }) });
                     }
                 }
@@ -163,118 +156,112 @@
                     document.getElementById("countdownOverlay").classList.add("hidden");
                 }
 
-                // نهاية اللعبة وتحديد الفائز
-                if (gameState === "playing" && !isMoving) {
-                    startFinalSpin(data.seed);
+                if (gameState === "playing" && data.seed) {
+                    executeFinalSpin(data.seed);
                 }
 
-            } catch (e) { console.log(e); }
+            } catch (e) { console.error("Sync error"); }
         }
 
         function drawArena() {
             ctx.clearRect(0, 0, 600, 600);
             const total = players.reduce((s, p) => s + p.amount, 0);
-            if (total === 0) { ctx.fillStyle = "#111"; ctx.fillRect(0,0,600,600); return; }
+            if (total === 0) return;
 
             let x=0, y=0, w=600, h=600;
             players.forEach((p, i) => {
-                const pPercent = p.amount / total;
+                const ratio = p.amount / total;
                 ctx.fillStyle = p.color;
                 if(i % 2 === 0) {
-                    let pw = (i === players.length - 1) ? w : w * pPercent;
+                    let pw = (i === players.length - 1) ? w : w * ratio;
                     ctx.fillRect(x, y, pw, h);
-                    p.area = {x1: x, y1: y, x2: x+pw, y2: y+h};
+                    p.box = {x1: x, y1: y, x2: x+pw, y2: y+h};
                     x += pw; w -= pw;
                 } else {
-                    let ph = (i === players.length - 1) ? h : h * pPercent;
+                    let ph = (i === players.length - 1) ? h : h * ratio;
                     ctx.fillRect(x, y, w, ph);
-                    p.area = {x1: x, y1: y, x2: x+w, y2: y+ph};
+                    p.box = {x1: x, y1: y, x2: x+w, y2: y+ph};
                     y += ph; h -= ph;
                 }
             });
         }
 
+        function executeFinalSpin(seed) {
+            if (window.isSpinning) return;
+            window.isSpinning = true;
+            
+            // سرعة انفجارية بناءً على السد
+            vX = Math.cos(seed * 10) * 25;
+            vY = Math.sin(seed * 10) * 25;
+
+            let deceleration = 0.97;
+            const interval = setInterval(() => {
+                vX *= deceleration;
+                vY *= deceleration;
+
+                if (Math.abs(vX) < 0.2 && Math.abs(vY) < 0.2) {
+                    clearInterval(interval);
+                    window.isSpinning = false;
+                    determineWinner();
+                }
+            }, 30);
+        }
+
+        function determineWinner() {
+            const fx = (ballX + 10) * 2; // تحويل للإحداثيات الحقيقية
+            const fy = (ballY + 10) * 2;
+            
+            const winner = players.find(p => fx >= p.box.x1 && fx <= p.box.x2 && fy >= p.box.y1 && fy <= p.box.y2);
+            
+            if (winner && gameState !== "finished") {
+                finishGame(winner);
+            }
+        }
+
+        async function finishGame(w) {
+            gameState = "finished";
+            const prize = players.reduce((s, p) => s + p.amount, 0);
+            
+            document.getElementById("winnerName").innerText = w.name;
+            document.getElementById("winnerPrize").innerText = "+" + prize.toLocaleString();
+            document.getElementById("winnerColorBox").style.backgroundColor = w.color;
+            document.getElementById("winnerOverlay").classList.remove("hidden");
+
+            if (w.id === myId) {
+                myBal += prize;
+                saveBal();
+            }
+
+            setTimeout(async () => {
+                if (myId === players[0].id) {
+                    await fetch(`${DB_URL}.json`, { method: 'PUT', body: JSON.stringify({ state: "waiting", players: {} }) });
+                }
+                location.reload(); // إعادة تحميل للتنظيف التام
+            }, 6000);
+        }
+
         function updateUI(data) {
             const list = document.getElementById("playersList");
             list.innerHTML = players.map(p => `
-                <div class="flex justify-between items-center p-3 rounded-xl bg-white/5 border-r-8" style="border-color: ${p.color}">
-                    <span class="font-bold">${p.name} ${p.id === myId ? '(أنت)' : ''}</span>
+                <div class="flex justify-between items-center p-3 rounded-xl bg-white/5 border-r-8 mb-2" style="border-color: ${p.color}">
+                    <span class="font-bold">${p.name}</span>
                     <span class="text-yellow-500 font-black">${p.amount.toLocaleString()}</span>
                 </div>
             `).join('');
 
-            const btn = document.getElementById("joinBtn");
-            btn.disabled = (gameState !== "waiting" && gameState !== "counting");
-        }
-
-        function startFinalSpin(seed) {
-            isMoving = true;
-            // قوة الدفعة الأخيرة بناءً على الـ seed لضمان نفس النتيجة عند الكل
-            bvx = Math.cos(seed * 7) * 20;
-            bvy = Math.sin(seed * 7) * 20;
-
-            const friction = 0.98;
-            function animate() {
-                bvx *= friction;
-                bvy *= friction;
-                if (Math.abs(bvx) < 0.1 && Math.abs(bvy) < 0.1) {
-                    isMoving = false;
-                    checkWinner();
-                    return;
-                }
-                requestAnimationFrame(animate);
-            }
-            animate();
-        }
-
-        function checkWinner() {
-            // تحويل إحداثيات الكرة الصغير (300x300) إلى إحداثيات الكانفاس (600x600)
-            const finalX = (bx + 10) * 2;
-            const finalY = (by + 10) * 2;
-
-            const winner = players.find(p => 
-                finalX >= p.area.x1 && finalX <= p.area.x2 &&
-                finalY >= p.area.y1 && finalY <= p.area.y2
-            );
-
-            if (winner) {
-                const totalPrize = players.reduce((s, p) => s + p.amount, 0);
-                showWinner(winner, totalPrize);
-            }
-        }
-
-        function showWinner(w, prize) {
-            const overlay = document.getElementById("winnerOverlay");
-            document.getElementById("winnerName").innerText = w.name;
-            document.getElementById("winnerPrize").innerText = "+" + prize.toLocaleString();
-            document.getElementById("winnerColorBox").style.backgroundColor = w.color;
-            overlay.classList.remove("hidden");
-            overlay.classList.add("flex");
-
-            if(w.id === myId) {
-                myBal += prize;
-                updateBalDisp();
-            }
-
-            setTimeout(async () => {
-                overlay.classList.add("hidden");
-                if (myId === players[0].id) {
-                    await fetch(`${DB_URL}.json`, { method: 'PUT', body: JSON.stringify({ state: "waiting", players: {} }) });
-                }
-            }, 5000);
+            document.getElementById("joinBtn").disabled = (gameState !== "waiting" && gameState !== "counting");
         }
 
         document.getElementById("joinBtn").onclick = async () => {
             const amt = parseInt(document.getElementById("betInput").value);
-            if (amt > myBal) return alert("رصيدك غير كافٍ!");
-            if (amt < 100) return alert("الحد الأدنى 100!");
+            if (amt > myBal || amt < 100) return alert("خطأ في الرصيد");
 
             myBal -= amt;
-            updateBalDisp();
+            saveBal();
 
             const pData = {
                 id: myId,
-                name: "لاعب_" + myId.substr(1, 3),
+                name: "المحارب " + myId.substr(1, 3),
                 amount: amt,
                 color: `hsl(${Math.random()*360}, 70%, 50%)`
             };
@@ -282,7 +269,7 @@
             await fetch(`${DB_URL}/players/${myId}.json`, { method: 'PUT', body: JSON.stringify(pData) });
         };
 
-        setInterval(sync, 1000);
+        setInterval(sync, 1500);
     </script>
 </body>
 </html>
