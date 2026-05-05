@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب - التجربة الفخمة</title>
+    <title>تناهيد - التجربة الفخمة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -13,6 +13,14 @@
             --bg: #0f172a;
             --glass: rgba(30, 41, 59, 0.7);
             --glass-border: rgba(255, 255, 255, 0.1);
+            --gold: #D4AF37;
+            --cyan: #00f2ff;
+        }
+
+        @property --angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -27,17 +35,7 @@
             overflow-x: hidden;
         }
 
-        /* تأثير الخلفية المتحركة */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-            opacity: 0.1;
-            z-index: -1;
-        }
-
-        /* الشريط العلوي الفخم */
+        /* الشريط العلوي */
         .header-ticker {
             position: fixed;
             top: 0; width: 100%; height: 60px;
@@ -74,18 +72,52 @@
             100% { transform: translateX(-100%); }
         }
 
-        .view-btn {
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 8px 18px;
-            border-radius: 12px;
+        /* --- تأثير الزر المتحرك (المطلوب) --- */
+        .animated-btn-wrapper {
+            position: relative;
+            padding: 3px; /* سمك الإطار */
+            border-radius: 18px;
+            overflow: hidden;
+            display: block;
+            margin-top: 15px;
             text-decoration: none;
-            font-size: 12px;
-            font-weight: 800;
-            box-shadow: 0 4px 15px rgba(129, 140, 248, 0.4);
         }
 
-        /* الحاوية الرئيسية */
+        .animated-btn-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: -20%;
+            background: conic-gradient(from var(--angle), transparent 70%, var(--cyan), var(--accent), var(--cyan));
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+            from { --angle: 0deg; }
+            to { --angle: 360deg; }
+        }
+
+        .join-btn {
+            position: relative;
+            background: #1e293b; /* لون خلفية الزر من الداخل */
+            color: white;
+            padding: 12px 20px;
+            border-radius: 15px;
+            display: block;
+            text-align: center;
+            font-weight: 800;
+            z-index: 1;
+            transition: 0.3s;
+            text-decoration: none;
+            border: none;
+            font-size: 14px;
+        }
+
+        .join-btn:hover {
+            background: transparent;
+            text-shadow: 0 0 10px var(--cyan);
+        }
+        /* -------------------------------- */
+
         .main-content {
             padding: 90px 20px 20px;
             max-width: 500px;
@@ -97,27 +129,8 @@
             margin-bottom: 30px;
         }
 
-        .logo-wrapper {
-            position: relative;
-            display: inline-block;
-        }
+        .logo { width: 100px; height: 100px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 20px var(--primary); }
 
-        .logo-wrapper::after {
-            content: '';
-            position: absolute;
-            top: -5px; left: -5px; right: -5px; bottom: -5px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            z-index: -1;
-            filter: blur(10px);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-
-        .logo { width: 100px; height: 100px; border-radius: 50%; border: 2px solid white; }
-
-        /* بطاقات الإحصائيات */
         .stats-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -131,21 +144,7 @@
             border-radius: 24px;
             border: 1px solid var(--glass-border);
             text-align: center;
-            transition: 0.3s;
         }
-
-        .stat-box h3 { margin: 0; font-size: 26px; background: linear-gradient(to bottom, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .stat-box p { margin: 5px 0 0; font-size: 12px; color: #94a3b8; font-weight: 600; }
-
-        /* الإعلانات النشطة */
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 30px 0 15px;
-        }
-
-        .section-header h2 { font-size: 18px; margin: 0; color: var(--secondary); }
 
         .ad-card {
             background: var(--glass);
@@ -154,17 +153,9 @@
             margin-bottom: 20px;
             border: 1px solid var(--glass-border);
             position: relative;
-            overflow: hidden;
         }
 
-        .ad-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 4px; height: 100%;
-            background: var(--primary);
-        }
-
-        .ad-title { font-size: 16px; font-weight: 800; display: block; margin-bottom: 15px; }
+        .ad-title { font-size: 16px; font-weight: 800; display: block; margin-bottom: 10px; color: #fff; }
 
         .ad-footer {
             display: flex;
@@ -174,23 +165,6 @@
             color: #94a3b8;
         }
 
-        .join-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 10px 20px;
-            border-radius: 15px;
-            text-decoration: none;
-            display: block;
-            text-align: center;
-            margin-top: 15px;
-            font-weight: 700;
-            transition: 0.3s;
-        }
-
-        .join-btn:hover { background: var(--primary); color: white; }
-
-        /* شريط التنقل السحري (المطور) */
         .nav-wrapper {
             position: fixed;
             bottom: 25px;
@@ -198,79 +172,19 @@
             transform: translateX(-50%);
             width: 90%;
             max-width: 400px;
-            height: 75px;
+            height: 70px;
             background: #fff;
             border-radius: 25px;
             display: flex;
-            justify-content: center;
+            justify-content: space-around;
             align-items: center;
             box-shadow: 0 15px 35px rgba(0,0,0,0.5);
             z-index: 2000;
         }
 
-        .nav-wrapper ul {
-            display: flex;
-            width: 100%;
-            padding: 0; margin: 0;
-            list-style: none;
-            justify-content: space-evenly;
-        }
-
-        .nav-item { position: relative; width: 60px; height: 60px; z-index: 1; }
-
-        .nav-link {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            text-decoration: none;
-            color: #334155;
-        }
-
-        .nav-icon {
-            font-size: 1.5em;
-            transition: 0.5s;
-            line-height: 70px;
-        }
-
-        .nav-item.active .nav-icon {
-            transform: translateY(-35px);
-            color: #fff;
-        }
-
-        .nav-text {
-            position: absolute;
-            font-size: 10px;
-            font-weight: 700;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: 0.5s;
-        }
-
-        .nav-item.active .nav-text {
-            opacity: 1;
-            transform: translateY(15px);
-        }
-
-        .nav-indicator {
-            position: absolute;
-            top: -50%;
-            width: 60px;
-            height: 60px;
-            background: var(--primary);
-            border-radius: 50%;
-            border: 6px solid var(--bg);
-            transition: 0.5s;
-        }
-
-        /* تحريك المؤشر */
-        .nav-item:nth-child(1).active ~ .nav-indicator { left: 7%; }
-        .nav-item:nth-child(2).active ~ .nav-indicator { left: 26%; }
-        .nav-item:nth-child(3).active ~ .nav-indicator { left: 45%; }
-        .nav-item:nth-child(4).active ~ .nav-indicator { left: 64%; }
-        .nav-item:nth-child(5).active ~ .nav-indicator { left: 83%; }
+        .nav-link { text-decoration: none; color: #334155; text-align: center; font-size: 10px; font-weight: 700; }
+        .nav-icon { font-size: 1.5em; display: block; }
+        .nav-item.active .nav-link { color: var(--primary); }
 
     </style>
 </head>
@@ -278,34 +192,21 @@
 
     <header class="header-ticker">
         <div class="ticker-container">
-            <div class="ticker-text" id="ticker-content">جاري تحميل آخر الأخبار من سراب روليت...</div>
+            <div class="ticker-text" id="ticker-content">أهلاً بكم في تناهيد - سحوبات فاخرة يومياً...</div>
         </div>
-        <a href="#" id="ticker-link" class="view-btn">مشاهدة</a>
+        <a href="#" class="view-btn">مشاهدة</a>
     </header>
 
     <div class="main-content">
         <div class="hero-section">
-            <div class="logo-wrapper">
-                <img src="https://files.catbox.moe/5s7y7a.png" class="logo">
-            </div>
-            <h1 style="margin: 15px 0 5px; font-size: 28px; font-weight: 800;">روليت سراب</h1>
-            <p style="color: #94a3b8; font-size: 13px;">تطبيق السحوبات والجوائز الأول</p>
+            <img src="https://files.catbox.moe/5s7y7a.png" class="logo">
+            <h1 style="margin: 15px 0 5px; font-size: 28px; font-weight: 800;">تناهيد روليت</h1>
+            <p style="color: #94a3b8; font-size: 13px;">الفخامة في كل سحب</p>
         </div>
 
         <div class="stats-row">
-            <div class="stat-box">
-                <h3 id="total-views">104K</h3>
-                <p>زيارة اليوم</p>
-            </div>
-            <div class="stat-box">
-                <h3 id="active-ads-count">0</h3>
-                <p>سحب نشط</p>
-            </div>
-        </div>
-
-        <div class="section-header">
-            <h2>🔥 سحوبات جارية</h2>
-            <span style="font-size: 11px; color: var(--accent);">• مباشر</span>
+            <div class="stat-box"><h3>104K</h3><p>زيارة اليوم</p></div>
+            <div class="stat-box"><h3 id="active-ads-count">0</h3><p>سحب نشط</p></div>
         </div>
 
         <div id="ads-container">
@@ -313,64 +214,18 @@
     </div>
 
     <nav class="nav-wrapper">
-        <ul>
-            <li class="nav-item active" onclick="changeTab(this)">
-                <a href="#" class="nav-link">
-                    <span class="nav-icon"><ion-icon name="home-outline"></ion-icon></span>
-                    <span class="nav-text">الرئيسية</span>
-                </a>
-            </li>
-            <li class="nav-item" onclick="changeTab(this)">
-                <a href="#" class="nav-link">
-                    <span class="nav-icon"><ion-icon name="trophy-outline"></ion-icon></span>
-                    <span class="nav-text">سحوباتي</span>
-                </a>
-            </li>
-            <li class="nav-item" onclick="changeTab(this)">
-                <a href="#" class="nav-link">
-                    <span class="nav-icon"><ion-icon name="chatbubbles-outline"></ion-icon></span>
-                    <span class="nav-text">الدعم</span>
-                </a>
-            </li>
-            <li class="nav-item" onclick="changeTab(this)">
-                <a href="#" class="nav-link">
-                    <span class="nav-icon"><ion-icon name="images-outline"></ion-icon></span>
-                    <span class="nav-text">المعرض</span>
-                </a>
-            </li>
-            <li class="nav-item" onclick="changeTab(this)">
-                <a href="#" class="nav-link">
-                    <span class="nav-icon"><ion-icon name="settings-outline"></ion-icon></span>
-                    <span class="nav-text">الإعدادات</span>
-                </a>
-            </li>
-            <div class="nav-indicator"></div>
-        </ul>
+        <div class="nav-item active"><a href="#" class="nav-link"><ion-icon name="home-outline" class="nav-icon"></ion-icon>الرئيسية</a></div>
+        <div class="nav-item"><a href="#" class="nav-link"><ion-icon name="trophy-outline" class="nav-icon"></ion-icon>سحوباتي</a></div>
+        <div class="nav-item"><a href="#" class="nav-link"><ion-icon name="chatbubbles-outline" class="nav-icon"></ion-icon>الدعم</a></div>
+        <div class="nav-item"><a href="#" class="nav-link"><ion-icon name="settings-outline" class="nav-icon"></ion-icon>الإعدادات</a></div>
     </nav>
 
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-
     <script>
-        // تبديل التبويبات
-        function changeTab(element) {
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            element.classList.add('active');
-        }
-
         const dbUrl = "https://sarab-app-84448-default-rtdb.firebaseio.com";
 
         async function updateData() {
             try {
-                // تحديث الشريط العلوي
-                const tRes = await fetch(`${dbUrl}/ticker.json`);
-                const tData = await tRes.json();
-                if(tData) {
-                    document.getElementById('ticker-content').innerText = tData.text;
-                    document.getElementById('ticker-link').href = tData.link || "#";
-                }
-
-                // تحديث الإعلانات
                 const aRes = await fetch(`${dbUrl}/active_ads.json`);
                 const ads = await aRes.json();
                 const container = document.getElementById('ads-container');
@@ -388,18 +243,16 @@
                                     <span>👁️ ${ad.views || 0} مشاهدة</span>
                                     <span style="color:var(--accent)">ينتهي: ${ad.end_at}</span>
                                 </div>
-                                <a href="${ad.post_url}" class="join-btn" onclick="incView('${key}', ${ad.views || 0})">دخول السحب الفاخر 🔓</a>
+                                <div class="animated-btn-wrapper">
+                                    <a href="${ad.post_url}" class="join-btn" onclick="incView('${key}', ${ad.views || 0})">
+                                        دخول السحب الفاخر 🔓
+                                    </a>
+                                </div>
                             </div>`;
                     });
                 }
                 document.getElementById('active-ads-count').innerText = count;
-                if(count === 0) container.innerHTML = "<p style='text-align:center; color:#64748b;'>لا توجد سحوبات نشطة حالياً</p>";
-
-            } catch(e) { console.log("Error fetching data"); }
-        }
-
-        async function incView(id, current) {
-            fetch(`${dbUrl}/active_ads/${id}/views.json`, { method: 'PUT', body: JSON.stringify(current + 1) });
+            } catch(e) { console.log("خطأ في جلب البيانات"); }
         }
 
         setInterval(updateData, 5000);
