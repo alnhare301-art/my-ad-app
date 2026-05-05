@@ -1,242 +1,213 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ميدان الروليت - التزامن المباشر</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root { --gold: #D4AF37; --royal-black: #050505; }
-        body { font-family: 'Cairo', sans-serif; background-color: var(--royal-black); color: white; overflow-x: hidden; }
-        .gold-btn { background: linear-gradient(135deg, #D4AF37, #A67C00); color: black; font-weight: 900; transition: 0.3s; }
-        .gold-btn:disabled { opacity: 0.3; }
-        #ball { transition: transform 0.05s linear; }
-    </style>
-</head>
-<body>
+import { useState, useEffect, useRef, useCallback } from "react";
+import { ArrowRight, Swords, Star, Trophy, Users, ChevronDown, RotateCcw, Clock, Zap } from "lucide-react";
 
-    <div class="max-w-lg mx-auto p-4 pb-20">
-        <div class="flex justify-between items-center mb-6 bg-white/5 p-3 rounded-2xl border border-white/10">
-            <div class="text-[var(--gold)] font-black text-xl italic">ARENA V4</div>
-            <div class="flex items-center gap-2">
-                <div class="bg-black/50 px-4 py-2 rounded-xl border border-[var(--gold)]/30">
-                    <span id="balanceDisplay" class="text-[var(--gold)] font-bold">0</span> ⭐
-                </div>
-            </div>
+// أضفت v7 لضمان قاعدة بيانات نظيفة تماماً
+const DB_PATH = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v7";
+const BASE_BALANCE = 100000;
+const MIN_PLAYERS = 2;
+const COUNTDOWN_FROM = 10;
+
+export default function TerritoryGame() {
+  const [myId] = useState(() => localStorage.getItem("tg_user_id") || "P" + Math.floor(Math.random() * 9999));
+  const [myBal, setMyBal] = useState(() => parseInt(localStorage.getItem("user_bal") || String(BASE_BALANCE)));
+  const [players, setPlayers] = useState<any[]>([]);
+  const [gameState, setGameState] = useState("waiting");
+  const [timer, setTimer] = useState<number | null>(null);
+  const [betAmount, setBetAmount] = useState("1000");
+  const [winner, setWinner] = useState<any>(null);
+  const [showWinner, setShowWinner] = useState(false);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const ballRef = useRef<HTMLDivElement>(null);
+  const isSpinningRef = useRef(false);
+
+  // تحديث الرصيد وحفظه
+  const updateBalance = (newBal: number) => {
+    setMyBal(newBal);
+    localStorage.setItem("user_bal", String(newBal));
+  };
+
+  // --- 1. نظام التزامن (Sync System) ---
+  const sync = useCallback(async () => {
+    try {
+      // إضافة timestamp لمنع الـ Cache (أهم خطوة للتزامن)
+      const res = await fetch(`${DB_PATH}.json?t=${Date.now()}`);
+      const data = await res.json();
+
+      if (!data) {
+        setPlayers([]);
+        setGameState("waiting");
+        return;
+      }
+
+      // فلترة اللاعبين الحقيقيين فقط
+      const playerList = data.players ? Object.values(data.players).filter((p: any) => p && p.id) : [];
+      setPlayers(playerList);
+      setGameState(data.state || "waiting");
+
+      // إدارة الميقاتي (فقط أول لاعب يدير الوقت لتجنب التضارب)
+      if (playerList.length >= MIN_PLAYERS && data.state === "waiting") {
+        if (myId === playerList[0].id) {
+          await fetch(`${DB_PATH}.json`, { 
+            method: "PATCH", 
+            body: JSON.stringify({ state: "counting", startTime: Date.now() }) 
+          });
+        }
+      }
+
+      if (data.state === "counting") {
+        const elapsed = Math.floor((Date.now() - data.startTime) / 1000);
+        const remaining = COUNTDOWN_FROM - elapsed;
+        setTimer(remaining > 0 ? remaining : 0);
+
+        if (remaining <= 0 && myId === playerList[0].id) {
+          await fetch(`${DB_PATH}.json`, { 
+            method: "PATCH", 
+            body: JSON.stringify({ state: "playing", seed: Math.random() }) 
+          });
+        }
+      }
+
+      if (data.state === "playing" && data.seed && !isSpinningRef.current) {
+        runPhysics(data.seed, playerList);
+      }
+
+      drawMap(playerList);
+    } catch (e) {
+      console.error("Sync Error");
+    }
+  }, [myId]);
+
+  useEffect(() => {
+    localStorage.setItem("tg_user_id", myId);
+    const interval = setInterval(sync, 800); // تحديث سريع جداً
+    return () => clearInterval(interval);
+  }, [sync]);
+
+  // --- 2. محرك الفيزياء (Physics) ---
+  const runPhysics = (seed: number, pList: any[]) => {
+    isSpinningRef.current = true;
+    if (ballRef.current) ballRef.current.style.display = "block";
+
+    let px = 140, py = 140;
+    let vx = Math.cos(seed * 20) * 25;
+    let vy = Math.sin(seed * 20) * 25;
+
+    const frame = () => {
+      px += vx; py += vy;
+      // ارتداد الكيرم العشوائي
+      if (px <= 0 || px >= 280) { vx *= -1; vy += (Math.random() - 0.5) * 5; }
+      if (py <= 0 || py >= 280) { vy *= -1; vx += (Math.random() - 0.5) * 5; }
+      
+      vx *= 0.98; vy *= 0.98; // احتكاك
+
+      if (ballRef.current) {
+        ballRef.current.style.transform = `translate(${px}px, ${py}px)`;
+      }
+
+      if (Math.abs(vx) > 0.3) {
+        requestAnimationFrame(frame);
+      } else {
+        finishGame(px * 2, py * 2, pList);
+      }
+    };
+    requestAnimationFrame(frame);
+  };
+
+  // --- 3. الرسم والنتيجة ---
+  const drawMap = (pList: any[]) => {
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, 600, 600);
+    const total = pList.reduce((s, p) => s + p.amount, 0);
+    if (total === 0) return;
+
+    let x = 0, y = 0, w = 600, h = 600;
+    pList.forEach((p, i) => {
+      const ratio = p.amount / total;
+      ctx.fillStyle = p.color;
+      if (i % 2 === 0) {
+        let sw = (i === pList.length - 1) ? w : w * ratio;
+        ctx.fillRect(x, y, sw, h);
+        p.area = { x1: x, y1: y, x2: x + sw, y2: y + h };
+        x += sw; w -= sw;
+      } else {
+        let sh = (i === pList.length - 1) ? h : h * ratio;
+        ctx.fillRect(x, y, w, sh);
+        p.area = { x1: x, y1: y, x2: x + w, y2: y + sh };
+        y += sh; h -= sh;
+      }
+    });
+  };
+
+  const finishGame = async (fx: number, fy: number, pList: any[]) => {
+    const win = pList.find(p => fx >= p.area.x1 && fx <= p.area.x2 && fy >= p.area.y1 && fy <= p.area.y2) || pList[0];
+    const prize = pList.reduce((s, p) => s + p.amount, 0);
+
+    setWinner(win);
+    setShowWinner(true);
+
+    if (win.id === myId) {
+      updateBalance(myBal + prize);
+    }
+
+    setTimeout(async () => {
+      if (myId === pList[0].id) {
+        await fetch(`${DB_PATH}.json`, { method: "DELETE" });
+      }
+      window.location.reload(); // تنظيف كامل للجولة التالية
+    }, 5000);
+  };
+
+  const joinGame = async () => {
+    const amt = parseInt(betAmount);
+    if (amt > myBal) return alert("رصيدك ناقص");
+
+    updateBalance(myBal - amt);
+    const pData = { id: myId, name: "لاعب_" + myId.substr(1, 3), amount: amt, color: `hsl(${Math.random() * 360}, 70%, 50%)` };
+    await fetch(`${DB_PATH}/players/${myId}.json`, { method: "PUT", body: JSON.stringify(pData) });
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050505] text-white p-4 font-['Cairo']" dir="rtl">
+      {/* الرصيد */}
+      <div className="flex justify-between items-center mb-8 bg-white/5 p-4 rounded-2xl border border-white/10">
+        <span className="text-[#D4AF37] font-bold">⭐ {myBal.toLocaleString()}</span>
+        <span className="text-xs text-gray-500">ID: {myId}</span>
+      </div>
+
+      {/* الميدان */}
+      <div className="relative w-[300px] h-[300px] mx-auto rounded-3xl overflow-hidden border-4 border-[#D4AF37]/30 bg-black">
+        <div ref={ballRef} className="absolute w-5 h-5 bg-white rounded-full z-50 shadow-[0_0_15px_white] hidden" />
+        {gameState === "counting" && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-[60] backdrop-blur-sm">
+            <span className="text-8xl font-black text-[#D4AF37]">{timer}</span>
+          </div>
+        )}
+        <canvas ref={canvasRef} width={600} height={600} className="w-full h-full" />
+      </div>
+
+      {/* التحكم */}
+      <div className="mt-8 max-w-sm mx-auto space-y-4">
+        <div className="flex justify-between text-sm text-gray-400 px-2">
+          <span>المشاركون: {players.length}</span>
+          <span>إجمالي الجائزة: {players.reduce((s, p) => s + p.amount, 0)}</span>
         </div>
+        <input type="number" value={betAmount} onChange={e => setBetAmount(e.target.value)} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-center text-xl text-[#D4AF37]" />
+        <button onClick={joinGame} disabled={gameState !== "waiting" || players.some(p => p.id === myId)} className="w-full bg-[#D4AF37] text-black font-black py-4 rounded-xl disabled:opacity-30">
+          دخول الميدان ⚔️
+        </button>
+      </div>
 
-        <div class="bg-gradient-to-r from-yellow-900/20 to-black p-4 rounded-2xl mb-4 border border-yellow-600/20">
-            <div class="flex justify-between items-center">
-                <div>
-                    <div id="statusLabel" class="text-yellow-500 font-black text-lg">تحديث البيانات...</div>
-                    <div id="statusTimer" class="text-xs text-gray-400 font-mono">SYNC ACTIVE</div>
-                </div>
-                <div class="text-right">
-                    <div class="text-xs text-gray-500">اللاعبون المتصلون</div>
-                    <div id="playerCount" class="text-3xl font-black text-white">0</div>
-                </div>
-            </div>
+      {/* واجهة الفائز */}
+      {showWinner && winner && (
+        <div className="fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center">
+          <div className="w-24 h-24 rounded-full mb-4 border-4 border-[#D4AF37]" style={{ backgroundColor: winner.color }} />
+          <h2 className="text-2xl font-bold">الفائز: {winner.name}</h2>
+          <h1 className="text-5xl font-black text-[#D4AF37] mt-2">+{players.reduce((s, p) => s + p.amount, 0)}</h1>
+          <p className="mt-8 text-gray-500">استعد للجولة القادمة...</p>
         </div>
-
-        <div class="relative w-[300px] h-[300px] mx-auto rounded-3xl overflow-hidden border-4 border-white/10 bg-black shadow-2xl">
-            <div id="ball" class="absolute w-5 h-5 bg-white rounded-full z-50 shadow-[0_0_15px_white]"></div>
-            <div id="countdownOverlay" class="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-md z-[60] hidden">
-                <div id="bigTimer" class="text-8xl font-black text-[var(--gold)]"></div>
-            </div>
-            <canvas id="gameCanvas" width="600" height="600" class="w-full h-full"></canvas>
-        </div>
-
-        <div class="mt-6 space-y-4">
-            <input type="number" id="betInput" value="1000" class="w-full bg-white/5 border-2 border-white/10 p-4 rounded-2xl text-center text-2xl font-black text-[var(--gold)] outline-none">
-            <button id="joinBtn" class="gold-btn w-full py-5 rounded-2xl text-xl">انضمام للميدان ⚔️</button>
-        </div>
-
-        <div id="playersList" class="mt-6 space-y-2"></div>
-        <button onclick="emergencyClear()" class="w-full mt-10 text-xs text-red-500/50 underline">تصفير السيرفر (في حال التعليق)</button>
+      )}
     </div>
-
-    <div id="winnerOverlay" class="fixed inset-0 bg-black/98 z-[1000] hidden flex-col items-center justify-center text-center p-6">
-        <div id="winnerColorBox" class="w-32 h-32 rounded-3xl border-8 border-[var(--gold)] mb-6"></div>
-        <div id="winnerName" class="text-4xl font-black text-white mb-2"></div>
-        <div id="winnerPrize" class="text-6xl font-black text-yellow-500"></div>
-    </div>
-
-    <script>
-        // أضفت random لمنع الـ Caching
-        const DB_URL = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v6";
-        const myId = localStorage.getItem("tg_id") || "U" + Math.floor(Math.random()*9999);
-        localStorage.setItem("tg_id", myId);
-
-        let myBal = parseInt(localStorage.getItem("bal")) || 100000;
-        let players = [];
-        let gameState = "waiting";
-        let ballX = 140, ballY = 140, vX = 3, vY = 3;
-
-        const ballElem = document.getElementById("ball");
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-
-        function updateBal() {
-            document.getElementById("balanceDisplay").innerText = myBal.toLocaleString();
-            localStorage.setItem("bal", myBal);
-        }
-        updateBal();
-
-        // فيزياء الكيرم المتطورة
-        function moveBall() {
-            if (gameState === "finished") return;
-            ballX += vX; ballY += vY;
-            if (ballX <= 0 || ballX >= 280) { vX *= -1; vY += (Math.random()-0.5); }
-            if (ballY <= 0 || ballY >= 280) { vY *= -1; vX += (Math.random()-0.5); }
-            ballElem.style.transform = `translate(${ballX}px, ${ballY}px)`;
-            requestAnimationFrame(moveBall);
-        }
-        moveBall();
-
-        // دالة التزامن الأساسية - تم تعديلها لضمان جلب بيانات جديدة دائماً
-        async function sync() {
-            try {
-                // إضافة timestamp لمنع المتصفح من عرض بيانات قديمة
-                const response = await fetch(`${DB_URL}.json?nocache=${Date.now()}`);
-                const data = await response.json();
-                
-                if (!data) return;
-
-                // تحديث الحالة واللاعبين
-                gameState = data.state || "waiting";
-                players = data.players ? Object.values(data.players) : [];
-
-                document.getElementById("playerCount").innerText = players.length;
-                drawArena();
-                updateUI();
-
-                // منطق العد التنازلي
-                if (players.length >= 2 && gameState === "waiting") {
-                    if (myId === players[0].id) {
-                        await postData({ state: "counting", startAt: Date.now() });
-                    }
-                }
-
-                if (gameState === "counting") {
-                    const timer = 10 - Math.floor((Date.now() - data.startAt) / 1000);
-                    if (timer <= 0) {
-                        if (myId === players[0].id) {
-                            await postData({ state: "playing", seed: Math.random() });
-                        }
-                    } else {
-                        document.getElementById("bigTimer").innerText = timer;
-                        document.getElementById("countdownOverlay").classList.remove("hidden");
-                    }
-                } else {
-                    document.getElementById("countdownOverlay").classList.add("hidden");
-                }
-
-                if (gameState === "playing" && data.seed && !window.isSpinning) {
-                    runFinalSpin(data.seed);
-                }
-
-            } catch (e) { console.error("Sync Error"); }
-        }
-
-        async function postData(obj) {
-            await fetch(`${DB_URL}.json`, { method: 'PATCH', body: JSON.stringify(obj) });
-        }
-
-        function drawArena() {
-            ctx.clearRect(0, 0, 600, 600);
-            const total = players.reduce((s, p) => s + (p.amount || 0), 0);
-            if (total === 0) return;
-            let x=0, y=0, w=600, h=600;
-            players.forEach((p, i) => {
-                const ratio = p.amount / total;
-                ctx.fillStyle = p.color;
-                if(i % 2 === 0) {
-                    let pw = (i === players.length - 1) ? w : w * ratio;
-                    ctx.fillRect(x, y, pw, h);
-                    p.box = {x1: x, y1: y, x2: x+pw, y2: y+h};
-                    x += pw; w -= pw;
-                } else {
-                    let ph = (i === players.length - 1) ? h : h * ratio;
-                    ctx.fillRect(x, y, w, ph);
-                    p.box = {x1: x, y1: y, x2: x+w, y2: y+ph};
-                    y += ph; h -= ph;
-                }
-            });
-        }
-
-        function updateUI() {
-            document.getElementById("playersList").innerHTML = players.map(p => `
-                <div class="flex justify-between items-center p-3 rounded-xl bg-white/5 border-r-8 mb-2" style="border-color: ${p.color}">
-                    <span class="font-bold">${p.name} ${p.id === myId ? '(أنت)' : ''}</span>
-                    <span class="text-yellow-500 font-black">${p.amount.toLocaleString()}</span>
-                </div>
-            `).join('');
-
-            document.getElementById("statusLabel").innerText = 
-                gameState === "waiting" ? (players.length < 2 ? "بانتظار لاعب آخر..." : "جاهزون؟") :
-                gameState === "counting" ? "يغلق الرهان..." : "المعركة جارية!";
-            
-            document.getElementById("joinBtn").disabled = (gameState !== "waiting" && gameState !== "counting");
-        }
-
-        async function runFinalSpin(seed) {
-            window.isSpinning = true;
-            vX = Math.cos(seed * 10) * 20;
-            vY = Math.sin(seed * 10) * 20;
-
-            const loop = setInterval(() => {
-                vX *= 0.98; vY *= 0.98;
-                if (Math.abs(vX) < 0.2) {
-                    clearInterval(loop);
-                    window.isSpinning = false;
-                    checkWinnerLocally();
-                }
-            }, 30);
-        }
-
-        function checkWinnerLocally() {
-            const fx = (ballX + 10) * 2;
-            const fy = (ballY + 10) * 2;
-            const win = players.find(p => p.box && fx >= p.box.x1 && fx <= p.box.x2 && fy >= p.box.y1 && fy <= p.box.y2);
-            if (win) showWinner(win);
-        }
-
-        function showWinner(w) {
-            const prize = players.reduce((s, p) => s + p.amount, 0);
-            document.getElementById("winnerName").innerText = w.name;
-            document.getElementById("winnerPrize").innerText = "+" + prize.toLocaleString();
-            document.getElementById("winnerColorBox").style.backgroundColor = w.color;
-            document.getElementById("winnerOverlay").classList.remove("hidden");
-            document.getElementById("winnerOverlay").classList.add("flex");
-
-            if (w.id === myId && !window.rewarded) {
-                myBal += prize; updateBal(); window.rewarded = true;
-            }
-
-            setTimeout(async () => {
-                if (myId === players[0].id) {
-                    await fetch(`${DB_URL}.json`, { method: 'PUT', body: JSON.stringify({ state: "waiting", players: {} }) });
-                }
-                location.reload();
-            }, 5000);
-        }
-
-        document.getElementById("joinBtn").onclick = async () => {
-            const amt = parseInt(document.getElementById("betInput").value);
-            if (amt > myBal || amt < 100) return;
-            myBal -= amt; updateBal();
-            const pData = { id: myId, name: "لاعب_" + myId.substr(1,3), amount: amt, color: `hsl(${Math.random()*360}, 70%, 50%)` };
-            await fetch(`${DB_URL}/players/${myId}.json`, { method: 'PUT', body: JSON.stringify(pData) });
-        };
-
-        async function emergencyClear() {
-            await fetch(`${DB_URL}.json`, { method: 'PUT', body: JSON.stringify({ state: "waiting", players: {} }) });
-            location.reload();
-        }
-
-        // تسريع التزامن إلى 800 ملي ثانية لضمان تجربة حية
-        setInterval(sync, 800);
-    </script>
-</body>
-</html>
+  );
+}
