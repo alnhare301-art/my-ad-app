@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب - نظام الكيرم</title>
+    <title>روليت سراب - نظام المنافسة الحقيقية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -12,6 +12,7 @@
             --gold: #f1c40f;
             --cyan: #00f2ff;
             --pink: #ff007a;
+            --glass: rgba(255, 255, 255, 0.05);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -20,6 +21,7 @@
             background-color: var(--bg);
             color: white; margin: 0;
             display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
         }
 
         .header {
@@ -42,58 +44,76 @@
             border: 5px solid #30363d;
             border-radius: 20px;
             overflow: hidden;
-            transition: transform 1s ease-in-out; /* للزوم */
+            transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        #gameCanvas { width: 100%; height: 100%; }
-
-        /* الكرة المتحركة */
         #ball {
             position: absolute;
-            width: 20px; height: 20px;
-            background: white;
+            width: 22px; height: 22px;
+            background: #fff;
             border-radius: 50%;
-            box-shadow: 0 0 15px white, 0 0 5px rgba(0,0,0,0.5);
+            box-shadow: 0 0 20px #fff, inset 0 0 5px rgba(0,0,0,0.5);
             z-index: 10;
             display: none;
             pointer-events: none;
+            border: 2px solid var(--cyan);
         }
+
+        canvas { display: block; }
 
         .controls {
             width: 90%; max-width: 400px;
-            background: #161b22; padding: 20px;
-            border-radius: 20px; text-align: center;
+            background: #161b22; padding: 25px;
+            border-radius: 25px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .status-msg {
+            font-size: 18px; font-weight: 800; color: var(--cyan);
+            margin-bottom: 15px; min-height: 27px;
         }
 
         input {
-            width: 100%; padding: 12px; border-radius: 10px;
+            width: 100%; padding: 15px; border-radius: 15px;
             border: 1px solid #30363d; background: #0d1117;
-            color: white; font-size: 18px; margin: 10px 0; text-align: center;
+            color: white; font-size: 20px; font-weight: 700;
+            margin-bottom: 15px; text-align: center;
         }
 
         .btn-play {
-            width: 100%; padding: 15px; border-radius: 12px; border: none;
+            width: 100%; padding: 18px; border-radius: 15px; border: none;
             background: linear-gradient(45deg, var(--cyan), var(--pink));
             color: white; font-weight: 900; font-size: 18px; cursor: pointer;
+            transition: 0.3s;
         }
 
-        .btn-play:disabled { opacity: 0.3; }
+        .btn-play:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-play:active { transform: scale(0.96); }
 
-        .timer-box {
-            font-size: 24px; font-weight: 900; color: var(--cyan); margin-bottom: 10px;
+        /* قائمة اللاعبين الصغار */
+        .players-avatars {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 10px; margin-top: 20px;
         }
 
-        #winner-msg {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95); padding: 30px; border-radius: 20px;
-            border: 2px solid var(--gold); text-align: center; display: none; z-index: 1000;
+        .avatar {
+            width: 35px; height: 35px; border-radius: 50%;
+            border: 2px solid var(--glass); object-fit: cover;
+        }
+
+        /* نافذة الفائز */
+        #winner-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; text-align: center;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="font-weight: 900;">SARAB ROULETTE</div>
+        <div style="font-weight: 900; letter-spacing: 1px;">SARAB ROULETTE</div>
         <div class="balance">⭐ <span id="balance">100,000</span></div>
     </div>
 
@@ -103,24 +123,27 @@
     </div>
 
     <div class="controls">
-        <div id="timer-text" class="timer-box">جاهز للبدء</div>
-        <input type="number" id="bet-input" value="1000" min="100">
-        <button id="join-btn" class="btn-play" onclick="joinGame()">مشاركة في الجولة</button>
-        <p id="player-count" style="font-size: 12px; color: #8b949e; margin-top: 10px;">المشاركون: 0 / 20</p>
+        <div id="status-text" class="status-msg">في انتظار أول لاعب...</div>
+        <input type="number" id="bet-input" value="1000" min="100" step="100">
+        <button id="join-btn" class="btn-play" onclick="joinGame()">دخول الجولة 🚀</button>
+        
+        <div class="players-avatars" id="avatars-list"></div>
     </div>
 
-    <div id="winner-msg">
-        <h1 style="color:var(--gold)">انتهت الجولة!</h1>
-        <div id="winner-data"></div>
-        <button class="btn-play" style="margin-top:20px;" onclick="closeWinner()">استمرار</button>
+    <div id="winner-overlay">
+        <div id="winner-card" style="padding: 40px;">
+            <h1 style="color:var(--gold); font-size: 35px;">🏆 الفائز!</h1>
+            <div id="winner-content"></div>
+            <button class="btn-play" style="width: 200px; margin-top:30px;" onclick="closeWinner()">جولة جديدة</button>
+        </div>
     </div>
 
     <script>
-        let balance = parseInt(localStorage.getItem('sarab_bal')) || 100000;
+        let balance = parseInt(localStorage.getItem('sarab_v3_bal')) || 100000;
         let players = [];
-        let gameActive = false;
         let timer = 10;
-        let interval;
+        let countdownActive = false;
+        let timerInterval;
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -129,150 +152,164 @@
 
         function updateUI() {
             document.getElementById('balance').innerText = balance.toLocaleString();
-            localStorage.setItem('sarab_bal', balance);
-            document.getElementById('player-count').innerText = `المشاركون: ${players.length} / 20`;
+            localStorage.setItem('sarab_v3_bal', balance);
+            
+            const avatarsList = document.getElementById('avatars-list');
+            avatarsList.innerHTML = players.map(p => 
+                `<img src="https://files.catbox.moe/5s7y7a.png" class="avatar" style="border-color: ${p.color}" title="${p.amount}">`
+            ).join('');
         }
-        updateUI();
 
-        function drawSections() {
-            const total = players.reduce((s, p) => s + p.amount, 0);
-            if (total === 0) {
+        function drawBoard() {
+            const totalBet = players.reduce((s, p) => s + p.amount, 0);
+            ctx.clearRect(0, 0, 320, 320);
+
+            if (players.length === 0) {
                 ctx.fillStyle = "#1c2128";
                 ctx.fillRect(0, 0, 320, 320);
                 return;
             }
 
             let currentX = 0;
-            // رسم الواجهة بشكل مربعات ملونة حسب النسبة (مثل الكيرم)
             players.forEach(p => {
-                const width = (p.amount / total) * 320;
+                const pWidth = (p.amount / totalBet) * 320;
                 ctx.fillStyle = p.color;
-                ctx.fillRect(currentX, 0, width, 320);
-                currentX += width;
+                ctx.fillRect(currentX, 0, pWidth, 320);
+                currentX += pWidth;
             });
         }
-        drawSections();
+
+        updateUI();
+        drawBoard();
 
         function joinGame() {
-            const amt = parseInt(document.getElementById('bet-input').value);
-            if (amt > balance) return alert("الرصيد غير كافٍ");
-            
-            balance -= amt;
+            const betAmt = parseInt(document.getElementById('bet-input').value);
+            if (betAmt > balance) return alert("رصيدك لا يكفي!");
+            if (betAmt < 100) return alert("الحد الأدنى 100 نجمة");
+
+            balance -= betAmt;
             players.push({
                 id: Date.now(),
-                amount: amt,
-                color: `hsl(${Math.random() * 360}, 70%, 50%)`,
-                name: "أنت"
+                name: players.length === 0 ? "أنت" : `لاعب ${players.length + 1}`,
+                amount: betAmt,
+                color: `hsl(${Math.random() * 360}, 75%, 55%)`
             });
-            
+
             document.getElementById('join-btn').disabled = true;
             updateUI();
-            drawSections();
+            drawBoard();
 
-            if (players.length === 1) startCountdown();
+            checkStartCondition();
         }
 
-        function startCountdown() {
+        function checkStartCondition() {
+            const statusText = document.getElementById('status-text');
+            
+            if (players.length === 1) {
+                statusText.innerText = "في انتظار خصم (1/2)...";
+                // للتجربة: لو ضغطت مرة ثانية (بعد تحديث الكود لغرض الاختبار) 
+                // أو فتحت تبويب آخر، سيبدأ العداد.
+            } 
+            else if (players.length >= 2 && !countdownActive) {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            countdownActive = true;
             timer = 10;
-            interval = setInterval(() => {
+            const statusText = document.getElementById('status-text');
+
+            timerInterval = setInterval(() => {
                 timer--;
-                document.getElementById('timer-text').innerText = `يبدأ السحب خلال: ${timer}`;
-                
+                statusText.innerText = `يبدأ السحب خلال: ${timer} ثوانٍ`;
+
                 if (timer <= 0) {
-                    clearInterval(interval);
-                    if (players.length >= 2) startPhysicsGame();
-                    else {
-                        alert("لا يوجد منافسين حقيقيين حالياً، تم استرداد رصيدك.");
-                        balance += players[0].amount;
-                        resetGame();
-                    }
+                    clearInterval(timerInterval);
+                    runPhysics();
                 }
             }, 1000);
         }
 
-        function startPhysicsGame() {
-            gameActive = true;
+        function runPhysics() {
+            document.getElementById('status-text').innerText = "جاري تحديد الفائز...";
             ballEl.style.display = 'block';
-            document.getElementById('timer-text').innerText = "تحديد الفائز...";
             
-            let posX = 150, posY = 150;
-            let velX = 15, velY = 12;
-            let friction = 0.985; // التباطؤ تدريجياً
+            let x = 150, y = 150;
+            let vx = (Math.random() * 10 + 15) * (Math.random() > 0.5 ? 1 : -1);
+            let vy = (Math.random() * 10 + 15) * (Math.random() > 0.5 ? 1 : -1);
+            let friction = 0.988;
 
-            function moveBall() {
-                posX += velX;
-                posY += velY;
+            function animate() {
+                x += vx; y += vy;
 
-                // الارتداد من الجوانب
-                if (posX <= 0 || posX >= 300) velX *= -1;
-                if (posY <= 0 || posY >= 300) velY *= -1;
+                if (x <= 0 || x >= 298) vx *= -1;
+                if (y <= 0 || y >= 298) vy *= -1;
 
-                velX *= friction;
-                velY *= friction;
+                vx *= friction;
+                vy *= friction;
 
-                ballEl.style.left = posX + 'px';
-                ballEl.style.top = posY + 'px';
+                ballEl.style.left = x + 'px';
+                ballEl.style.top = y + 'px';
 
-                // تأثير الزوم عند التباطؤ
-                if (Math.abs(velX) < 5) boardEl.style.transform = "scale(1.3)";
+                // زوم عند التباطؤ
+                if (Math.abs(vx) < 6) boardEl.style.transform = "scale(1.2)";
 
-                if (Math.abs(velX) > 0.2) {
-                    requestAnimationFrame(moveBall);
+                if (Math.abs(vx) > 0.15) {
+                    requestAnimationFrame(animate);
                 } else {
-                    determineWinner(posX);
+                    finishGame(x);
                 }
             }
-            moveBall();
+            animate();
         }
 
-        function determineWinner(finalX) {
-            const total = players.reduce((s, p) => s + p.amount, 0);
+        function finishGame(finalX) {
+            const totalPot = players.reduce((s, p) => s + p.amount, 0);
             let currentX = 0;
             let winner = players[0];
 
             players.forEach(p => {
-                const width = (p.amount / total) * 320;
-                if (finalX >= currentX && finalX <= currentX + width) {
+                const pWidth = (p.amount / totalPot) * 320;
+                if (finalX >= currentX && finalX <= currentX + pWidth) {
                     winner = p;
                 }
-                currentX += width;
+                currentX += pWidth;
             });
 
-            showWinner(winner, total);
-        }
-
-        function showWinner(winner, prize) {
-            const msg = document.getElementById('winner-msg');
-            const data = document.getElementById('winner-data');
+            const overlay = document.getElementById('winner-overlay');
+            const content = document.getElementById('winner-content');
             
-            data.innerHTML = `
-                <div style="width:80px; height:80px; background:${winner.color}; border-radius:50%; margin: 0 auto; border:4px solid white;"></div>
-                <h2>الفائز: ${winner.name}</h2>
-                <h1 style="color:var(--gold)">+${prize.toLocaleString()} ⭐</h1>
+            content.innerHTML = `
+                <div style="width:100px; height:100px; background:${winner.color}; border-radius:50%; margin:20px auto; border:5px solid #fff; box-shadow:0 0 20px ${winner.color}">
+                    <img src="https://files.catbox.moe/5s7y7a.png" style="width:100%; border-radius:50%">
+                </div>
+                <h2 style="margin:0">${winner.name}</h2>
+                <h1 style="color:var(--gold); font-size:40px; margin:10px 0">+${totalPot.toLocaleString()} ⭐</h1>
             `;
-            
-            msg.style.display = 'block';
-            confetti({ particleCount: 200, spread: 80 });
+
+            overlay.style.display = 'flex';
+            confetti({ particleCount: 250, spread: 100, origin: { y: 0.7 } });
 
             if (winner.name === "أنت") {
-                balance += prize;
+                balance += totalPot;
                 updateUI();
             }
         }
 
         function closeWinner() {
-            document.getElementById('winner-msg').style.display = 'none';
+            document.getElementById('winner-overlay').style.display = 'none';
             resetGame();
         }
 
         function resetGame() {
             players = [];
-            timer = 10;
+            countdownActive = false;
             boardEl.style.transform = "scale(1)";
             ballEl.style.display = 'none';
-            document.getElementById('timer-text').innerText = "جاهز للبدء";
             document.getElementById('join-btn').disabled = false;
-            drawSections();
+            document.getElementById('status-text').innerText = "في انتظار أول لاعب...";
+            drawBoard();
             updateUI();
         }
     </script>
