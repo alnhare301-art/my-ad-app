@@ -3,88 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>روليت سراب - نظام الكيرم المطور</title>
+    <title>روليت جلوبال - النسخة الاحترافية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --bg: #0d1117; --gold: #f1c40f; --cyan: #00f2ff; --pink: #ff007a; }
+        :root { --bg: #05070a; --gold: #fbc531; --cyan: #00d2d3; --pink: #ef5777; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Cairo', sans-serif; background-color: var(--bg); color: white; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg); color: white; margin: 0; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
         
-        .header { width: 100%; padding: 15px; background: #161b22; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #30363d; }
-        .balance { background: #000; padding: 5px 15px; border-radius: 50px; border: 1px solid var(--gold); color: var(--gold); font-weight: 900; }
+        .header { width: 100%; padding: 15px; background: #10141d; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e272e; }
+        .balance { background: #000; padding: 6px 18px; border-radius: 50px; border: 2px solid var(--gold); color: var(--gold); font-weight: 900; font-size: 14px; }
 
-        /* ساحة اللعبة */
+        /* ساحة اللعبة مع تأثير التكبير */
+        .game-board-wrapper {
+            perspective: 1000px;
+            margin: 40px auto;
+        }
+
         .game-board { 
             position: relative; width: 300px; height: 300px; 
-            margin: 30px auto; background: #1c2128; 
-            border: 4px solid #30363d; border-radius: 15px; 
-            overflow: hidden; transition: transform 0.5s ease;
+            background: #1c2128; border: 6px solid #2f3640; border-radius: 20px; 
+            overflow: hidden; transition: all 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
 
         #ball { 
-            position: absolute; width: 22px; height: 22px; 
+            position: absolute; width: 24px; height: 24px; 
             background: #fff; border-radius: 50%; 
-            box-shadow: 0 0 15px #fff, 0 0 30px var(--cyan); 
-            z-index: 100; display: none; /* مخفي افتراضياً */
+            box-shadow: 0 0 20px #fff, 0 0 40px var(--cyan); 
+            z-index: 100; display: none;
         }
 
-        .countdown-overlay {
+        .countdown-text {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 80px; font-weight: 900; color: white; z-index: 50;
-            text-shadow: 0 0 20px rgba(0,0,0,0.8); pointer-events: none;
+            font-size: 100px; font-weight: 900; color: white; z-index: 50;
+            text-shadow: 0 0 30px rgba(0,0,0,1); pointer-events: none;
         }
 
-        .controls { width: 90%; max-width: 400px; background: #161b22; padding: 20px; border-radius: 20px; text-align: center; }
-        input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #30363d; background: #0d1117; color: white; font-size: 18px; margin: 10px 0; text-align: center; }
+        .controls { width: 90%; max-width: 400px; background: #10141d; padding: 25px; border-radius: 25px; text-align: center; border: 1px solid #1e272e; }
+        input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #2f3640; background: #05070a; color: white; font-size: 20px; margin-bottom: 15px; text-align: center; font-weight: 700; }
         
-        .btn-play { width: 100%; padding: 15px; border-radius: 12px; border: none; background: linear-gradient(45deg, var(--cyan), var(--pink)); color: white; font-weight: 900; font-size: 18px; cursor: pointer; transition: 0.3s; }
-        .btn-play:disabled { filter: grayscale(1); opacity: 0.5; }
+        .btn-play { width: 100%; padding: 18px; border-radius: 15px; border: none; background: linear-gradient(45deg, var(--cyan), var(--pink)); color: white; font-weight: 900; font-size: 20px; cursor: pointer; transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .btn-play:active { transform: scale(0.96); }
+        .btn-play:disabled { opacity: 0.4; cursor: not-allowed; }
 
         #winner-msg { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); 
             display: none; flex-direction: column; align-items: center; 
-            justify-content: center; z-index: 1000; 
+            justify-content: center; z-index: 1000; animation: fadeIn 0.5s;
         }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="font-weight: 900; color: var(--cyan);">SARAB LITE</div>
+        <div style="font-weight: 900; color: var(--cyan); letter-spacing: 1px;">GLOBAL BOT</div>
         <div class="balance">⭐ <span id="balance">100,000</span></div>
     </div>
 
-    <div id="board" class="game-board">
-        <div id="ball"></div>
-        <div id="countdown-num" class="countdown-overlay"></div>
-        <canvas id="gameCanvas" width="300" height="300"></canvas>
+    <div class="game-board-wrapper">
+        <div id="board" class="game-board">
+            <div id="ball"></div>
+            <div id="countdown-num" class="countdown-text"></div>
+            <canvas id="gameCanvas" width="300" height="300"></canvas>
+        </div>
     </div>
 
     <div class="controls">
-        <div id="status-text" style="margin-bottom:10px; font-weight:bold; color:var(--gold);">انتظار اللاعبين...</div>
-        <input type="number" id="bet-input" value="1000" min="100">
+        <div id="status-text" style="margin-bottom:15px; font-weight:bold; color:var(--gold); font-size: 18px;">انتظار المنافسين...</div>
+        <input type="number" id="bet-input" value="1000" min="100" step="100">
         <button id="join-btn" class="btn-play" onclick="joinGame()">دخول الجولة 🚀</button>
-        <button onclick="clearRoom()" style="background:none; border:none; color:#444; font-size:10px; margin-top:10px; cursor:pointer;">تصفير الغرفة (للمسؤول)</button>
     </div>
 
     <div id="winner-msg">
-        <h1 style="color:var(--gold)">انتهى السحب!</h1>
-        <div id="winner-info" style="text-align:center; font-size:20px;"></div>
-        <button class="btn-play" style="width:200px; margin-top:20px;" onclick="location.reload()">العودة للرئيسية</button>
+        <div id="winner-info" style="text-align:center; font-size:24px;"></div>
+        <button class="btn-play" style="width:220px; margin-top:30px;" onclick="location.reload()">جولة جديدة 🔄</button>
     </div>
 
     <script>
-        const DB_BASE = "https://sarab-app-84448-default-rtdb.firebaseio.com/game_v3";
-        let myId = "ID_" + Math.floor(Math.random() * 1000);
+        const DB_BASE = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_game";
+        let myId = "USR_" + Math.floor(Math.random() * 999);
         let balance = parseInt(localStorage.getItem('sarab_bal')) || 100000;
         let players = [];
-        let currentState = "waiting";
-        let animationStarted = false;
+        let gameRunning = false;
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const ball = document.getElementById('ball');
+        const board = document.getElementById('board');
 
         function updateUI() {
             document.getElementById('balance').innerText = balance.toLocaleString();
@@ -96,128 +103,139 @@
             try {
                 const res = await fetch(`${DB_BASE}.json`);
                 const data = await res.json();
-                if (!data) { players = []; renderBoard(); return; }
+                
+                if (!data) { 
+                    players = []; 
+                    document.getElementById('status-text').innerText = "انتظار المنافسين (0/2)";
+                    render(); 
+                    return; 
+                }
 
                 players = data.players ? Object.values(data.players) : [];
-                currentState = data.state || "waiting";
+                let state = data.state || "waiting";
 
-                // تحديث النصوص
-                if (currentState === "waiting") {
+                if (state === "waiting") {
                     document.getElementById('status-text').innerText = `المشاركون: (${players.length}/2)`;
                     document.getElementById('countdown-num').innerText = "";
+                    if (players.length >= 2 && players[0].id === myId) startSequence();
                 }
 
-                // بدء العد التنازلي إذا اكتمل العدد
-                if (players.length >= 2 && currentState === "waiting") {
-                    if (players[0].id === myId) startCountdownAction();
+                if (state === "counting") {
+                    document.getElementById('countdown-num').innerText = data.timer || "";
                 }
 
-                if (currentState === "counting" && data.timer !== undefined) {
-                    document.getElementById('countdown-num').innerText = data.timer;
+                if (state === "playing" && !gameRunning) {
+                    launchBall(data.seed || 0.5);
                 }
 
-                // بدء الحركة
-                if (currentState === "playing" && !animationStarted) {
-                    runPhysics(data.seed || 0.5);
-                }
-
-                renderBoard();
-            } catch (e) { console.log("Sync Error"); }
+                render();
+            } catch (e) {}
         }
 
-        function renderBoard() {
+        function render() {
             const total = players.reduce((s, p) => s + p.amount, 0);
             ctx.clearRect(0, 0, 300, 300);
             if (total === 0) { ctx.fillStyle = "#1c2128"; ctx.fillRect(0,0,300,300); return; }
-            let currX = 0;
+            let curX = 0;
             players.forEach(p => {
                 const w = (p.amount / total) * 300;
                 ctx.fillStyle = p.color;
-                ctx.fillRect(currX, 0, w, 300);
-                currX += w;
+                ctx.fillRect(curX, 0, w, 300);
+                curX += w;
             });
         }
 
         async function joinGame() {
             const amt = parseInt(document.getElementById('bet-input').value);
-            if (amt > balance) return alert("رصيدك ناقص");
+            if (amt > balance) return alert("الرصيد لا يكفي!");
             
             balance -= amt;
             updateUI();
             document.getElementById('join-btn').disabled = true;
 
-            const pData = { id: myId, amount: amt, color: `hsl(${Math.random()*360}, 70%, 50%)`, name: "لاعب " + myId };
+            const pData = { id: myId, amount: amt, color: `hsl(${Math.random()*360}, 80%, 50%)`, name: "لاعب " + myId };
             await fetch(`${DB_BASE}/players/${myId}.json`, { method: 'PUT', body: JSON.stringify(pData) });
         }
 
-        async function startCountdownAction() {
+        async function startSequence() {
             await fetch(`${DB_BASE}/state.json`, { method: 'PUT', body: JSON.stringify("counting") });
-            let time = 5;
-            let inv = setInterval(async () => {
-                await fetch(`${DB_BASE}/timer.json`, { method: 'PUT', body: JSON.stringify(time) });
-                time--;
-                if (time < 0) {
-                    clearInterval(inv);
+            let t = 10;
+            let iv = setInterval(async () => {
+                await fetch(`${DB_BASE}/timer.json`, { method: 'PUT', body: JSON.stringify(t) });
+                t--;
+                if (t < 0) {
+                    clearInterval(iv);
                     await fetch(`${DB_BASE}.json`, { method: 'PATCH', body: JSON.stringify({ state: "playing", seed: Math.random() }) });
                 }
             }, 1000);
         }
 
-        function runPhysics(seed) {
-            animationStarted = true;
+        function launchBall(seed) {
+            gameRunning = true;
             ball.style.display = "block";
             document.getElementById('countdown-num').innerText = "";
+            board.style.transform = "scale(1.1) rotate(2deg)"; // تكبير خفيف للوحة عند البدء
             
             let px = 150, py = 150;
-            let vx = (seed * 15) + 5;
-            let vy = (1 - seed) * 15 + 5;
-            let fric = 0.985;
+            // سرعة "قوية جداً" في البداية
+            let vx = (seed * 40) + 20; 
+            let vy = (1 - seed) * 40 + 20;
+            let friction = 0.982; // تباطؤ تدريجي ناعم
 
-            function step() {
+            function animate() {
                 px += vx; py += vy;
-                if (px <= 0 || px >= 278) vx *= -1;
-                if (py <= 0 || py >= 278) vy *= -1;
-                vx *= fric; vy *= fric;
+                if (px <= 0 || px >= 276) vx *= -1;
+                if (py <= 0 || py >= 276) vy *= -1;
+                
+                vx *= friction; vy *= friction;
                 
                 ball.style.left = px + 'px';
                 ball.style.top = py + 'px';
 
-                if (Math.abs(vx) > 0.2) {
-                    requestAnimationFrame(step);
+                // تكبير اللوحة أكثر (Zoom) عندما تبدأ الكرة بالتباطؤ
+                if (Math.abs(vx) < 10) {
+                    board.style.transform = "scale(1.4)";
+                }
+
+                if (Math.abs(vx) > 0.15) {
+                    requestAnimationFrame(animate);
                 } else {
-                    finish(px);
+                    finalize(px);
                 }
             }
-            step();
+            animate();
         }
 
-        async function finish(finalX) {
+        async function finalize(finalX) {
             const total = players.reduce((s, p) => s + p.amount, 0);
-            let currX = 0;
-            let winner = players[0];
+            let curX = 0;
+            let win = players[0];
             players.forEach(p => {
                 const w = (p.amount / total) * 300;
-                if (finalX >= currX && finalX <= currX + w) winner = p;
-                currX += w;
+                if (finalX >= curX && finalX <= curX + w) win = p;
+                curX += w;
             });
 
-            document.getElementById('winner-info').innerHTML = `الفائز هو: <b style="color:${winner.color}">${winner.name}</b><br>الجائزة: ${total} ⭐`;
+            document.getElementById('winner-info').innerHTML = `
+                <div style="width:100px; height:100px; background:${win.color}; border-radius:50%; margin:0 auto 20px; border:5px solid white; box-shadow:0 0 20px ${win.color}"></div>
+                <h2 style="color:white">الفائز: ${win.name}</h2>
+                <h1 style="color:var(--gold)">+${total.toLocaleString()} ⭐</h1>
+            `;
             document.getElementById('winner-msg').style.display = "flex";
 
-            if (winner.id === myId) {
+            if (win.id === myId) {
                 balance += total;
                 updateUI();
-                confetti();
+                confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
             }
 
+            // تصفير كل شيء وبدء جولة جديدة تماماً بعد 8 ثوانٍ
             if (players[0].id === myId) {
-                setTimeout(() => { fetch(`${DB_BASE}.json`, { method: 'DELETE' }); }, 8000);
+                setTimeout(async () => {
+                    await fetch(`${DB_BASE}.json`, { method: 'DELETE' });
+                    location.reload();
+                }, 8000);
             }
-        }
-
-        async function clearRoom() {
-            await fetch(`${DB_BASE}.json`, { method: 'DELETE' });
-            location.reload();
         }
 
         setInterval(sync, 1000);
