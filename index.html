@@ -3,282 +3,385 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sarab Roulette | Premium</title>
+    <title>روليت سراب - اللعبة التفاعلية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --gold: #e2b04a;
-            --gold-dark: #996515;
-            --bg-dark: #080808;
-            --card-bg: rgba(20, 20, 20, 0.7);
-            --neon-gold: 0 0 15px rgba(226, 176, 74, 0.4);
+            --bg: #0b0e14;
+            --card: #161b22;
+            --primary: #5865f2;
+            --gold: #f1c40f;
+            --accent: #eb459e;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: var(--bg-dark);
-            color: #fff;
+            background-color: var(--bg);
+            color: white;
             margin: 0;
-            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             min-height: 100vh;
         }
 
-        /* خلفية متحركة فخمة */
-        .bg-animate {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #080808 100%);
-            z-index: -1;
-        }
-
-        .bg-mesh {
-            position: absolute;
-            width: 100%; height: 100%;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(226, 176, 74, 0.05) 0, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(226, 176, 74, 0.05) 0, transparent 50%);
-            filter: blur(80px);
-            animation: meshMove 10s ease infinite alternate;
-        }
-
-        @keyframes meshMove {
-            from { transform: scale(1); }
-            to { transform: scale(1.2); }
-        }
-
-        /* الهيدر */
-        .header {
-            padding: 20px;
+        /* شريط الرصيد العلوي */
+        .top-bar {
+            width: 100%;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(226, 176, 74, 0.1);
-            position: sticky;
-            top: 0; z-index: 100;
+            background: var(--card);
+            border-bottom: 2px solid #2d333b;
         }
 
-        .brand {
+        .balance-box {
+            background: #000;
+            padding: 5px 15px;
+            border-radius: 50px;
+            border: 1px solid var(--gold);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
 
-        .brand-logo {
-            width: 45px; height: 45px;
-            border-radius: 12px;
-            border: 2px solid var(--gold);
-            box-shadow: var(--neon-gold);
+        .stars-icon { color: var(--gold); font-size: 18px; }
+
+        /* منطقة اللعبة الرئيسية */
+        .game-container {
+            width: 90%;
+            max-width: 400px;
+            margin-top: 30px;
+            text-align: center;
         }
 
-        .brand-text {
-            font-weight: 900;
-            font-size: 20px;
-            letter-spacing: 1px;
-            background: linear-gradient(to bottom, #fff, var(--gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* المحتوى الرئيسي */
-        .container {
-            padding: 25px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        /* بطاقة الإحصائيات الفورية */
-        .live-status {
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 30px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-        }
-
-        .stat-item { text-align: center; }
-        .stat-val { display: block; font-size: 22px; font-weight: 900; color: var(--gold); }
-        .stat-lab { font-size: 10px; text-transform: uppercase; color: #666; letter-spacing: 1px; }
-
-        /* البطاقات الملكية */
-        .ad-card {
-            background: var(--card-bg);
-            border-radius: 25px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(226, 176, 74, 0.1);
+        /* دائرة الروليت */
+        .roulette-box {
             position: relative;
-            transition: 0.4s cubic-bezier(0.2, 1, 0.2, 1);
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 30px;
+            border-radius: 50%;
+            border: 8px solid #21262d;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
+            background: #1c2128;
         }
 
-        .ad-card::before {
-            content: '';
+        canvas {
+            border-radius: 50%;
+            transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1);
+        }
+
+        .timer-display {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(226, 176, 74, 0.03), transparent);
-            transform: translateX(-100%);
-            transition: 0.6s;
+            font-size: 40px;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+            z-index: 10;
         }
 
-        .ad-card:hover::before { transform: translateX(100%); }
-
-        .ad-card:hover {
-            transform: scale(1.02);
-            border-color: var(--gold);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        /* لوحة التحكم */
+        .bet-panel {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
-        .ad-title {
-            font-size: 18px; font-weight: 700; margin-bottom: 15px; display: block;
+        .input-group {
+            margin-bottom: 15px;
         }
 
-        /* الزر المصمم خصيصاً لك */
-        .btn-luxury {
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+            background: #0d1117;
+            color: white;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .bet-btn {
             width: 100%;
             padding: 15px;
-            border-radius: 15px;
+            border-radius: 12px;
             border: none;
-            background: linear-gradient(45deg, var(--gold-dark), var(--gold));
-            color: #000;
-            font-weight: 900;
-            font-size: 16px;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
             cursor: pointer;
-            position: relative;
-            transition: 0.3s;
-            box-shadow: var(--neon-gold);
+            transition: 0.2s;
+        }
+
+        .bet-btn:disabled { opacity: 0.5; filter: grayscale(1); }
+        .bet-btn:active { transform: scale(0.95); }
+
+        /* قائمة المشتركين */
+        .players-list {
+            margin-top: 20px;
+            width: 100%;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-wrap: wrap;
             gap: 10px;
-            margin-top: 15px;
+            justify-content: center;
         }
 
-        .btn-luxury:active { transform: scale(0.96); }
-
-        /* شريط التنقل (Minimalist) */
-        .nav-bar {
-            position: fixed;
-            bottom: 20px; left: 50%;
-            transform: translateX(-50%);
-            width: 85%;
-            background: rgba(15, 15, 15, 0.8);
-            backdrop-filter: blur(20px);
-            border-radius: 25px;
-            padding: 12px;
+        .player-tag {
+            background: #21262d;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 12px;
             display: flex;
-            justify-content: space-around;
-            border: 1px solid rgba(255,255,255,0.05);
+            align-items: center;
+            gap: 5px;
+            border: 1px solid transparent;
+        }
+
+        .winner-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             z-index: 1000;
+            animation: fadeIn 0.5s;
         }
 
-        .nav-btn {
-            color: #555;
-            font-size: 24px;
-            transition: 0.3s;
-            position: relative;
-        }
-
-        .nav-btn.active { color: var(--gold); }
-        .nav-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -5px; left: 50%; transform: translateX(-50%);
-            width: 5px; height: 5px; background: var(--gold); border-radius: 50%;
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     </style>
 </head>
 <body>
 
-    <div class="bg-animate"><div class="bg-mesh"></div></div>
-
-    <header class="header">
-        <div class="brand">
-            <img src="https://files.catbox.moe/5s7y7a.png" class="brand-logo">
-            <span class="brand-text">SARAB</span>
+    <div class="top-bar">
+        <div style="font-weight: 900; font-size: 18px; color: var(--primary);">روليت سراب</div>
+        <div class="balance-box">
+            <span class="stars-icon">⭐</span>
+            <span id="user-balance">100,000</span>
         </div>
-        <div style="font-size: 12px; color: #4ade80;">● ON AIR</div>
-    </header>
+    </div>
 
-    <div class="container">
-        <div class="live-status">
-            <div class="stat-item"><span class="stat-val">12</span><span class="stat-lab">سحب نشط</span></div>
-            <div class="stat-item" style="border-left: 1px solid #222; border-right: 1px solid #222; padding: 0 20px;">
-                <span class="stat-val" id="user-count">4.8k</span><span class="stat-lab">مشاهدة</span>
+    <div class="game-container">
+        <div class="roulette-box">
+            <div id="timer" class="timer-display">جاهز</div>
+            <canvas id="wheelCanvas" width="280" height="280"></canvas>
+        </div>
+
+        <div class="bet-panel">
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 13px; color: #8b949e;">حدد مبلغ الدخول</label>
+                <input type="number" id="bet-amount" value="1000" min="100">
             </div>
-            <div class="stat-item"><span class="stat-val">98%</span><span class="stat-lab">نسبة الحظ</span></div>
+            <button id="bet-btn" class="bet-btn" onclick="joinGame()">دخول السحب 🚀</button>
         </div>
 
-        <div id="feed">
+        <div id="players-list" class="players-list">
             </div>
     </div>
 
-    <nav class="nav-bar">
-        <a href="#" class="nav-btn active"><ion-icon name="grid"></ion-icon></a>
-        <a href="#" class="nav-btn"><ion-icon name="trophy"></ion-icon></a>
-        <a href="#" class="nav-btn"><ion-icon name="notifications"></ion-icon></a>
-        <a href="#" class="nav-icon"><img src="https://files.catbox.moe/5s7y7a.png" style="width: 30px; border-radius: 50%;"></a>
-    </nav>
+    <div id="winner-overlay" class="winner-overlay">
+        <h2 style="color: var(--gold); font-size: 30px;">🏆 الفائز بالجولة!</h2>
+        <div id="winner-info" style="text-align: center; margin: 20px 0;"></div>
+        <button class="bet-btn" style="width: 150px;" onclick="closeWinner()">حسناً</button>
+    </div>
 
-    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script>
-        const dbUrl = "https://sarab-app-84448-default-rtdb.firebaseio.com/active_ads.json";
+        let balance = parseInt(localStorage.getItem('sarab_balance')) || 100000;
+        let players = [];
+        let isSpinning = false;
+        let timeLeft = 10;
+        let timerInterval = null;
 
-        async function loadContent() {
-            try {
-                const res = await fetch(dbUrl);
-                const data = await res.json();
-                const feed = document.getElementById('feed');
-                feed.innerHTML = '';
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const balanceDisplay = document.getElementById('user-balance');
 
-                Object.keys(data).forEach(key => {
-                    const item = data[key];
-                    const card = `
-                        <div class="ad-card">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <span class="ad-title">${item.title}</span>
-                                <span style="background: rgba(226,176,74,0.1); color: var(--gold); padding: 4px 8px; border-radius: 8px; font-size: 10px;">VIP</span>
-                            </div>
-                            <div style="color: #666; font-size: 12px; margin-top: 5px;">
-                                ينتهي خلال: <span style="color: #bbb;">${item.end_at}</span>
-                            </div>
-                            <button class="btn-luxury" onclick="celebrate(this, '${item.post_url}')">
-                                دُخول السحب
-                                <ion-icon name="chevron-forward-outline"></ion-icon>
-                            </button>
-                        </div>
-                    `;
-                    feed.insertAdjacentHTML('beforeend', card);
-                });
-            } catch (e) {
-                console.log("Offline or Error");
-            }
+        function updateBalanceUI() {
+            balanceDisplay.innerText = balance.toLocaleString();
+            localStorage.setItem('sarab_balance', balance);
         }
 
-        function celebrate(btn, url) {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#e2b04a', '#ffffff', '#996515']
+        updateBalanceUI();
+
+        function drawWheel() {
+            const totalBet = players.reduce((sum, p) => sum + p.amount, 0);
+            let startAngle = 0;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (players.length === 0) {
+                ctx.fillStyle = "#1c2128";
+                ctx.beginPath();
+                ctx.arc(140, 140, 140, 0, Math.PI * 2);
+                ctx.fill();
+                return;
+            }
+
+            players.forEach(player => {
+                const sliceAngle = (player.amount / totalBet) * 2 * Math.PI;
+                ctx.fillStyle = player.color;
+                ctx.beginPath();
+                ctx.moveTo(140, 140);
+                ctx.arc(140, 140, 140, startAngle, startAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fill();
+                
+                startAngle += sliceAngle;
             });
+        }
+
+        drawWheel();
+
+        function joinGame() {
+            const amount = parseInt(document.getElementById('bet-amount').value);
+
+            if (amount > balance) return alert("رصيدك لا يكفي!");
+            if (amount < 100) return alert("الحد الأدنى 100 نجمة");
+            if (players.length >= 20) return alert("الغرفة ممتلئة!");
+
+            balance -= amount;
+            updateBalanceUI();
+
+            const newPlayer = {
+                id: Date.now(),
+                name: players.length === 0 ? "أنت" : "لاعب " + (players.length + 1),
+                amount: amount,
+                color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+                img: 'https://files.catbox.moe/5s7y7a.png'
+            };
+
+            players.push(newPlayer);
+            updatePlayersList();
+            drawWheel();
+
+            if (players.length === 1) startTimer();
+        }
+
+        function updatePlayersList() {
+            const list = document.getElementById('players-list');
+            list.innerHTML = players.map(p => `
+                <div class="player-tag" style="border-color: ${p.color}">
+                    <img src="${p.img}" width="18" style="border-radius:50%">
+                    <span>${p.amount}</span>
+                </div>
+            `).join('');
+        }
+
+        function startTimer() {
+            timeLeft = 10;
+            document.getElementById('bet-btn').innerText = "دخول (انتظار لاعبين)";
             
-            btn.innerHTML = "جاري التحميل...";
-            setTimeout(() => {
-                window.location.href = url;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft;
+
+                // إضافة لاعبين وهميين للتجربة إذا كنت وحدك
+                if (timeLeft === 7 && players.length === 1) simulatePlayer();
+                if (timeLeft === 4 && players.length === 2) simulatePlayer();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (players.length >= 2) {
+                        spinWheel();
+                    } else {
+                        alert("لا يوجد عدد كافٍ من اللاعبين، تم استرداد الرصيد.");
+                        balance += players[0].amount;
+                        resetGame();
+                    }
+                }
             }, 1000);
         }
 
-        // تحديث البيانات كل 10 ثواني
-        setInterval(loadContent, 10000);
-        loadContent();
+        function simulatePlayer() {
+            const amount = Math.floor(Math.random() * 5000) + 1000;
+            players.push({
+                id: Date.now() + Math.random(),
+                name: "منافس " + players.length,
+                amount: amount,
+                color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+                img: 'https://via.placeholder.com/50'
+            });
+            updatePlayersList();
+            drawWheel();
+        }
+
+        function spinWheel() {
+            isSpinning = true;
+            document.getElementById('bet-btn').disabled = true;
+            document.getElementById('timer').innerText = "🌀";
+
+            const randomRotation = 3600 + Math.random() * 3600; 
+            canvas.style.transform = `rotate(${randomRotation}deg)`;
+
+            setTimeout(() => {
+                const winner = players[Math.floor(Math.random() * players.length)];
+                showWinner(winner);
+            }, 4000);
+        }
+
+        function showWinner(winner) {
+            const totalPot = players.reduce((sum, p) => sum + p.amount, 0);
+            
+            const overlay = document.getElementById('winner-overlay');
+            const info = document.getElementById('winner-info');
+            
+            info.innerHTML = `
+                <img src="${winner.img}" width="80" style="border-radius:50%; border:4px solid ${winner.color}">
+                <h3 style="margin:10px 0">${winner.name}</h3>
+                <div style="font-size:24px; font-weight:900; color:var(--gold)">+${totalPot.toLocaleString()} ⭐</div>
+            `;
+
+            overlay.style.display = 'flex';
+            confetti({ particleCount: 150, spread: 70 });
+
+            if (winner.name === "أنت") {
+                balance += totalPot;
+                updateBalanceUI();
+            }
+        }
+
+        function resetGame() {
+            players = [];
+            isSpinning = false;
+            canvas.style.transform = `rotate(0deg)`;
+            document.getElementById('timer').innerText = "جاهز";
+            document.getElementById('bet-btn').disabled = false;
+            document.getElementById('bet-btn').innerText = "دخول السحب 🚀";
+            updatePlayersList();
+            drawWheel();
+            updateBalanceUI();
+        }
+
+        function closeWinner() {
+            document.getElementById('winner-overlay').style.display = 'none';
+            resetGame();
+        }
+
+        function simulatePlayer() {
+            const amount = Math.floor(Math.random() * 5000) + 1000;
+            players.push({
+                id: Date.now() + Math.random(),
+                name: "منافس " + players.length,
+                amount: amount,
+                color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+                img: 'https://files.catbox.moe/5s7y7a.png'
+            });
+            updatePlayersList();
+            drawWheel();
+        }
     </script>
 </body>
 </html>
