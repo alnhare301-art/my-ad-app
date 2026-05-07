@@ -1,211 +1,141 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر الذيبه - المتجر الرسمي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #6366f1; --accent: #f687b3; --bg: #0f172a; --card: #1e293b; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 50px; overflow-x: hidden; }
+        
+        /* الشريط العلوي */
+        .ticker-wrap { background: linear-gradient(90deg, var(--primary), #a855f7); padding: 5px 0; position: fixed; top: 0; width: 100%; z-index: 2000; height: 50px; display: flex; align-items: center; box-shadow: 0 2px 15px rgba(0,0,0,0.4); }
+        .ticker { white-space: nowrap; overflow: hidden; flex-grow: 1; font-weight: bold; }
+        .ticker-text { display: inline-block; animation: ticker 20s linear infinite; padding-right: 50px; }
+        .ticker-btn { background: white; color: var(--primary); padding: 5px 15px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold; margin: 0 10px; z-index: 2001; }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-// استخدم مسار V8 لضمان قاعدة بيانات نظيفة تماماً
-const DB_PATH = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v8";
-const BASE_BALANCE = 100000;
-const MIN_PLAYERS = 2;
-const COUNTDOWN_FROM = 10;
+        .container { padding: 80px 15px 20px; text-align: center; }
+        .logo { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 10px; object-fit: cover; }
 
-export default function TerritoryGame() {
-  const [myId] = useState(() => localStorage.getItem("tg_user_id") || "P" + Math.floor(Math.random() * 9999));
-  const [myBal, setMyBal] = useState(() => parseInt(localStorage.getItem("user_bal") || String(BASE_BALANCE)));
-  const [players, setPlayers] = useState<any[]>([]);
-  const [gameState, setGameState] = useState("waiting");
-  const [timer, setTimer] = useState<number | null>(null);
-  const [betAmount, setBetAmount] = useState("1000");
-  const [winner, setWinner] = useState<any>(null);
-  const [showWinner, setShowWinner] = useState(false);
+        /* قسم الإحصائيات */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 15px; border-bottom: 3px solid var(--accent); }
+        .stat-card h3 { margin: 0; font-size: 22px; color: var(--primary); }
+        .stat-card p { margin: 5px 0 0; font-size: 11px; color: #94a3b8; }
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const ballRef = useRef<HTMLDivElement>(null);
-  const isSpinningRef = useRef(false);
+        /* العناوين */
+        .section-title { text-align: right; color: var(--accent); border-right: 4px solid var(--accent); padding-right: 10px; margin: 30px 0 15px; font-weight: bold; font-size: 18px; }
 
-  // تحديث الرصيد وحفظه
-  const updateBalance = (newBal: number) => {
-    setMyBal(newBal);
-    localStorage.setItem("user_bal", String(newBal));
-  };
+        /* الأقسام والمنتجات */
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .item-card { background: var(--card); padding: 15px; border-radius: 18px; border-right: 5px solid var(--primary); text-align: center; animation: fadeIn 0.5s ease; }
+        .item-card strong { display: block; margin-bottom: 5px; color: #fff; }
+        .price-tag { color: #f687b3; font-size: 14px; font-weight: bold; }
+        .btn-buy { background: var(--primary); color: white; padding: 8px; border-radius: 10px; text-decoration: none; display: block; text-align: center; margin-top: 12px; font-weight: bold; font-size: 12px; }
 
-  // نظام التزامن المطور بكسر التخزين المؤقت (Cache)
-  const sync = useCallback(async () => {
-    try {
-      const res = await fetch(`${DB_PATH}.json?nocache=${Date.now()}`);
-      const data = await res.json();
+        /* قسم العضوية المميزة */
+        .premium-box { background: linear-gradient(145deg, #1e293b, #334155); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--primary); }
 
-      if (!data) {
-        setPlayers([]);
-        setGameState("waiting");
-        return;
-      }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
 
-      const playerList = data.players ? Object.values(data.players).filter((p: any) => p && p.id) : [];
-      setPlayers(playerList);
-      setGameState(data.state || "waiting");
-
-      // منطق القائد لإدارة الوقت (أول لاعب يدخل هو المتحكم)
-      if (playerList.length >= MIN_PLAYERS && data.state === "waiting") {
-        if (myId === playerList[0].id) {
-          await fetch(`${DB_PATH}.json`, { 
-            method: "PATCH", 
-            body: JSON.stringify({ state: "counting", startTime: Date.now() }) 
-          });
-        }
-      }
-
-      if (data.state === "counting" && data.startTime) {
-        const elapsed = Math.floor((Date.now() - data.startTime) / 1000);
-        const remaining = COUNTDOWN_FROM - elapsed;
-        setTimer(remaining > 0 ? remaining : 0);
-
-        if (remaining <= 0 && myId === playerList[0].id) {
-          await fetch(`${DB_PATH}.json`, { 
-            method: "PATCH", 
-            body: JSON.stringify({ state: "playing", seed: Math.random() }) 
-          });
-        }
-      }
-
-      if (data.state === "playing" && data.seed && !isSpinningRef.current) {
-        runPhysics(data.seed, playerList);
-      }
-
-      drawMap(playerList);
-    } catch (e) {
-      console.log("Sync...");
-    }
-  }, [myId]);
-
-  useEffect(() => {
-    localStorage.setItem("tg_user_id", myId);
-    const interval = setInterval(sync, 900);
-    return () => clearInterval(interval);
-  }, [sync]);
-
-  // محرك حركة الكرة
-  const runPhysics = (seed: number, pList: any[]) => {
-    isSpinningRef.current = true;
-    if (ballRef.current) ballRef.current.style.display = "block";
-
-    let px = 140, py = 140;
-    let vx = (seed > 0.5 ? 1 : -1) * (18 + seed * 8);
-    let vy = (seed < 0.5 ? 1 : -1) * (18 + (1 - seed) * 8);
-
-    const frame = () => {
-      px += vx; py += vy;
-      if (px <= 0 || px >= 280) { vx *= -1; px = px <= 0 ? 1 : 279; }
-      if (py <= 0 || py >= 280) { vy *= -1; py = py <= 0 ? 1 : 279; }
-      vx *= 0.985; vy *= 0.985;
-
-      if (ballRef.current) {
-        ballRef.current.style.transform = `translate(${px}px, ${py}px)`;
-      }
-
-      if (Math.abs(vx) > 0.3 || Math.abs(vy) > 0.3) {
-        requestAnimationFrame(frame);
-      } else {
-        const fx = (px + 10) * 2;
-        const fy = (py + 10) * 2;
-        const win = pList.find(p => p.area && fx >= p.area.x1 && fx <= p.area.x2 && fy >= p.area.y1 && fy <= p.area.y2) || pList[0];
-        finishGame(win, pList);
-      }
-    };
-    requestAnimationFrame(frame);
-  };
-
-  const drawMap = (pList: any[]) => {
-    const ctx = canvasRef.current?.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, 600, 600);
-    const total = pList.reduce((s, p) => s + p.amount, 0);
-    if (total === 0) return;
-
-    let x = 0, y = 0, w = 600, h = 600;
-    pList.forEach((p, i) => {
-      const ratio = p.amount / total;
-      ctx.fillStyle = p.color;
-      if (i % 2 === 0) {
-        let sw = (i === pList.length - 1) ? w : w * ratio;
-        ctx.fillRect(x, y, sw, h);
-        p.area = { x1: x, y1: y, x2: x + sw, y2: y + h };
-        x += sw; w -= sw;
-      } else {
-        let sh = (i === pList.length - 1) ? h : h * ratio;
-        ctx.fillRect(x, y, w, sh);
-        p.area = { x1: x, y1: y, x2: x + w, y2: y + sh };
-        y += sh; h -= sh;
-      }
-    });
-  };
-
-  const finishGame = async (win: any, pList: any[]) => {
-    setShowWinner(true);
-    setWinner(win);
-    const prize = pList.reduce((s, p) => s + p.amount, 0);
-
-    if (win.id === myId) {
-      updateBalance(myBal + prize);
-    }
-
-    setTimeout(async () => {
-      if (myId === pList[0].id) {
-        await fetch(`${DB_PATH}.json`, { method: "DELETE" });
-      }
-      window.location.reload();
-    }, 5000);
-  };
-
-  const joinGame = async () => {
-    const amt = parseInt(betAmount);
-    if (amt > myBal) return;
-    updateBalance(myBal - amt);
-    const pData = { id: myId, name: "المحارب " + myId.substr(1, 3), amount: amt, color: `hsl(${Math.random() * 360}, 70%, 50%)` };
-    await fetch(`${DB_PATH}/players/${myId}.json`, { method: "PUT", body: JSON.stringify(pData) });
-  };
-
-  return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#050505", color: "white", padding: "20px", fontFamily: "sans-serif", textAlign: "center" }} dir="rtl">
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", background: "#111", padding: "15px", borderRadius: "15px", marginBottom: "20px" }}>
-        <span style={{ color: "#D4AF37", fontWeight: "bold" }}>⭐ {myBal.toLocaleString()}</span>
-        <span style={{ fontWeight: "bold", color: "#D4AF37" }}>ARENA V2</span>
-      </div>
-
-      {/* Status Bar */}
-      <div style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.2)", padding: "15px", borderRadius: "15px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-         <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "14px", color: "#D4AF37", fontWeight: "bold" }}>{gameState === "waiting" ? "بانتظار الأبطال..." : "العد التنازلي..."}</div>
-            <div style={{ fontSize: "10px", color: "#666" }}>تحرك الكرة: وضع الاستعداد</div>
-         </div>
-         <div style={{ fontSize: "20px", fontWeight: "bold" }}>{players.length}</div>
-      </div>
-
-      {/* The Arena Box */}
-      <div style={{ position: "relative", width: "300px", height: "300px", margin: "0 auto", backgroundColor: "#000", borderRadius: "25px", border: "4px solid #333", overflow: "hidden" }}>
-        <div ref={ballRef} style={{ position: "absolute", width: "20px", height: "20px", background: "#fff", borderRadius: "50%", zIndex: 10, display: "none", boxShadow: "0 0 15px #fff" }} />
-        {gameState === "counting" && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)", zIndex: 20 }}>
-            <span style={{ fontSize: "80px", fontWeight: "900", color: "#D4AF37" }}>{timer}</span>
-          </div>
-        )}
-        <canvas ref={canvasRef} width={600} height={600} style={{ width: "100%", height: "100%" }} />
-      </div>
-
-      {/* Controls */}
-      <div style={{ marginTop: "20px", maxWidth: "320px", margin: "20px auto" }}>
-        <input type="number" value={betAmount} onChange={e => setBetAmount(e.target.value)} style={{ width: "100%", background: "#1a1a1a", border: "1px solid #333", padding: "15px", borderRadius: "15px", color: "#D4AF37", fontSize: "20px", textAlign: "center", marginBottom: "10px" }} />
-        <button onClick={joinGame} disabled={gameState !== "waiting" || players.some(p => p.id === myId)} style={{ width: "100%", background: "#D4AF37", padding: "15px", borderRadius: "15px", border: "none", color: "black", fontWeight: "bold", fontSize: "18px", opacity: (gameState !== "waiting" || players.some(p => p.id === myId)) ? 0.4 : 1 }}>
-          دخول الميدان الآن ⚔️
-        </button>
-      </div>
-
-      {/* Winner Overlay */}
-      {showWinner && winner && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ width: "100px", height: "100px", borderRadius: "20px", background: winner.color, border: "4px solid #D4AF37", marginBottom: "20px" }} />
-          <h2 style={{ fontSize: "28px" }}>الفائز: {winner.name}</h2>
-          <h1 style={{ fontSize: "50px", color: "#D4AF37" }}>+{players.reduce((s, p) => s + p.amount, 0)}</h1>
-        </div>
-      )}
+    <div class="ticker-wrap">
+        <div class="ticker"><div class="ticker-text" id="ticker-content">مرحباً بكم في متجر الذيبه.. أفضل العروض والخدمات الحصرية هنا!</div></div>
+        <a href="#" id="ticker-link" class="ticker-btn">تواصل معنا 💬</a>
     </div>
-  );
-}
+
+    <div class="container">
+        <img src="https://files.catbox.moe/2iznuj.jpg" class="logo">
+        <h1 style="margin:0; font-size: 28px; color: #fff;">متجر الذيبه 🐺</h1>
+        <p style="color: #94a3b8; font-size: 14px;">خيارك الأول للتميز</p>
+
+        <div class="stats-grid">
+            <div class="stat-card"><h3><span id="total-views">105K</span></h3><p>زيارة للمتجر</p></div>
+            <div class="stat-card"><h3><span id="active-deals">12</span></h3><p>عرض متاح</p></div>
+        </div>
+
+        <div class="section-title">⭐ قسم بيع النجوم</div>
+        <div class="grid-container">
+            <div class="item-card">
+                <strong>حزمة 100 نجمة</strong>
+                <span class="price-tag">خصم لفترة محدودة</span>
+                <a href="#" class="btn-buy">شراء الآن</a>
+            </div>
+            <div class="item-card">
+                <strong>حزمة 500 نجمة</strong>
+                <span class="price-tag">الأكثر مبيعاً</span>
+                <a href="#" class="btn-buy">شراء الآن</a>
+            </div>
+        </div>
+
+        <div class="section-title">💎 قسم الاشتراك المميز</div>
+        <div class="premium-box">
+            <strong>الاشتراك الشهري</strong>
+            <p style="font-size: 12px; color: #cbd5e1;">وصول كامل للمميزات لمدة 30 يوم</p>
+            <a href="#" class="btn-buy" style="background: #a855f7;">اشترك الآن</a>
+        </div>
+        <div class="premium-box">
+            <strong>اشتراك 3 أشهر</strong>
+            <p style="font-size: 12px; color: #cbd5e1;">توفير 15% عند الاشتراك الربع سنوي</p>
+            <a href="#" class="btn-buy" style="background: #a855f7;">اشترك الآن</a>
+        </div>
+        <div class="premium-box">
+            <strong>الاشتراك السنوي</strong>
+            <p style="font-size: 12px; color: #cbd5e1;">الخيار الاحترافي - توفير هائل</p>
+            <a href="#" class="btn-buy" style="background: #a855f7;">اشترك الآن</a>
+        </div>
+
+        <div class="section-title">🖼️ مقتنيات NFT الحصرية</div>
+        <div class="grid-container">
+            <div class="item-card">
+                <strong>قطعة "الذيبه" النادرة</strong>
+                <span class="price-tag">إصدار محدود</span>
+                <a href="#" class="btn-buy">مزايدة</a>
+            </div>
+            <div class="item-card">
+                <strong>درع التميز الرقمي</strong>
+                <span class="price-tag">NFT حصري</span>
+                <a href="#" class="btn-buy">شراء</a>
+            </div>
+        </div>
+
+        <div class="section-title">💰 قسم التمويل</div>
+        <div class="item-card" style="width: auto;">
+            <strong>طلب تمويل سريع</strong>
+            <p style="font-size: 12px; color: #94a3b8;">تقدم بطلبك الآن وسنقوم بمراجعته فوراً</p>
+            <a href="#" class="btn-buy" style="background: #10b981;">تقديم طلب</a>
+        </div>
+
+    </div>
+
+    <script>
+        // الرابط الخاص بقاعدة بيانات البوت (Firebase) ليبقى الربط شغال
+        const dbUrl = "https://sarab-app-84448-default-rtdb.firebaseio.com";
+
+        async function updateUI() {
+            try {
+                // جلب بيانات الشريط من البوت
+                const tRes = await fetch(`${dbUrl}/ticker.json`);
+                const tData = await tRes.json();
+                if(tData) {
+                    document.getElementById('ticker-content').innerText = tData.text;
+                    document.getElementById('ticker-link').href = tData.link || "#";
+                }
+
+                // إحصائيات وهمية تزيد تلقائياً لتعطي مظهراً احترافياً
+                const views = Math.floor(Math.random() * 50) + 105200;
+                document.getElementById('total-views').innerText = views.toLocaleString();
+            } catch(e) {
+                console.log("Error connecting to bot database");
+            }
+        }
+
+        setInterval(updateUI, 5000);
+        updateUI();
+    </script>
+</body>
+</html>
