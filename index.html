@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARENA V2 - الميدان المربع الاحترافي</title>
+    <title>ARENA V2 - الميدان المربع المحكم</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -115,20 +115,7 @@
             background: #000;
         }
 
-        #arenaCanvas { width: 100%; height: 100%; display: block; transition: transform 0.1s ease-out; }
-
-        #ball {
-            position: absolute;
-            width: 14px; height: 14px;
-            background: radial-gradient(circle at 30% 30%, #ffffff, #666666);
-            border-radius: 50%;
-            z-index: 10;
-            display: none;
-            box-shadow: 0 0 12px rgba(255,255,255,1), 0 0 20px rgba(212,175,55,0.4);
-            top: 0; left: 0;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
+        #arenaCanvas { width: 100%; height: 100%; display: block; }
 
         .countdown-overlay {
             position: absolute;
@@ -136,7 +123,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.5);
             backdrop-filter: blur(1px);
             z-index: 20;
             flex-direction: column;
@@ -266,7 +253,6 @@
 
     <div class="arena-container" id="arenaContainer">
         <canvas id="arenaCanvas" width="600" height="600"></canvas>
-        <div id="ball"></div>
         <div class="countdown-overlay" id="countdownOverlay">
             <div class="countdown-num" id="countdownText">10</div>
             <div class="countdown-sub">ميدان المواجهة V2</div>
@@ -313,6 +299,8 @@
     const DB_PATH = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v7";
     const COUNTDOWN_FROM = 10;
     const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23555'><circle cx='50' cy='35' r='20'/><path d='M20,85 C20,60 80,60 80,85 Z'/></svg>";
+    
+    // تم توحيد مصفوفة الألوان لرموز الـ HEX الصريحة لمطابقتها من البكسل بدقة
     const PRESET_COLORS = ["#e53e3e", "#3182ce", "#38a169", "#805ad5", "#dd6b20", "#319795", "#d69e2e"];
 
     const tgUser = tg?.initDataUnsafe?.user;
@@ -328,7 +316,8 @@
     let myBal = parseInt(localStorage.getItem("arena_bal_fixed_v7"));
     let players = [], gameState = "waiting", isSpinning = false;
     let currentArrowAngle = 0, arrowTimer = 0;
-    let ballCanvasX = 300, ballCanvasY = 300; 
+    
+    let ballX = 300, ballY = 300, showBall = false;
 
     function savebal() { localStorage.setItem("arena_bal_fixed_v7", myBal); }
     function updateBalUI() { document.getElementById("balDisplay").innerText = myBal.toLocaleString() + " ⭐"; }
@@ -341,13 +330,17 @@
         document.getElementById("statusSub").innerText = sub;
     }
 
-    function drawMap(pList, zoomFactor = 1, targetX = 300, targetY = 300) {
+    // دالة مساعدة لتحويل قيم RGB المستخرجة من الكانفاس إلى كود HEX للمطابقة
+    function rgbToHex(r, g, b) {
+        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).substring(0, 7);
+    }
+
+    function drawMap(pList, zoomFactor = 1, targetX = 300, targetY = 300, skipBall = false) {
         const canvas = document.getElementById("arenaCanvas");
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, 600, 600);
         
         ctx.save();
-        // تطبيق ميكانيكية الزوم السلس حول الكرة عند اقتراب التوقف
         if (zoomFactor > 1) {
             ctx.translate(300, 300);
             ctx.scale(zoomFactor, zoomFactor);
@@ -366,7 +359,9 @@
             let sliceAngle = ratio * Math.PI * 2;
             let endAngle = startAngle + sliceAngle;
 
-            ctx.fillStyle = PRESET_COLORS[index % PRESET_COLORS.length];
+            // تحديد اللون الصريح المربوط باللاعب
+            p.colorHex = PRESET_COLORS[index % PRESET_COLORS.length];
+            ctx.fillStyle = p.colorHex;
             ctx.beginPath();
             ctx.moveTo(300, 300);
 
@@ -392,9 +387,6 @@
             ctx.closePath();
             ctx.fill();
 
-            // حفظ الزوايا الدقيقة جداً لحساب الفائز الحقيقي بشكل مطابق للرسم والاتجاه الهندسي
-            p.angles = { start: startAngle, end: endAngle };
-
             ctx.save();
             let middleAngle = startAngle + sliceAngle / 2;
             let tx = 300 + Math.cos(middleAngle) * 160;
@@ -417,14 +409,28 @@
             startAngle = endAngle;
         });
 
-        // تعديل السهم: أصبح صغيراً جداً وناعم ومناسب فوق الكرة تماماً
         if (gameState === "playing" && arrowTimer > 0) {
             ctx.save(); 
-            ctx.translate(ballCanvasX, ballCanvasY); 
+            ctx.translate(ballX, ballY); 
             ctx.rotate(currentArrowAngle);
             ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.lineCap = "round";
             ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(25, 0); ctx.lineTo(20, -5);
             ctx.moveTo(25, 0); ctx.lineTo(20, 5); ctx.stroke(); ctx.restore();
+        }
+
+        // نرسم الكرة فقط إذا لم نكن نأخذ عينة اللون (حتى لا نقرأ لون الكرة الأبيض والرمادي بالخطأ)
+        if (showBall && !skipBall) {
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "rgba(255,255,255,0.8)";
+            let gradient = ctx.createRadialGradient(ballX - 3, ballY - 3, 1, ballX, ballY, 8);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(1, '#555555');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
         }
 
         ctx.restore();
@@ -460,19 +466,10 @@
     function runPhysics(seed) {
         if (isSpinning) return;
         isSpinning = true;
+        showBall = true;
 
-        const ball = document.getElementById("ball");
-        const container = document.querySelector(".arena-container");
-        const W = container.clientWidth, H = container.clientHeight;
-        const scale = W / 600;
-
-        let px = 40 + (seed * (W - 80));
-        let py = 40 + ((seed * 7.7 % 1) * (H - 80));
-        
-        ballCanvasX = px / scale;
-        ballCanvasY = py / scale;
-
-        ball.style.left = `${px}px`; ball.style.top = `${py}px`; ball.style.display = "block";
+        ballX = 60 + (seed * 480);
+        ballY = 60 + ((seed * 7.7 % 1) * 480);
 
         arrowTimer = 70; 
         let finalLaunchAngle = (seed * 9.44) * Math.PI * 2;
@@ -489,47 +486,42 @@
                 drawMap(players, 1); requestAnimationFrame(frame); return;
             }
 
-            px += vx; py += vy;
-            if (px <= 8) { vx = Math.abs(vx); px = 9; }
-            if (px >= W - 8) { vx = -Math.abs(vx); px = W - 9; }
-            if (py <= 8) { vy = Math.abs(vy); py = 9; }
-            if (py >= H - 8) { vy = -Math.abs(vy); py = H - 9; }
+            ballX += vx; ballY += vy;
+            
+            if (ballX <= 12) { vx = Math.abs(vx); ballX = 13; }
+            if (ballX >= 588) { vx = -Math.abs(vx); ballX = 587; }
+            if (ballY <= 12) { vy = Math.abs(vy); ballY = 13; }
+            if (ballY >= 588) { vy = -Math.abs(vy); ballY = 587; }
 
             vx *= 0.985; vy *= 0.985;
-            
             let currentSpeed = Math.sqrt(vx*vx + vy*vy);
             
-            // تفعيل الزوم التدريجي الذكي (Zoom In) عندما تبطئ الكرة وتوشك على التوقف تماماً
-            if (currentSpeed < 3.5) {
-                zoomFactor = Math.min(2.2, zoomFactor + 0.04);
+            if (currentSpeed < 4.0) {
+                zoomFactor = Math.min(2.0, zoomFactor + 0.03);
             }
 
-            ballCanvasX = px / scale;
-            ballCanvasY = py / scale;
-
-            // تحديث موقع الكرة المرئي ليتزامن بدقة مع الزوم والكانفاس المكبّر
-            if (zoomFactor > 1) {
-                let originX = W / 2;
-                let originY = H / 2;
-                let visualX = originX + (px - (ballCanvasX * scale)) * zoomFactor;
-                let visualY = originY + (py - (ballCanvasY * scale)) * zoomFactor;
-                ball.style.left = `${px}px`; // الحفاظ على النسبية
-                ball.style.top = `${py}px`;
-            } else {
-                ball.style.left = `${px}px`;
-                ball.style.top = `${py}px`;
-            }
-
-            drawMap(players, zoomFactor, ballCanvasX, ballCanvasY);
+            drawMap(players, zoomFactor, ballX, ballY);
 
             if (currentSpeed > 0.22) {
                 requestAnimationFrame(frame);
             } else {
-                // الحساب الهندسي الدقيق للفائز بناءً على زاوية الكرة بالنسبة للمركز (300, 300)
-                let finalAngleFromCenter = Math.atan2(ballCanvasY - 300, ballCanvasX - 300);
-                if (finalAngleFromCenter < 0) finalAngleFromCenter += Math.PI * 2;
+                // [نظام المسح الضوئي الذكي للبكسل الفعلي]
+                // 1. نرسم الخريطة بدون الكرة للحصول على اللون الخام الأصلي تحتها
+                drawMap(players, zoomFactor, ballX, ballY, true);
 
-                let win = players.find(p => p.angles && finalAngleFromCenter >= p.angles.start && finalAngleFromCenter <= p.angles.end);
+                const canvas = document.getElementById("arenaCanvas");
+                const ctx = canvas.getContext("2d");
+                
+                // 2. نقرأ عينة اللون من النقطة المركزية للكرة مباشرة
+                let pixel = ctx.getImageData(Math.round(ballX), Math.round(ballY), 1, 1).data;
+                let hexColorStr = rgbToHex(pixel[0], pixel[1], pixel[2]);
+
+                // 3. نعيد رسم الكرة لكي تظهر للمستخدم مكان وقوفها النهائي
+                drawMap(players, zoomFactor, ballX, ballY, false);
+
+                // 4. مطابقة دقيقة للفائز صاحب اللون الفعلي المقروء بالعين
+                let win = players.find(p => p.colorHex && p.colorHex.toLowerCase() === hexColorStr.toLowerCase());
+                
                 if (!win) win = players[players.length - 1];
                 if (!win) win = players[0];
                 
@@ -560,14 +552,12 @@
         }, 5000);
     }
 
-    // السماح بزيادة الرهان والمساحة المائلة قبل انتهاء الـ 10 ثواني
     async function joinGame() {
         let amt = parseInt(document.getElementById("betInput").value) || 0;
         if (amt <= 0 || amt > myBal) { if (tg) tg.showAlert("الرصيد غير كافٍ"); return; }
 
         myBal -= amt; savebal(); updateBalUI();
 
-        // فحص الرهان الحالي للاعب إذا كان مسجلاً مسبقاً لجمعه وتكبير المساحة
         let currentExist = players.find(p => p.id === myId);
         let currentTotalBet = currentExist ? (currentExist.amount + amt) : amt;
 
@@ -599,7 +589,7 @@
             const data = await res.json();
 
             if (!data || !data.players) {
-                players = []; gameState = "waiting";
+                players = []; gameState = "waiting"; showBall = false;
                 if (!isSpinning) {
                     drawMap([], 1);
                     document.getElementById("countdownOverlay").style.display = "none";
@@ -639,7 +629,6 @@
                 btn.disabled = false;
             }
 
-            // العداد التنازلي الثابت (تم منع الوميض وومض الشاشة نهائياً)
             if (gameState === "counting" && data.startTime) {
                 let elapsed = Math.floor((Date.now() - data.startTime) / 1000);
                 let remaining = Math.max(0, COUNTDOWN_FROM - elapsed);
@@ -666,7 +655,6 @@
                 runPhysics(data.seed);
             }
 
-            // التأكد الصارم: العداد لا يبدأ أبداً إلا إذا كان بالملف لاعبين أو أكثر
             if (players.length >= 2 && gameState === "waiting" && myId === players[0]?.id) {
                 await fetch(`${DB_PATH}.json`, {
                     method: "PATCH",
