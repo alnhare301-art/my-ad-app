@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARENA V2 - الميدان المربع المحكم</title>
+    <title>ARENA V2 - الميدان المربع الكامل</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -299,8 +299,6 @@
     const DB_PATH = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v7";
     const COUNTDOWN_FROM = 10;
     const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23555'><circle cx='50' cy='35' r='20'/><path d='M20,85 C20,60 80,60 80,85 Z'/></svg>";
-    
-    // تم توحيد مصفوفة الألوان لرموز الـ HEX الصريحة لمطابقتها من البكسل بدقة
     const PRESET_COLORS = ["#e53e3e", "#3182ce", "#38a169", "#805ad5", "#dd6b20", "#319795", "#d69e2e"];
 
     const tgUser = tg?.initDataUnsafe?.user;
@@ -330,9 +328,62 @@
         document.getElementById("statusSub").innerText = sub;
     }
 
-    // دالة مساعدة لتحويل قيم RGB المستخرجة من الكانفاس إلى كود HEX للمطابقة
     function rgbToHex(r, g, b) {
         return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).substring(0, 7);
+    }
+
+    // دالة ذكية ومطورة لحساب مسار الرسم بحيث يلتف حول زوايا المربع الحقيقية ويغطيها بالكامل دون فراغات سوداء
+    function drawBoxSlice(ctx, startAngle, endAngle, colorHex) {
+        ctx.fillStyle = colorHex;
+        ctx.beginPath();
+        ctx.moveTo(300, 300);
+
+        // دالة التقاطع الأساسية مع أضلاع المربع
+        let getBoxIntersection = (angle) => {
+            let cos = Math.cos(angle), sin = Math.sin(angle);
+            let t1 = cos !== 0 ? (300 / Math.abs(cos)) : Infinity;
+            let t2 = sin !== 0 ? (300 / Math.abs(sin)) : Infinity;
+            let t = Math.min(t1, t2);
+            return { x: 300 + cos * t, y: 300 + sin * t };
+        };
+
+        let ptStart = getBoxIntersection(startAngle);
+        ctx.lineTo(ptStart.x, ptStart.y);
+
+        // زوايا المربع الأربعة الثابتة بالراديان
+        let corners = [
+            { x: 600, y: 0,   a: Math.atan2(-300, 300) },   // أعلى اليمين
+            { x: 600, y: 600, a: Math.atan2(300, 300) },    // أسفل اليمين
+            { x: 0,   y: 600, a: Math.atan2(300, -300) },   // أسفل اليسار
+            { x: 0,   y: 0,   a: Math.atan2(-300, -300) }   // أعلى اليسار
+        ];
+
+        // ضبط نطاق الزوايا ليكون موجباً لسهولة المقارنة والالتفاف حول المربع
+        let sA = startAngle;
+        let eA = endAngle;
+        
+        // التحقق من مرور شريحة اللاعب فوق زوايا المربع الفعلية لإدراجها في المسار
+        corners.forEach(c => {
+            let targetAngle = c.a;
+            if (targetAngle < 0) targetAngle += Math.PI * 2;
+            
+            // محاكاة الالتفاف في حال عبور الزاوية صفر
+            let match = false;
+            if (eA > sA) {
+                if (targetAngle >= sA && targetAngle <= eA) match = true;
+            } else {
+                if (targetAngle >= sA || targetAngle <= eA) match = true;
+            }
+
+            if (match) {
+                ctx.lineTo(c.x, c.y);
+            }
+        });
+
+        let ptEnd = getBoxIntersection(endAngle);
+        ctx.lineTo(ptEnd.x, ptEnd.y);
+        ctx.closePath();
+        ctx.fill();
     }
 
     function drawMap(pList, zoomFactor = 1, targetX = 300, targetY = 300, skipBall = false) {
@@ -347,6 +398,7 @@
             ctx.translate(-targetX, -targetY);
         }
 
+        // تحويل الخلفية الكلية للميدان لتطابق لون الكرت لتفادي أي وميض أسود
         ctx.fillStyle = "#0c0c0c";
         ctx.fillRect(0, 0, 600, 600);
 
@@ -357,35 +409,12 @@
         pList.forEach((p, index) => {
             let ratio = p.amount / total;
             let sliceAngle = ratio * Math.PI * 2;
-            let endAngle = startAngle + sliceAngle;
+            let endAngle = (startAngle + sliceAngle) % (Math.PI * 2);
 
-            // تحديد اللون الصريح المربوط باللاعب
             p.colorHex = PRESET_COLORS[index % PRESET_COLORS.length];
-            ctx.fillStyle = p.colorHex;
-            ctx.beginPath();
-            ctx.moveTo(300, 300);
-
-            let getBoxIntersection = (angle) => {
-                let cos = Math.cos(angle), sin = Math.sin(angle);
-                let t1 = cos !== 0 ? (300 / Math.abs(cos)) : Infinity;
-                let t2 = sin !== 0 ? (300 / Math.abs(sin)) : Infinity;
-                let t = Math.min(t1, t2);
-                return { x: 300 + cos * t, y: 300 + sin * t };
-            };
-
-            let ptStart = getBoxIntersection(startAngle);
-            let ptEnd = getBoxIntersection(endAngle);
-            ctx.lineTo(ptStart.x, ptStart.y);
-
-            for (let s = 1; s < 8; s++) {
-                let interAngle = startAngle + (sliceAngle * (s / 8));
-                let ptInter = getBoxIntersection(interAngle);
-                ctx.lineTo(ptInter.x, ptInter.y);
-            }
-
-            ctx.lineTo(ptEnd.x, ptEnd.y);
-            ctx.closePath();
-            ctx.fill();
+            
+            // استدعاء دالة الرسم المحسنة لمنع الزوايا الفارغة
+            drawBoxSlice(ctx, startAngle, endAngle, p.colorHex);
 
             ctx.save();
             let middleAngle = startAngle + sliceAngle / 2;
@@ -418,7 +447,6 @@
             ctx.moveTo(25, 0); ctx.lineTo(20, 5); ctx.stroke(); ctx.restore();
         }
 
-        // نرسم الكرة فقط إذا لم نكن نأخذ عينة اللون (حتى لا نقرأ لون الكرة الأبيض والرمادي بالخطأ)
         if (showBall && !skipBall) {
             ctx.save();
             ctx.shadowBlur = 15;
@@ -505,21 +533,16 @@
             if (currentSpeed > 0.22) {
                 requestAnimationFrame(frame);
             } else {
-                // [نظام المسح الضوئي الذكي للبكسل الفعلي]
-                // 1. نرسم الخريطة بدون الكرة للحصول على اللون الخام الأصلي تحتها
                 drawMap(players, zoomFactor, ballX, ballY, true);
 
                 const canvas = document.getElementById("arenaCanvas");
                 const ctx = canvas.getContext("2d");
                 
-                // 2. نقرأ عينة اللون من النقطة المركزية للكرة مباشرة
                 let pixel = ctx.getImageData(Math.round(ballX), Math.round(ballY), 1, 1).data;
                 let hexColorStr = rgbToHex(pixel[0], pixel[1], pixel[2]);
 
-                // 3. نعيد رسم الكرة لكي تظهر للمستخدم مكان وقوفها النهائي
                 drawMap(players, zoomFactor, ballX, ballY, false);
 
-                // 4. مطابقة دقيقة للفائز صاحب اللون الفعلي المقروء بالعين
                 let win = players.find(p => p.colorHex && p.colorHex.toLowerCase() === hexColorStr.toLowerCase());
                 
                 if (!win) win = players[players.length - 1];
