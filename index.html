@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARENA V2 - الميدان المربع السريع</title>
+    <title>ARENA V2 - الميدان المربع الاحترافي</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -85,7 +85,7 @@
         
         .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #555; transition: background 0.3s; }
         .status-dot.waiting { background: #555; }
-        .status-dot.counting { background: #f59e0b; animation: blink 0.5s infinite; }
+        .status-dot.counting { background: #f59e0b; }
         .status-dot.playing  { background: #10b981; animation: blink 0.3s infinite; }
 
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
@@ -115,18 +115,19 @@
             background: #000;
         }
 
-        #arenaCanvas { width: 100%; height: 100%; display: block; }
+        #arenaCanvas { width: 100%; height: 100%; display: block; transition: transform 0.1s ease-out; }
 
         #ball {
             position: absolute;
-            width: 16px; height: 16px;
-            background: radial-gradient(circle at 30% 30%, #ffffff, #8d8d8d);
+            width: 14px; height: 14px;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #666666);
             border-radius: 50%;
             z-index: 10;
             display: none;
-            box-shadow: 0 0 15px rgba(255,255,255,1), 0 0 30px rgba(212,175,55,0.5);
+            box-shadow: 0 0 12px rgba(255,255,255,1), 0 0 20px rgba(212,175,55,0.4);
             top: 0; left: 0;
             transform: translate(-50%, -50%);
+            pointer-events: none;
         }
 
         .countdown-overlay {
@@ -135,10 +136,11 @@
             display: none;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.65);
-            backdrop-filter: blur(3px);
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(1px);
             z-index: 20;
             flex-direction: column;
+            pointer-events: none;
         }
 
         .countdown-num {
@@ -146,10 +148,8 @@
             font-weight: 950;
             color: var(--gold);
             text-shadow: 0 0 40px rgba(212,175,55,0.7);
-            animation: pulse 1s ease-in-out infinite;
         }
 
-        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
         .countdown-sub { font-size: 12px; color: #aaa; letter-spacing: 2px; }
 
         /* ===== قائمة المحاربين ===== */
@@ -219,9 +219,8 @@
 
         #joinBtn:disabled { background: #222; color: #444; cursor: not-allowed; box-shadow: none; }
 
-        .joined-badge {
-            display: none; text-align: center; padding: 12px; background: rgba(16,185,129,0.08);
-            border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; color: #34d399; font-size: 13px; font-weight: 700;
+        .current-bet-status {
+            text-align: center; font-size: 11px; color: #888; margin-top: 6px; display: none;
         }
 
         /* ===== واجهة الفائز المنبثقة ===== */
@@ -265,7 +264,7 @@
         </div>
     </div>
 
-    <div class="arena-container">
+    <div class="arena-container" id="arenaContainer">
         <canvas id="arenaCanvas" width="600" height="600"></canvas>
         <div id="ball"></div>
         <div class="countdown-overlay" id="countdownOverlay">
@@ -280,7 +279,7 @@
     </div>
 
     <div class="controls">
-        <div class="controls-title">حدد رهانك وادخل الميدان المربع</div>
+        <div class="controls-title" id="controlTitle">حدد رهانك وادخل الميدان المربع</div>
         <div class="bet-row">
             <button class="bet-btn" onclick="setBet(500)">500</button>
             <button class="bet-btn" onclick="setBet(1000)">1K</button>
@@ -291,7 +290,7 @@
             <input type="number" id="betInput" value="1000" min="100">
         </div>
         <button id="joinBtn" onclick="joinGame()">دخول الميدان الآن ⚔️</button>
-        <div class="joined-badge" id="joinedBadge">✅ تم تسجيلك بالميدان! انتظر الخصوم...</div>
+        <div class="current-bet-status" id="currentBetStatus">رهانك الحالي بالجولة: 0 ⭐</div>
     </div>
 
 </div>
@@ -329,7 +328,7 @@
     let myBal = parseInt(localStorage.getItem("arena_bal_fixed_v7"));
     let players = [], gameState = "waiting", isSpinning = false;
     let currentArrowAngle = 0, arrowTimer = 0;
-    let ballCanvasX = 300, ballCanvasY = 300; // لحفظ موقع الكرة على الكانفاس من أجل رسم السهم فوقها
+    let ballCanvasX = 300, ballCanvasY = 300; 
 
     function savebal() { localStorage.setItem("arena_bal_fixed_v7", myBal); }
     function updateBalUI() { document.getElementById("balDisplay").innerText = myBal.toLocaleString() + " ⭐"; }
@@ -342,15 +341,24 @@
         document.getElementById("statusSub").innerText = sub;
     }
 
-    function drawMap(pList) {
+    function drawMap(pList, zoomFactor = 1, targetX = 300, targetY = 300) {
         const canvas = document.getElementById("arenaCanvas");
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, 600, 600);
+        
+        ctx.save();
+        // تطبيق ميكانيكية الزوم السلس حول الكرة عند اقتراب التوقف
+        if (zoomFactor > 1) {
+            ctx.translate(300, 300);
+            ctx.scale(zoomFactor, zoomFactor);
+            ctx.translate(-targetX, -targetY);
+        }
+
         ctx.fillStyle = "#0c0c0c";
         ctx.fillRect(0, 0, 600, 600);
 
         let total = pList.reduce((s, p) => s + p.amount, 0);
-        if (total === 0) return;
+        if (total === 0) { ctx.restore(); return; }
 
         let startAngle = 0;
         pList.forEach((p, index) => {
@@ -384,6 +392,7 @@
             ctx.closePath();
             ctx.fill();
 
+            // حفظ الزوايا الدقيقة جداً لحساب الفائز الحقيقي بشكل مطابق للرسم والاتجاه الهندسي
             p.angles = { start: startAngle, end: endAngle };
 
             ctx.save();
@@ -408,15 +417,17 @@
             startAngle = endAngle;
         });
 
-        // رسم السهم ليدور حول موقع الكرة تماماً بدلاً من المركز
+        // تعديل السهم: أصبح صغيراً جداً وناعم ومناسب فوق الكرة تماماً
         if (gameState === "playing" && arrowTimer > 0) {
             ctx.save(); 
             ctx.translate(ballCanvasX, ballCanvasY); 
             ctx.rotate(currentArrowAngle);
-            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 5; ctx.lineCap = "round";
-            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(50, 0); ctx.lineTo(42, -8);
-            ctx.moveTo(50, 0); ctx.lineTo(42, 8); ctx.stroke(); ctx.restore();
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.lineCap = "round";
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(25, 0); ctx.lineTo(20, -5);
+            ctx.moveTo(25, 0); ctx.lineTo(20, 5); ctx.stroke(); ctx.restore();
         }
+
+        ctx.restore();
     }
 
     function renderPlayersList(pList) {
@@ -458,24 +469,24 @@
         let px = 40 + (seed * (W - 80));
         let py = 40 + ((seed * 7.7 % 1) * (H - 80));
         
-        // حفظ موقع الكرة على إحداثيات الكانفاس لاستخدامها في تدوير السهم فوقها
         ballCanvasX = px / scale;
         ballCanvasY = py / scale;
 
         ball.style.left = `${px}px`; ball.style.top = `${py}px`; ball.style.display = "block";
 
-        arrowTimer = 90; // مدة دوران السهم حول الكرة قبل الإطلاق
+        arrowTimer = 70; 
         let finalLaunchAngle = (seed * 9.44) * Math.PI * 2;
         
-        // تم رفع معامل السرعة بشكل كبير جداً (سرعة مضاعفة وقوية في البداية)
-        let speedMod = 45 + (seed * 20); 
+        let speedMod = 48 + (seed * 22); 
         let vx = Math.cos(finalLaunchAngle) * speedMod, vy = Math.sin(finalLaunchAngle) * speedMod;
+
+        let zoomFactor = 1;
 
         function frame() {
             if (arrowTimer > 0) {
                 arrowTimer--; 
-                currentArrowAngle += 0.25; // سرعة دوران السهم حول الكرة
-                drawMap(players); requestAnimationFrame(frame); return;
+                currentArrowAngle += 0.28; 
+                drawMap(players, 1); requestAnimationFrame(frame); return;
             }
 
             px += vx; py += vy;
@@ -484,19 +495,44 @@
             if (py <= 8) { vy = Math.abs(vy); py = 9; }
             if (py >= H - 8) { vy = -Math.abs(vy); py = H - 9; }
 
-            // معامل احتكاك قليل لتقليل السرعة تدريجياً وبنعومة بعد الانطلاقة الصاروخية
-            vx *= 0.988; vy *= 0.988;
-            ball.style.left = `${px}px`; ball.style.top = `${py}px`;
+            vx *= 0.985; vy *= 0.985;
+            
+            let currentSpeed = Math.sqrt(vx*vx + vy*vy);
+            
+            // تفعيل الزوم التدريجي الذكي (Zoom In) عندما تبطئ الكرة وتوشك على التوقف تماماً
+            if (currentSpeed < 3.5) {
+                zoomFactor = Math.min(2.2, zoomFactor + 0.04);
+            }
 
-            if (Math.abs(vx) > 0.25 || Math.abs(vy) > 0.25) {
+            ballCanvasX = px / scale;
+            ballCanvasY = py / scale;
+
+            // تحديث موقع الكرة المرئي ليتزامن بدقة مع الزوم والكانفاس المكبّر
+            if (zoomFactor > 1) {
+                let originX = W / 2;
+                let originY = H / 2;
+                let visualX = originX + (px - (ballCanvasX * scale)) * zoomFactor;
+                let visualY = originY + (py - (ballCanvasY * scale)) * zoomFactor;
+                ball.style.left = `${px}px`; // الحفاظ على النسبية
+                ball.style.top = `${py}px`;
+            } else {
+                ball.style.left = `${px}px`;
+                ball.style.top = `${py}px`;
+            }
+
+            drawMap(players, zoomFactor, ballCanvasX, ballCanvasY);
+
+            if (currentSpeed > 0.22) {
                 requestAnimationFrame(frame);
             } else {
-                let cx = px / scale, cy = py / scale;
-                let finalAngleFromCenter = Math.atan2(cy - 300, cx - 300);
+                // الحساب الهندسي الدقيق للفائز بناءً على زاوية الكرة بالنسبة للمركز (300, 300)
+                let finalAngleFromCenter = Math.atan2(ballCanvasY - 300, ballCanvasX - 300);
                 if (finalAngleFromCenter < 0) finalAngleFromCenter += Math.PI * 2;
 
                 let win = players.find(p => p.angles && finalAngleFromCenter >= p.angles.start && finalAngleFromCenter <= p.angles.end);
+                if (!win) win = players[players.length - 1];
                 if (!win) win = players[0];
+                
                 finishGame(win);
             }
         }
@@ -518,22 +554,26 @@
 
         setTimeout(async () => {
             try {
-                // تصفير فوري وشامل بعد الفوز والعودة لـ waiting حقيقية ومنع التداخل التلقائي للعداد
                 await fetch(`${DB_PATH}.json`, { method: "DELETE" });
             } catch(e) {}
             window.location.reload();
-        }, 4500);
+        }, 5000);
     }
 
+    // السماح بزيادة الرهان والمساحة المائلة قبل انتهاء الـ 10 ثواني
     async function joinGame() {
         let amt = parseInt(document.getElementById("betInput").value) || 0;
         if (amt <= 0 || amt > myBal) { if (tg) tg.showAlert("الرصيد غير كافٍ"); return; }
 
         myBal -= amt; savebal(); updateBalUI();
 
+        // فحص الرهان الحالي للاعب إذا كان مسجلاً مسبقاً لجمعه وتكبير المساحة
+        let currentExist = players.find(p => p.id === myId);
+        let currentTotalBet = currentExist ? (currentExist.amount + amt) : amt;
+
         let pData = {
-            id: myId, name: myName, username: myUsername, avatar: myAvatar, amount: amt,
-            timestamp: Date.now()
+            id: myId, name: myName, username: myUsername, avatar: myAvatar, amount: currentTotalBet,
+            timestamp: currentExist ? currentExist.timestamp : Date.now()
         };
 
         try {
@@ -542,8 +582,12 @@
                 body: JSON.stringify(pData),
                 headers: { "Content-Type": "application/json" }
             });
-            document.getElementById("joinBtn").style.display = "none";
-            document.getElementById("joinedBadge").style.display = "block";
+            
+            document.getElementById("controlTitle").innerText = "🔥 يمكنك زيادة رهانك وتكبير مساحتك الآن!";
+            document.getElementById("joinBtn").innerText = "زيادة المساحة والرهان ⚡";
+            const betStatus = document.getElementById("currentBetStatus");
+            betStatus.style.display = "block";
+            betStatus.innerText = `رهانك الحالي بالجولة: ${currentTotalBet.toLocaleString()} ⭐`;
         } catch(e) {
             myBal += amt; savebal(); updateBalUI();
         }
@@ -556,13 +600,18 @@
 
             if (!data || !data.players) {
                 players = []; gameState = "waiting";
-                drawMap([]); renderPlayersList([]);
-                setStatus("waiting", "بانتظار الأبطال...", "الميدان جاهز تماماً");
+                if (!isSpinning) {
+                    drawMap([], 1);
+                    document.getElementById("countdownOverlay").style.display = "none";
+                }
+                renderPlayersList([]);
+                setStatus("waiting", "بانتظار الأبطال...", "الميدان جاهز ومصفّر تماماً");
                 document.getElementById("playerCount").innerText = "0";
                 
                 let btn = document.getElementById("joinBtn");
-                btn.disabled = false; btn.style.display = "block";
-                document.getElementById("joinedBadge").style.display = "none";
+                btn.disabled = false; btn.innerText = "دخول الميدان الآن ⚔️";
+                document.getElementById("controlTitle").innerText = "حدد رهانك وادخل الميدان المربع";
+                document.getElementById("currentBetStatus").style.display = "none";
                 return;
             }
 
@@ -571,36 +620,34 @@
 
             document.getElementById("playerCount").innerText = players.length;
             renderPlayersList(players);
-            if (!isSpinning) drawMap(players);
+            if (!isSpinning) drawMap(players, 1);
 
-            // [ميكانيكية الفحص التلقائي ضد الكاش المعلق]
-            if (gameState === "waiting" && players.length >= 1) {
-                let firstPlayerTime = players[0].timestamp || Date.now();
-                if (Date.now() - firstPlayerTime > 15000 && !isSpinning) {
-                    await fetch(`${DB_PATH}.json`, { method: "DELETE" });
-                    return;
-                }
+            let currentExist = players.find(p => p.id === myId);
+            if (currentExist) {
+                const betStatus = document.getElementById("currentBetStatus");
+                betStatus.style.display = "block";
+                betStatus.innerText = `رهانك الحالي بالجولة: ${currentExist.amount.toLocaleString()} ⭐`;
+                document.getElementById("controlTitle").innerText = "🔥 يمكنك زيادة رهانك وتكبير مساحتك الآن!";
+                document.getElementById("joinBtn").innerText = "زيادة المساحة والرهان ⚡";
             }
 
-            let alreadyIn = players.some(p => p.id === myId);
             let btn = document.getElementById("joinBtn");
-            let badge = document.getElementById("joinedBadge");
-
-            if (alreadyIn || gameState !== "waiting") {
-                btn.disabled = true; btn.style.display = "none";
-                badge.style.display = alreadyIn ? "block" : "none";
+            if (gameState !== "waiting" && gameState !== "counting") {
+                btn.disabled = true;
+                btn.innerText = "🔒 مغلق الآن";
             } else {
-                btn.disabled = false; btn.style.display = "block";
-                badge.style.display = "none";
+                btn.disabled = false;
             }
 
-            // تفعيل العداد التنازلي التلقائي لـ 10 ثواني
+            // العداد التنازلي الثابت (تم منع الوميض وومض الشاشة نهائياً)
             if (gameState === "counting" && data.startTime) {
                 let elapsed = Math.floor((Date.now() - data.startTime) / 1000);
                 let remaining = Math.max(0, COUNTDOWN_FROM - elapsed);
-                document.getElementById("countdownOverlay").style.display = "flex";
+                
+                const overlay = document.getElementById("countdownOverlay");
+                overlay.style.display = "flex";
                 document.getElementById("countdownText").innerText = remaining;
-                setStatus("counting", "استعد للبدء! " + remaining + "ث", "تم قفل باب الانضمام");
+                setStatus("counting", "استعد للبدء! " + remaining + "ث", "يمكنك زيادة مساحتك قبل الصفر");
 
                 if (remaining <= 0 && myId === players[0]?.id) {
                     await fetch(`${DB_PATH}.json`, {
@@ -615,11 +662,11 @@
 
             if (gameState === "playing" && data.seed && !isSpinning) {
                 document.getElementById("countdownOverlay").style.display = "none";
-                setStatus("playing", "الكرة تدور في الميدان! 🎯", "حظاً موفقاً");
+                setStatus("playing", "الكرة تدور في الميدان! 🎯", "جاري رصد الهدف...");
                 runPhysics(data.seed);
             }
 
-            // تعديل الشرط الصارم: لا يبدأ العداد التنازلي أبداً إلا إذا كان عدد اللاعبين في السيرفر لاعبين أو أكثر
+            // التأكد الصارم: العداد لا يبدأ أبداً إلا إذا كان بالملف لاعبين أو أكثر
             if (players.length >= 2 && gameState === "waiting" && myId === players[0]?.id) {
                 await fetch(`${DB_PATH}.json`, {
                     method: "PATCH",
