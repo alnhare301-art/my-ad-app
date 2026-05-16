@@ -2,146 +2,733 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر الذيبه - المتجر الرسمي</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARENA V2 - الميدان</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #6366f1; --accent: #f687b3; --bg: #0f172a; --card: #1e293b; --btn-grad: linear-gradient(90deg, #6366f1, #a855f7, #f687b3, #6366f1); }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 50px; overflow-x: hidden; }
-        
-        /* الشريط العلوي */
-        .ticker-wrap { background: linear-gradient(90deg, var(--primary), #a855f7); padding: 5px 0; position: fixed; top: 0; width: 100%; z-index: 2000; height: 50px; display: flex; align-items: center; box-shadow: 0 2px 15px rgba(0,0,0,0.4); }
-        .ticker { white-space: nowrap; overflow: hidden; flex-grow: 1; font-weight: bold; }
-        .ticker-text { display: inline-block; animation: ticker 20s linear infinite; padding-right: 50px; }
-        .ticker-btn { background: white; color: var(--primary); padding: 5px 15px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold; margin: 0 10px; z-index: 2001; }
-        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        :root {
+            --gold: #D4AF37;
+            --gold2: #f0d060;
+            --dark: #060606;
+            --dark2: #0f0f0f;
+            --card: #111111;
+            --border: rgba(212,175,55,0.15);
+            --red: #e53e3e;
+            --green: #38a169;
+        }
 
-        .container { padding: 80px 15px 20px; text-align: center; }
-        .logo { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 10px; object-fit: cover; box-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-        /* الأقسام والعناوين */
-        .section-title { text-align: right; color: var(--accent); border-right: 4px solid var(--accent); padding-right: 10px; margin: 30px 0 15px; font-weight: bold; font-size: 18px; }
-        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .item-card { background: var(--card); padding: 20px 15px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1); text-align: center; position: relative; }
-
-        /* تصميم الأزرار مع الشريط المتحرك */
-        .btn-animated { 
-            position: relative;
-            background: var(--primary);
+        body {
+            background: var(--dark);
             color: white;
-            padding: 10px;
-            border-radius: 12px;
-            text-decoration: none;
-            display: block;
-            margin-top: 15px;
-            font-weight: bold;
-            font-size: 14px;
+            font-family: -apple-system, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+
+        /* خلفية شبكية */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(212,175,55,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(212,175,55,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrapper { position: relative; z-index: 1; padding: 12px; max-width: 420px; margin: 0 auto; }
+
+        /* ===== الهيدر ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+        }
+
+        .header-brand {
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .bal-wrap { text-align: left; }
+        .bal-label { font-size: 9px; color: #555; letter-spacing: 1px; text-transform: uppercase; }
+        .bal-amount { font-size: 18px; font-weight: 900; color: var(--gold); }
+
+        /* ===== شريط الحالة ===== */
+        .status-bar {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-info { display: flex; flex-direction: column; gap: 2px; }
+
+        .status-state {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #555;
+            transition: background 0.3s;
+        }
+
+        .status-dot.waiting { background: #555; }
+        .status-dot.counting { background: #f59e0b; animation: blink 0.5s infinite; }
+        .status-dot.playing  { background: #10b981; animation: blink 0.3s infinite; }
+
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        .status-sub { font-size: 10px; color: #444; }
+
+        .player-count {
+            background: rgba(212,175,55,0.1);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 10px;
+            padding: 6px 14px;
+            text-align: center;
+        }
+
+        .player-count .num { font-size: 22px; font-weight: 900; color: var(--gold); line-height: 1; }
+        .player-count .lbl { font-size: 9px; color: #555; }
+
+        /* ===== الساحة ===== */
+        .arena-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            max-width: 360px;
+            margin: 0 auto 12px;
+            border-radius: 20px;
             overflow: hidden;
+            border: 2px solid rgba(212,175,55,0.2);
+            box-shadow: 0 0 30px rgba(212,175,55,0.08), inset 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        #arenaCanvas { width: 100%; height: 100%; display: block; }
+
+        #ball {
+            position: absolute;
+            width: 18px; height: 18px;
+            background: radial-gradient(circle at 35% 35%, #fff, #aaa);
+            border-radius: 50%;
+            z-index: 10;
+            display: none;
+            box-shadow: 0 0 12px rgba(255,255,255,0.8), 0 0 25px rgba(255,255,255,0.4);
+            top: 0; left: 0;
+        }
+
+        /* العد التنازلي */
+        .countdown-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 20;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .countdown-num {
+            font-size: 90px;
+            font-weight: 900;
+            color: var(--gold);
+            line-height: 1;
+            text-shadow: 0 0 40px rgba(212,175,55,0.6);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+
+        .countdown-sub { font-size: 13px; color: #888; letter-spacing: 2px; }
+
+        /* ===== اللاعبون ===== */
+        .players-list {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .players-list-title { font-size: 10px; color: #444; letter-spacing: 1px; margin-bottom: 8px; }
+
+        .player-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 12px;
+        }
+
+        .player-row:last-child { border: none; }
+
+        .player-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .player-name { flex: 1; color: #ccc; }
+        .player-bet { color: var(--gold); font-weight: 700; font-size: 11px; }
+        .player-pct { color: #555; font-size: 10px; }
+
+        /* ===== التحكم ===== */
+        .controls {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+        }
+
+        .controls-title { font-size: 10px; color: #444; letter-spacing: 1px; margin-bottom: 12px; text-align: center; }
+
+        .bet-row { display: flex; gap: 8px; margin-bottom: 12px; }
+
+        .bet-btn {
+            flex: 1;
+            background: rgba(212,175,55,0.08);
+            border: 1px solid rgba(212,175,55,0.15);
+            color: var(--gold);
+            padding: 8px 4px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .bet-btn:hover, .bet-btn:active {
+            background: rgba(212,175,55,0.18);
+            border-color: rgba(212,175,55,0.4);
+        }
+
+        .bet-input-wrap { position: relative; margin-bottom: 12px; }
+
+        .bet-input-wrap::before {
+            content: '⭐';
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
             z-index: 1;
         }
 
-        .btn-animated::before {
+        #betInput {
+            width: 100%;
+            background: rgba(212,175,55,0.05);
+            border: 1px solid rgba(212,175,55,0.2);
+            padding: 14px 40px 14px 14px;
+            border-radius: 12px;
+            color: var(--gold);
+            font-size: 22px;
+            font-weight: 900;
+            text-align: center;
+            direction: ltr;
+        }
+
+        #betInput:focus { outline: none; border-color: rgba(212,175,55,0.5); }
+
+        #joinBtn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--gold), #b8960c);
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            color: #000;
+            font-weight: 900;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 20px rgba(212,175,55,0.3);
+        }
+
+        #joinBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(212,175,55,0.4); }
+        #joinBtn:active { transform: scale(0.98); }
+
+        #joinBtn:disabled {
+            background: #222;
+            color: #444;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .joined-badge {
+            display: none;
+            text-align: center;
+            padding: 12px;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 12px;
+            color: #34d399;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        /* ===== فازz overlay ===== */
+        .winner-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.96);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            gap: 14px;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .winner-trophy { font-size: 70px; animation: bounceIn 0.6s ease; }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .winner-color-badge {
+            width: 80px; height: 80px;
+            border-radius: 20px;
+            border: 3px solid rgba(255,255,255,0.2);
+            box-shadow: 0 0 30px currentColor;
+        }
+
+        .winner-label { font-size: 14px; color: #666; letter-spacing: 2px; }
+        .winner-name { font-size: 26px; font-weight: 900; color: white; }
+
+        .winner-prize {
+            font-size: 52px;
+            font-weight: 900;
+            color: var(--gold);
+            text-shadow: 0 0 30px rgba(212,175,55,0.5);
+        }
+
+        .winner-sub { font-size: 11px; color: #444; }
+
+        /* ===== تحميل ===== */
+        .loading-dots::after {
             content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(transparent, transparent, transparent, #ffffff);
-            animation: rotate 3s linear infinite;
-            z-index: -1;
+            animation: dots 1.5s infinite;
         }
-
-        .btn-animated::after {
-            content: '';
-            position: absolute;
-            inset: 3px;
-            background: inherit;
-            border-radius: 10px;
-            z-index: -1;
+        @keyframes dots {
+            0%{content:'.'} 33%{content:'..'} 66%{content:'...'} 100%{content:''}
         }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* قسم العضوية المميزة */
-        .premium-box { background: rgba(30, 41, 59, 0.7); padding: 15px; border-radius: 20px; margin-bottom: 15px; border: 1.5px solid var(--primary); }
-
-        /* زر التواصل الثابت */
-        .contact-fixed { position: fixed; bottom: 20px; left: 20px; background: #0088cc; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 1000; display: flex; align-items: center; gap: 8px; }
     </style>
 </head>
 <body>
 
-    <div class="ticker-wrap">
-        <div class="ticker"><div class="ticker-text">مرحباً بكم في متجر الذيبه.. أفضل العروض والخدمات الحصرية هنا!</div></div>
-        <a href="https://t.me/uu_gg7" class="ticker-btn">تواصل معنا 💬</a>
-    </div>
+<div class="wrapper">
 
-    <div class="container">
-        <img src="https://files.catbox.moe/2iznuj.jpg" class="logo">
-        <h1 style="margin:0; font-size: 26px;">متجر الذيبه 🐺</h1>
-        
-        <div class="section-title">⭐ قسم بيع النجوم</div>
-        <div class="grid-container">
-            <div class="item-card">
-                <strong>حزمة 100 نجمة</strong>
-                <a href="https://t.me/uu_ugg" class="btn-animated">شراء الآن</a>
-            </div>
-            <div class="item-card">
-                <strong>حزمة 500 نجمة</strong>
-                <a href="https://t.me/uu_ugg" class="btn-animated">شراء الآن</a>
-            </div>
-        </div>
-
-        <div class="section-title">💎 قسم الاشتراك المميز</div>
-        <div class="premium-box">
-            <strong>الاشتراك السنوي</strong>
-            <p style="font-size: 12px; color: #94a3b8;">الخيار الاحترافي - توفير هائل</p>
-            <a href="https://t.me/uu_ugg" class="btn-animated" style="background: #a855f7;">اشترك الآن</a>
-        </div>
-
-        <div class="section-title">🖼️ قسم المقتنيات</div>
-        <div class="grid-container">
-            <div class="item-card">
-                <strong>قسم الشراء</strong>
-                <p style="font-size: 11px; color: #94a3b8;">شراء المقتنيات والحسابات</p>
-                <a href="https://t.me/uu_ugg" class="btn-animated" style="background: #4f46e5;">دخول</a>
-            </div>
-            <div class="item-card">
-                <strong>قسم البيع</strong>
-                <p style="font-size: 11px; color: #94a3b8;">اعرض مقتنياتك للبيع</p>
-                <a href="https://t.me/uu_ugg" class="btn-animated" style="background: #4f46e5;">دخول</a>
-            </div>
-        </div>
-
-        <div class="section-title">💰 قسم التمويل</div>
-        <div class="item-card">
-            <strong>طلب تمويل سريع</strong>
-            <p style="font-size: 12px; color: #94a3b8;">تقدم بطلبك الآن وسنقوم بمراجعته فوراً</p>
-            <a href="https://t.me/uu_ugg" class="btn-animated" style="background: #10b981;">تقديم طلب</a>
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-brand">ARENA V2</div>
+        <div class="bal-wrap">
+            <div class="bal-label">رصيدك</div>
+            <div class="bal-amount" id="balDisplay">100,000 ⭐</div>
         </div>
     </div>
 
-    <a href="https://t.me/uu_gg7" class="contact-fixed">
-        <span>تواصل معنا</span>
-        <i>✈️</i>
-    </a>
+    <!-- شريط الحالة -->
+    <div class="status-bar">
+        <div class="status-info">
+            <div class="status-state">
+                <div class="status-dot waiting" id="statusDot"></div>
+                <span id="statusLabel">بانتظار الأبطال...</span>
+            </div>
+            <div class="status-sub" id="statusSub">الميدان فارغ</div>
+        </div>
+        <div class="player-count">
+            <div class="num" id="playerCount">0</div>
+            <div class="lbl">لاعب</div>
+        </div>
+    </div>
 
-    <script>
-        const dbUrl = "https://sarab-app-84448-default-rtdb.firebaseio.com";
-        // الكود البرمجي لربط البيانات يبقى كما هو لضمان عمل البوت
-        async function updateUI() {
-            try {
-                const tRes = await fetch(`${dbUrl}/ticker.json`);
-                const tData = await tRes.json();
-                if(tData) { document.querySelector('.ticker-text').innerText = tData.text; }
-            } catch(e) {}
+    <!-- الساحة -->
+    <div class="arena-container">
+        <canvas id="arenaCanvas" width="600" height="600"></canvas>
+        <div id="ball"></div>
+        <div class="countdown-overlay" id="countdownOverlay">
+            <div class="countdown-num" id="countdownText">10</div>
+            <div class="countdown-sub">ARENA STARTS</div>
+        </div>
+    </div>
+
+    <!-- قائمة اللاعبين -->
+    <div class="players-list" id="playersList">
+        <div class="players-list-title">⚔️ المحاربون المسجلون</div>
+        <div style="color:#333; font-size:12px; text-align:center; padding:10px;">لا أحد في الميدان بعد...</div>
+    </div>
+
+    <!-- التحكم -->
+    <div class="controls">
+        <div class="controls-title">حدد رهانك وادخل الميدان</div>
+        <div class="bet-row">
+            <button class="bet-btn" onclick="setBet(500)">500</button>
+            <button class="bet-btn" onclick="setBet(1000)">1K</button>
+            <button class="bet-btn" onclick="setBet(5000)">5K</button>
+            <button class="bet-btn" onclick="setBet(10000)">10K</button>
+        </div>
+        <div class="bet-input-wrap">
+            <input type="number" id="betInput" value="1000" min="100">
+        </div>
+        <button id="joinBtn" onclick="joinGame()">دخول الميدان الآن ⚔️</button>
+        <div class="joined-badge" id="joinedBadge">✅ أنت في الميدان! انتظر بدء الجولة...</div>
+    </div>
+
+</div>
+
+<!-- فائز overlay -->
+<div class="winner-overlay" id="winnerOverlay">
+    <div class="winner-trophy">🏆</div>
+    <div class="winner-color-badge" id="winnerBadge"></div>
+    <div class="winner-label">الفائز بالجولة</div>
+    <div class="winner-name" id="winnerName"></div>
+    <div class="winner-prize" id="winnerPrize"></div>
+    <div class="winner-sub">تصفير تلقائي خلال ثوانٍ...</div>
+</div>
+
+<script>
+    // ===== إعداد تيليجرام =====
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+        tg.ready();
+        tg.expand();
+        tg.setHeaderColor('#060606');
+        tg.setBackgroundColor('#060606');
+    }
+
+    // ===== الإعدادات =====
+    const DB_PATH = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v8";
+    const COUNTDOWN_FROM = 10;
+
+    // هوية اللاعب
+    const tgUser = tg?.initDataUnsafe?.user;
+    let myId = tgUser ? `tg_${tgUser.id}` : (localStorage.getItem("arena_id") || "P" + Math.floor(Math.random() * 99999));
+    let myName = tgUser ? (tgUser.first_name || "مجهول") : ("محارب " + myId.slice(-3));
+    localStorage.setItem("arena_id", myId);
+
+    let myBal = parseInt(localStorage.getItem("arena_bal")) || 100000;
+    let players = [], gameState = "waiting", isSpinning = false;
+
+    // ===== مساعدات =====
+    function savebal() { localStorage.setItem("arena_bal", myBal); }
+
+    function updateBalUI() {
+        document.getElementById("balDisplay").innerText = myBal.toLocaleString() + " ⭐";
+    }
+
+    function setBet(v) {
+        document.getElementById("betInput").value = v;
+    }
+
+    function setStatus(state, label, sub) {
+        const dot = document.getElementById("statusDot");
+        dot.className = "status-dot " + state;
+        document.getElementById("statusLabel").innerText = label;
+        document.getElementById("statusSub").innerText = sub;
+    }
+
+    // ===== رسم الساحة =====
+    function drawMap(pList) {
+        const canvas = document.getElementById("arenaCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, 600, 600);
+
+        let total = pList.reduce((s, p) => s + p.amount, 0);
+        if (total === 0) return;
+
+        let x = 0, y = 0, w = 600, h = 600;
+        pList.forEach((p, i) => {
+            let ratio = p.amount / total;
+            ctx.fillStyle = p.color;
+
+            let rx, ry, rw, rh;
+            if (i % 2 === 0) {
+                rw = (i === pList.length - 1) ? w : Math.floor(w * ratio);
+                rh = h;
+                rx = x; ry = y;
+                x += rw; w -= rw;
+            } else {
+                rw = w;
+                rh = (i === pList.length - 1) ? h : Math.floor(h * ratio);
+                rx = x; ry = y;
+                y += rh; h -= rh;
+            }
+
+            ctx.fillRect(rx, ry, rw, rh);
+
+            // اسم اللاعب داخل مساحته
+            ctx.save();
+            ctx.globalAlpha = 0.8;
+            ctx.fillStyle = "rgba(0,0,0,0.4)";
+            ctx.fillRect(rx, ry, rw, rh);
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = "white";
+            ctx.font = "bold " + Math.min(24, Math.floor(rw / 5)) + "px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.shadowColor = "rgba(0,0,0,0.8)";
+            ctx.shadowBlur = 6;
+
+            let pct = Math.round(ratio * 100);
+            if (rw > 60 && rh > 40) {
+                ctx.fillText(p.name.substring(0, 8), rx + rw / 2, ry + rh / 2 - 12);
+                ctx.font = "bold " + Math.min(20, Math.floor(rw / 6)) + "px sans-serif";
+                ctx.fillStyle = p.color;
+                ctx.fillText(pct + "%", rx + rw / 2, ry + rh / 2 + 14);
+            }
+            ctx.restore();
+
+            p.area = { x1: rx, y1: ry, x2: rx + rw, y2: ry + rh };
+        });
+    }
+
+    // ===== قائمة اللاعبين =====
+    function renderPlayersList(pList) {
+        const el = document.getElementById("playersList");
+        if (!pList.length) {
+            el.innerHTML = '<div class="players-list-title">⚔️ المحاربون</div><div style="color:#333;font-size:12px;text-align:center;padding:10px;">لا أحد بعد...</div>';
+            return;
         }
-        setInterval(updateUI, 5000);
-        updateUI();
-    </script>
+        let total = pList.reduce((s, p) => s + p.amount, 0);
+        let html = '<div class="players-list-title">⚔️ المحاربون (' + pList.length + ')</div>';
+        pList.forEach(p => {
+            let pct = total > 0 ? Math.round(p.amount / total * 100) : 0;
+            let isMe = p.id === myId;
+            html += `<div class="player-row" style="${isMe ? 'opacity:1' : 'opacity:0.7'}">
+                <div class="player-color-dot" style="background:${p.color}"></div>
+                <div class="player-name">${isMe ? '⭐ ' : ''}${p.name}</div>
+                <div class="player-bet">${p.amount.toLocaleString()}</div>
+                <div class="player-pct">${pct}%</div>
+            </div>`;
+        });
+        el.innerHTML = html;
+    }
+
+    // ===== فيزياء الكرة =====
+    function runPhysics(seed) {
+        if (isSpinning) return;
+        isSpinning = true;
+
+        const ball = document.getElementById("ball");
+        ball.style.display = "block";
+
+        const container = document.querySelector(".arena-container");
+        const W = container.clientWidth - 18;
+        const H = container.clientHeight - 18;
+        const scale = W / 600;
+
+        let px = W / 2, py = H / 2;
+        let vx = (seed > 0.5 ? 1 : -1) * (8 + seed * 5);
+        let vy = (seed < 0.5 ? 1 : -1) * (8 + (1 - seed) * 5);
+
+        function frame() {
+            px += vx; py += vy;
+            if (px <= 0) { vx = Math.abs(vx); px = 1; }
+            if (px >= W) { vx = -Math.abs(vx); px = W - 1; }
+            if (py <= 0) { vy = Math.abs(vy); py = 1; }
+            if (py >= H) { vy = -Math.abs(vy); py = H - 1; }
+
+            vx *= 0.988; vy *= 0.988;
+            ball.style.transform = `translate(${px}px, ${py}px)`;
+
+            if (Math.abs(vx) > 0.4 || Math.abs(vy) > 0.4) {
+                requestAnimationFrame(frame);
+            } else {
+                // تحويل إلى إحداثيات canvas (600x600)
+                let fx = (px + 9) / scale;
+                let fy = (py + 9) / scale;
+                let win = players.find(p => p.area && fx >= p.area.x1 && fx <= p.area.x2 && fy >= p.area.y1 && fy <= p.area.y2);
+                if (!win) win = players[0];
+                finishGame(win);
+            }
+        }
+        requestAnimationFrame(frame);
+    }
+
+    // ===== إنهاء الجولة =====
+    async function finishGame(win) {
+        let prize = players.reduce((s, p) => s + p.amount, 0);
+        let isWinner = win.id === myId;
+
+        document.getElementById("winnerOverlay").style.display = "flex";
+        document.getElementById("winnerBadge").style.backgroundColor = win.color;
+        document.getElementById("winnerBadge").style.boxShadow = `0 0 30px ${win.color}`;
+        document.getElementById("winnerName").innerText = win.name;
+        document.getElementById("winnerPrize").innerText = (isWinner ? "+" : "") + prize.toLocaleString() + " ⭐";
+
+        if (isWinner) {
+            myBal += prize;
+            savebal();
+            updateBalUI();
+            if (tg) tg.showAlert("🏆 فزت بـ " + prize.toLocaleString() + " نجمة!");
+        }
+
+        setTimeout(async () => {
+            try {
+                if (myId === players[0]?.id) {
+                    await fetch(`${DB_PATH}.json`, { method: "DELETE" });
+                }
+            } catch(e) {}
+            window.location.reload();
+        }, 5000);
+    }
+
+    // ===== الانضمام =====
+    async function joinGame() {
+        let amt = parseInt(document.getElementById("betInput").value) || 0;
+        if (amt <= 0) { if (tg) tg.showAlert("أدخل مبلغ صحيح"); else alert("أدخل مبلغ صحيح"); return; }
+        if (amt > myBal) { if (tg) tg.showAlert("رصيدك غير كافٍ"); else alert("رصيد غير كافٍ"); return; }
+
+        myBal -= amt;
+        savebal();
+        updateBalUI();
+
+        let pData = {
+            id: myId,
+            name: myName,
+            amount: amt,
+            color: `hsl(${Math.floor(Math.random() * 360)}, 65%, 55%)`
+        };
+
+        try {
+            await fetch(`${DB_PATH}/players/${myId}.json`, {
+                method: "PUT",
+                body: JSON.stringify(pData),
+                headers: { "Content-Type": "application/json" }
+            });
+
+            document.getElementById("joinBtn").disabled = true;
+            document.getElementById("joinBtn").style.display = "none";
+            document.getElementById("joinedBadge").style.display = "block";
+        } catch(e) {
+            myBal += amt;
+            savebal();
+            updateBalUI();
+            if (tg) tg.showAlert("خطأ في الاتصال"); else alert("خطأ");
+        }
+    }
+
+    // ===== المزامنة الرئيسية =====
+    async function sync() {
+        try {
+            const res = await fetch(`${DB_PATH}.json?nc=${Date.now()}`);
+            const data = await res.json();
+
+            if (!data) {
+                players = []; gameState = "waiting";
+                drawMap([]);
+                renderPlayersList([]);
+                setStatus("waiting", "بانتظار الأبطال...", "الميدان فارغ");
+                document.getElementById("playerCount").innerText = "0";
+                return;
+            }
+
+            players = data.players ? Object.values(data.players) : [];
+            gameState = data.state || "waiting";
+
+            document.getElementById("playerCount").innerText = players.length;
+            renderPlayersList(players);
+            drawMap(players);
+
+            // تعيين زر الدخول
+            let alreadyIn = players.some(p => p.id === myId);
+            let btn = document.getElementById("joinBtn");
+            let badge = document.getElementById("joinedBadge");
+
+            if (alreadyIn || gameState !== "waiting") {
+                btn.disabled = true;
+                btn.style.display = "none";
+                badge.style.display = alreadyIn ? "block" : "none";
+            } else {
+                btn.disabled = false;
+                btn.style.display = "block";
+                badge.style.display = "none";
+            }
+
+            // العد التنازلي
+            if (gameState === "counting" && data.startTime) {
+                let elapsed = Math.floor((Date.now() - data.startTime) / 1000);
+                let remaining = Math.max(0, COUNTDOWN_FROM - elapsed);
+                document.getElementById("countdownOverlay").style.display = "flex";
+                document.getElementById("countdownText").innerText = remaining;
+                setStatus("counting", "العد التنازلي! " + remaining + "ث", "الجولة تبدأ قريباً");
+
+                // القائد يبدأ اللعب
+                if (remaining <= 0 && myId === players[0]?.id) {
+                    await fetch(`${DB_PATH}.json`, {
+                        method: "PATCH",
+                        body: JSON.stringify({ state: "playing", seed: Math.random() }),
+                        headers: { "Content-Type": "application/json" }
+                    });
+                }
+            } else {
+                document.getElementById("countdownOverlay").style.display = "none";
+            }
+
+            // بدء اللعب
+            if (gameState === "playing" && data.seed && !isSpinning) {
+                document.getElementById("countdownOverlay").style.display = "none";
+                setStatus("playing", "الكرة في الميدان! 🎯", "حظ موفق لجميع المحاربين");
+                runPhysics(data.seed);
+            }
+
+            // القائد يبدأ العد عند وجود لاعبين
+            if (players.length >= 2 && gameState === "waiting" && myId === players[0]?.id) {
+                setStatus("counting", "يجمع المحاربين...", "انتظر قليلاً");
+                await fetch(`${DB_PATH}.json`, {
+                    method: "PATCH",
+                    body: JSON.stringify({ state: "counting", startTime: Date.now() }),
+                    headers: { "Content-Type": "application/json" }
+                });
+            }
+
+            if (gameState === "waiting") {
+                setStatus("waiting",
+                    players.length === 0 ? "بانتظار الأبطال..." : "في انتظار منافس...",
+                    players.length === 0 ? "كن أول من يدخل الميدان" : `${players.length} محارب جاهز`
+                );
+            }
+
+        } catch(e) { console.log(e); }
+    }
+
+    // ===== تشغيل =====
+    updateBalUI();
+    setInterval(sync, 900);
+    sync();
+</script>
 </body>
 </html>
