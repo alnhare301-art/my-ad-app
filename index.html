@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARENA V2 - ميدان فورونوي الهندسي</title>
+    <title>ARENA V2 - الميدان الهندسي الناعم</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --gold: #D4AF37;
             --gold2: #f0d060;
             --dark: #060606;
-            --dark2: #0f0f0f;
             --card: #111111;
             --border: rgba(212,175,55,0.15);
         }
@@ -26,20 +25,9 @@
             padding-bottom: 20px;
         }
 
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(212,175,55,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(212,175,55,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
         .wrapper { position: relative; z-index: 1; padding: 12px; max-width: 420px; margin: 0 auto; }
 
+        /* الهيدر */
         .header {
             display: flex;
             justify-content: space-between;
@@ -54,17 +42,14 @@
         .header-brand {
             font-size: 16px;
             font-weight: 900;
-            letter-spacing: 2px;
             background: linear-gradient(135deg, var(--gold), var(--gold2));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
-        .bal-wrap { text-align: left; }
-        .bal-label { font-size: 9px; color: #555; letter-spacing: 1px; text-transform: uppercase; }
         .bal-amount { font-size: 18px; font-weight: 900; color: var(--gold); }
 
+        /* شريط الحالة */
         .status-bar {
             background: var(--card);
             border: 1px solid var(--border);
@@ -76,38 +61,32 @@
             align-items: center;
         }
 
-        .status-info { display: flex; flex-direction: column; gap: 2px; }
         .status-state { font-size: 13px; font-weight: 700; color: var(--gold); display: flex; align-items: center; gap: 6px; }
-        
-        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #555; transition: background 0.3s; }
-        .status-dot.waiting { background: #555; }
-        .status-dot.counting { background: #f59e0b; }
-        .status-dot.playing  { background: #10b981; animation: blink 0.3s infinite; }
-
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-        .status-sub { font-size: 10px; color: #666; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; }
+        .status-dot.counting { background: #f59e0b; animation: blink 0.8s infinite; }
+        .status-dot.playing { background: #10b981; }
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
         .player-count {
             background: rgba(212,175,55,0.1);
             border: 1px solid rgba(212,175,55,0.2);
             border-radius: 10px;
             padding: 6px 14px;
-            text-align: center;
         }
-        .player-count .num { font-size: 22px; font-weight: 900; color: var(--gold); line-height: 1; }
-        .player-count .lbl { font-size: 9px; color: #555; }
+        .player-count .num { font-size: 20px; font-weight: 900; color: var(--gold); text-align: center; }
 
+        /* حاوية الساحة المربعة */
         .arena-container {
             position: relative;
             width: 100%;
             aspect-ratio: 1;
             max-width: 360px;
             margin: 0 auto 12px;
-            border-radius: 24px;
+            border-radius: 20px;
             overflow: hidden;
-            border: 5px solid rgba(212,175,55,0.25);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 4px solid rgba(212,175,55,0.3);
             background: #0c0c0c;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
         }
 
         #arenaCanvas { width: 100%; height: 100%; display: block; }
@@ -118,551 +97,367 @@
             display: none;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(2px);
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(1px);
             z-index: 20;
-            flex-direction: column;
-            pointer-events: none;
         }
 
         .countdown-num {
-            font-size: 95px;
+            font-size: 100px;
             font-weight: 950;
             color: white;
-            text-shadow: 0 0 30px rgba(0,0,0,0.8);
+            text-shadow: 0 0 25px rgba(0,0,0,0.9);
         }
 
-        .countdown-sub { font-size: 11px; color: #eee; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-
+        /* قائمة المشاركين */
         .players-list {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 10px 14px;
             margin-bottom: 12px;
-            max-height: 160px;
+            max-height: 150px;
             overflow-y: auto;
         }
-
-        .players-list-title { font-size: 10px; color: #555; letter-spacing: 1px; margin-bottom: 8px; }
 
         .player-row {
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
             font-size: 13px;
         }
 
-        .player-avatar {
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            border: 2px solid var(--border);
-            object-fit: cover;
-            background: #222;
-        }
+        .player-info { display: flex; align-items: center; gap: 8px; }
+        .player-avatar { width: 28px; height: 28px; border-radius: 50%; background: #333; object-fit: cover; }
 
-        .player-details { flex: 1; display: flex; flex-direction: column; text-align: right; }
-        .p-name { color: #fff; font-weight: 600; }
-        .p-username { font-size: 10px; color: #666; }
-
-        .player-meta { text-align: left; display: flex; flex-direction: column; }
-        .bet-gold { color: var(--gold); font-weight: 800; font-size: 12px; }
-        .player-pct { color: #888; font-size: 10px; }
-
+        /* التحكم والرهان */
         .controls { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; }
-        .controls-title { font-size: 10px; color: #555; letter-spacing: 1px; margin-bottom: 12px; text-align: center; }
-        .bet-row { display: flex; gap: 8px; margin-bottom: 12px; }
-
+        .bet-row { display: flex; gap: 6px; margin-bottom: 12px; }
         .bet-btn {
             flex: 1; background: rgba(212,175,55,0.06); border: 1px solid rgba(212,175,55,0.15);
-            color: var(--gold); padding: 8px 4px; border-radius: 10px; font-size: 12px; font-weight: 700;
-            cursor: pointer; transition: all 0.2s;
+            color: var(--gold); padding: 10px 0; border-radius: 10px; font-size: 12px; font-weight: 700;
+            cursor: pointer;
         }
 
-        .bet-btn:hover { background: rgba(212,175,55,0.15); border-color: rgba(212,175,55,0.4); }
-        .bet-input-wrap { position: relative; margin-bottom: 12px; }
-        .bet-input-wrap::before { content: '⭐'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; z-index: 1; }
-
         #betInput {
-            width: 100%; background: rgba(212,175,55,0.04); border: 1px solid rgba(212,175,55,0.2);
-            padding: 14px 40px 14px 14px; border-radius: 12px; color: var(--gold); font-size: 22px;
-            font-weight: 900; text-align: center; direction: ltr;
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(212,175,55,0.2);
+            padding: 12px; border-radius: 12px; color: var(--gold); font-size: 20px;
+            font-weight: 900; text-align: center; margin-bottom: 12px;
         }
 
         #joinBtn {
-            width: 100%; background: linear-gradient(135deg, var(--gold), #b8960c); padding: 16px;
-            border-radius: 14px; border: none; color: #000; font-weight: 900; font-size: 16px;
-            cursor: pointer; transition: all 0.3s; letter-spacing: 1px; box-shadow: 0 4px 20px rgba(212,175,55,0.25);
+            width: 100%; background: linear-gradient(135deg, var(--gold), #b8960c); padding: 15px;
+            border-radius: 14px; border: none; color: #000; font-weight: 900; font-size: 15px;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(212,175,55,0.2);
         }
-
-        #joinBtn:disabled { background: #222; color: #444; cursor: not-allowed; box-shadow: none; }
-
-        .current-bet-status {
-            text-align: center; font-size: 11px; color: #888; margin-top: 6px; display: none;
-        }
+        #joinBtn:disabled { background: #222; color: #555; cursor: not-allowed; box-shadow: none; }
 
         .winner-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.97); display: none;
-            flex-direction: column; align-items: center; justify-content: center; z-index: 100; gap: 16px; text-align: center;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.96); display: none;
+            flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center;
         }
-
-        .winner-trophy { font-size: 75px; animation: bounceIn 0.6s ease; }
-        .winner-avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--gold); box-shadow: 0 0 30px rgba(212,175,55,0.4); }
-        .winner-name { font-size: 26px; font-weight: 900; color: white; }
-        .winner-prize { font-size: 50px; font-weight: 900; color: var(--gold); text-shadow: 0 0 35px rgba(212,175,55,0.6); }
-        .winner-sub { font-size: 12px; color: #555; }
-
-        @keyframes bounceIn { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+        .winner-avatar { width: 85px; height: 85px; border-radius: 50%; border: 3px solid var(--gold); margin: 15px 0; }
+        .winner-name { font-size: 24px; font-weight: 900; }
+        .winner-prize { font-size: 45px; font-weight: 900; color: var(--gold); }
     </style>
 </head>
 <body>
 
 <div class="wrapper">
-
     <div class="header">
         <div class="header-brand">ARENA V2</div>
-        <div class="bal-wrap">
-            <div class="bal-label">رصيدك الثابت</div>
-            <div class="bal-amount" id="balDisplay">100,000 ⭐</div>
-        </div>
+        <div class="bal-amount" id="balDisplay">100,000 ⭐</div>
     </div>
 
     <div class="status-bar">
         <div class="status-info">
             <div class="status-state">
                 <div class="status-dot waiting" id="statusDot"></div>
-                <span id="statusLabel">جاري المزامنة...</span>
+                <span id="statusLabel">بانتظار المنافسين...</span>
             </div>
-            <div class="status-sub" id="statusSub">الرجاء الانتظار</div>
         </div>
         <div class="player-count">
             <div class="num" id="playerCount">0</div>
-            <div class="lbl">لاعب</div>
         </div>
     </div>
 
-    <div class="arena-container" id="arenaContainer">
+    <div class="arena-container">
         <canvas id="arenaCanvas" width="600" height="600"></canvas>
         <div class="countdown-overlay" id="countdownOverlay">
             <div class="countdown-num" id="countdownText">10</div>
-            <div class="countdown-sub">ميدان مواجهة الأراضي الهندسية النعامة</div>
         </div>
     </div>
 
-    <div class="players-list" id="playersList">
-        <div class="players-list-title">⚔️ المحاربون المسجلون بالجولة</div>
-        <div style="color:#444; font-size:12px; text-align:center; padding:15px;">لا أحد في ساحة التحدي...</div>
-    </div>
+    <div class="players-list" id="playersList"></div>
 
     <div class="controls">
-        <div class="controls-title" id="controlTitle">حدد رهانك وادخل الميدان المربع</div>
         <div class="bet-row">
-            <button class="bet-btn" onclick="setBet(500)">500</button>
             <button class="bet-btn" onclick="setBet(1000)">1K</button>
             <button class="bet-btn" onclick="setBet(5000)">5K</button>
             <button class="bet-btn" onclick="setBet(10000)">10K</button>
         </div>
-        <div class="bet-input-wrap">
-            <input type="number" id="betInput" value="1000" min="100">
-        </div>
-        <button id="joinBtn" onclick="joinGame()">دخول الميدان الآن ⚔️</button>
-        <div class="current-bet-status" id="currentBetStatus">رهانك الحالي بالجولة: 0 ⭐</div>
+        <input type="number" id="betInput" value="1000">
+        <button id="joinBtn" onclick="joinGame()">دخول ساحة المواجهة ⚔️</button>
     </div>
-
 </div>
 
 <div class="winner-overlay" id="winnerOverlay">
-    <div class="winner-trophy">🏆</div>
-    <img src="" class="winner-avatar" id="winnerAvatar" alt="Winner Profile">
-    <div class="winner-name" id="winnerName">مجهول</div>
+    <div style="font-size:60px;">🏆</div>
+    <img src="" class="winner-avatar" id="winnerAvatar">
+    <div class="winner-name" id="winnerName">-</div>
     <div class="winner-prize" id="winnerPrize">⭐ 0</div>
-    <div class="winner-sub">جاري تهيئة وتصفير الساحة لجولة جديدة تلقائياً...</div>
+    <div style="color:#555; font-size:12px; margin-top:10px;">جاري الانتقال التلقائي لجولة جديدة...</div>
 </div>
 
 <script>
     const tg = window.Telegram?.WebApp;
-    if (tg) {
-        tg.ready(); tg.expand();
-        tg.setHeaderColor('#060606'); tg.setBackgroundColor('#060606');
-    }
+    if(tg) { tg.ready(); tg.expand(); }
 
     const DB_PATH = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v7";
-    const COUNTDOWN_FROM = 10;
     const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23555'><circle cx='50' cy='35' r='20'/><path d='M20,85 C20,60 80,60 80,85 Z'/></svg>";
-    const PRESET_COLORS = ["#22c55e", "#a855f7", "#3b82f6", "#ef4444", "#f97316", "#06b6d4", "#eab308"];
+    const COLORS = ["#3b82f6", "#ef4444", "#10b981", "#a855f7", "#f97316", "#eab308", "#06b6d4"];
 
-    const tgUser = tg?.initDataUnsafe?.user;
-    let myId = tgUser ? `tg_${tgUser.id}` : (localStorage.getItem("arena_id") || "P" + Math.floor(Math.random() * 99999));
-    let myName = tgUser ? (tgUser.first_name || "مجهول") : ("محارب " + myId.slice(-3));
-    let myUsername = tgUser?.username ? `@${tgUser.username}` : "@no_user";
-    let myAvatar = tgUser?.photo_url || DEFAULT_AVATAR;
+    let myId = tg?.initDataUnsafe?.user ? `tg_${tg.initDataUnsafe.user.id}` : (localStorage.getItem("arena_id") || "P" + Math.floor(Math.random()*9999));
+    let myName = tg?.initDataUnsafe?.user?.first_name || "محارب " + myId.slice(-3);
+    let myAvatar = tg?.initDataUnsafe?.user?.photo_url || DEFAULT_AVATAR;
     localStorage.setItem("arena_id", myId);
 
-    if(!localStorage.getItem("arena_bal_fixed_v7")) {
-        localStorage.setItem("arena_bal_fixed_v7", "100000");
-    }
+    if(!localStorage.getItem("arena_bal_fixed_v7")) localStorage.setItem("arena_bal_fixed_v7", "100000");
     let myBal = parseInt(localStorage.getItem("arena_bal_fixed_v7"));
-    let players = [], gameState = "waiting", isSpinning = false;
+
+    let players = [], gameState = "waiting", localTimer = 10, timerInterval = null, isSpinning = false;
     let ballX = 300, ballY = 300, showBall = false;
 
     function savebal() { localStorage.setItem("arena_bal_fixed_v7", myBal); }
-    function updateBalUI() { document.getElementById("balDisplay").innerText = myBal.toLocaleString() + " ⭐"; }
+    function updateUI() { document.getElementById("balDisplay").innerText = myBal.toLocaleString() + " ⭐"; }
     function setBet(v) { document.getElementById("betInput").value = v; }
 
-    function setStatus(state, label, sub) {
-        const dot = document.getElementById("statusDot");
-        if(dot) dot.className = "status-dot " + state;
-        document.getElementById("statusLabel").innerText = label;
-        document.getElementById("statusSub").innerText = sub;
-    }
-
-    // توليد نقاط مركزية تعتمد على رهان واسم المستخدم لثبات الخريطة
-    function getPlayerSeedPoints(pList) {
+    // دالة توليد بذور إحداثيات اللاعبين بشكل عشوائي ثابت يعتمد على الـ ID لمنع تغير مكان اللاعب فجأة إلا عند دخول مشترك جديد
+    function getSeeds(pList) {
         let total = pList.reduce((s, p) => s + p.amount, 0);
-        return pList.map((p, index) => {
-            let str = p.id;
+        return pList.map((p, idx) => {
             let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            let seedX = Math.abs(Math.sin(hash + 1)) * 360 + 120;
-            let seedY = Math.abs(Math.cos(hash + 2)) * 360 + 120;
-            
-            return {
-                id: p.id,
-                name: p.name,
-                avatar: p.avatar,
-                amount: p.amount,
-                ratio: total > 0 ? (p.amount / total) : 0,
-                x: seedX,
-                y: seedY,
-                colorHex: PRESET_COLORS[index % PRESET_COLORS.length]
-            };
+            for (let i = 0; i < p.id.length; i++) hash = p.id.charCodeAt(i) + ((hash << 5) - hash);
+            // توزيع ذكي يبتعد عن الأطراف لملء المنتصف بسلاسة
+            let x = Math.abs(Math.sin(hash + 1)) * 340 + 130;
+            let y = Math.abs(Math.cos(hash + 2)) * 340 + 130;
+            return { id: p.id, name: p.name, amount: p.amount, ratio: total > 0 ? (p.amount / total) : 0, x, y, color: COLORS[idx % COLORS.length] };
         });
     }
 
-    // محرك رسم فورونوي الهندسي فائق النعومة (Vector Format) بدل نظام البكسل المتعب
-    function drawMap(pList, zoomFactor = 1, targetX = 300, targetY = 300) {
+    // محرك رسم فورونوي فائق النعومة بدقة بكسل كاملة 100% وبدون ضغط لمنع البكسلة نهائياً
+    function drawMap(pList, zoom = 1, tX = 300, tY = 300) {
         const canvas = document.getElementById("arenaCanvas");
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, 600, 600);
-        
+
         ctx.save();
-        if (zoomFactor > 1) {
-            ctx.translate(300, 300);
-            ctx.scale(zoomFactor, zoomFactor);
-            ctx.translate(-targetX, -targetY);
+        if(zoom > 1) {
+            ctx.translate(300, 300); ctx.scale(zoom, zoom); ctx.translate(-tX, -tY);
         }
 
-        if (pList.length === 0) {
-            ctx.fillStyle = "#0c0c0c";
-            ctx.fillRect(0, 0, 600, 600);
-            ctx.restore();
-            return;
+        if(pList.length === 0) {
+            ctx.fillStyle = "#0c0c0c"; ctx.fillRect(0, 0, 600, 600);
+            ctx.restore(); return;
         }
 
-        let seededPlayers = getPlayerSeedPoints(pList);
+        let seeds = getSeeds(pList);
 
-        if (seededPlayers.length === 1) {
-            let p = seededPlayers[0];
-            pList[0].colorHex = p.colorHex;
-            ctx.fillStyle = p.colorHex;
-            ctx.fillRect(0, 0, 600, 600);
-            
-            ctx.fillStyle = "rgba(0,0,0,0.5)";
-            ctx.beginPath(); ctx.arc(300, 300, 42); ctx.fill();
-            ctx.fillStyle = "white"; ctx.font = "bold 16px sans-serif"; ctx.textBaseline = "middle"; ctx.textAlign = "center";
-            ctx.fillText(p.name.substring(0, 8), 300, 288);
-            ctx.fillStyle = "#D4AF37"; ctx.fillText("100%", 300, 312);
+        if(seeds.length === 1) {
+            ctx.fillStyle = seeds[0].color; ctx.fillRect(0, 0, 600, 600);
+            pList[0].colorHex = seeds[0].color;
+            drawLabel(ctx, seeds[0].name, "100%", 300, 300);
         } else {
-            // تقسيم هندسي للمربع عبر مضلعات متناهية الدقة والنعومة Anti-aliasing
-            let res = 4; 
-            for (let y = 0; y < 600; y += res) {
-                for (let x = 0; x < 600; x += res) {
-                    let minDist = Infinity;
-                    let closest = null;
+            // مسح كامل بكسل ببكسل بدقة متناهية (الحل الصافي الحاد للبكسلة)
+            let imgData = ctx.createImageData(600, 600);
+            let d = imgData.data;
 
-                    for (let i = 0; i < seededPlayers.length; i++) {
-                        let p = seededPlayers[i];
-                        let dx = x - p.x;
-                        let dy = y - p.y;
-                        let dist = (dx * dx + dy * dy) / (p.ratio * p.ratio * 8 + 0.1);
-
-                        if (dist < minDist) {
-                            minDist = dist;
-                            closest = p;
-                        }
+            for (let y = 0; y < 600; y++) {
+                for (let x = 0; x < 600; x++) {
+                    let minDist = Infinity, closest = null;
+                    for (let i = 0; i < seeds.length; i++) {
+                        let s = seeds[i];
+                        let dx = x - s.x, dy = y - s.y;
+                        // المعادلة الرياضية الفاصلة للمساحة بناءً على حجم رهان كل كرت لاعب
+                        let dist = (dx*dx + dy*dy) / (s.ratio * s.ratio * 12 + 0.05);
+                        if(dist < minDist) { minDist = dist; closest = s; }
                     }
-
-                    if (closest) {
-                        ctx.fillStyle = closest.colorHex;
-                        ctx.fillRect(x, y, res, res);
+                    if(closest) {
+                        let idx = (y * 600 + x) * 4;
+                        let c = closest.color;
+                        d[idx] = parseInt(c.slice(1,3), 16);
+                        d[idx+1] = parseInt(c.slice(3,5), 16);
+                        d[idx+2] = parseInt(c.slice(5,7), 16);
+                        d[idx+3] = 255;
                     }
                 }
             }
+            ctx.putImageData(imgData, 0, 0);
 
-            // رسم الواجهات والبيانات فوق كل نصيب مخصص للاعبين
-            seededPlayers.forEach((p, idx) => {
-                pList[idx].colorHex = p.colorHex;
-                
-                ctx.save();
-                ctx.fillStyle = "rgba(0,0,0,0.5)";
-                ctx.beginPath(); ctx.arc(p.x, p.y, 42); ctx.fill();
-
-                ctx.fillStyle = "white";
-                ctx.font = "bold 15px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                ctx.fillText(p.name.substring(0, 8), p.x, p.y - 10);
-                
-                ctx.fillStyle = "#D4AF37";
-                ctx.font = "bold 14px sans-serif";
-                ctx.fillText(Math.round(p.ratio * 100) + "%", p.x, p.y + 12);
-                ctx.restore();
+            // حفظ الألوان للمطابقة عند الفوز ورسم النصوص الموضحة فوق كل أرضية لاعب
+            seeds.forEach((s, idx) => {
+                pList[idx].colorHex = s.color;
+                drawLabel(ctx, s.name, Math.round(s.ratio * 100) + "%", s.x, s.y);
             });
         }
 
-        // إطار أسود عريض وناعم يفصل كامل الحدود
-        ctx.strokeStyle = "#000000";
-        ctx.lineWidth = 6;
-        ctx.strokeRect(0, 0, 600, 600);
+        // حدود الصندوق الخارجي بالكامل باللون الأسود الملكي الحاد
+        ctx.strokeStyle = "#000000"; ctx.lineWidth = 8; ctx.strokeRect(0, 0, 600, 600);
 
-        if (showBall) {
+        // رسم كرة التحديد الذهبية الطائرة
+        if(showBall) {
             ctx.save();
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = "rgba(255,255,255,0.8)";
-            let gradient = ctx.createRadialGradient(ballX - 3, ballY - 3, 1, ballX, ballY, 10);
-            gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(1, '#444444');
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.shadowBlur = 15; ctx.shadowColor = "#fff";
+            let g = ctx.createRadialGradient(ballX-3, ballY-3, 1, ballX, ballY, 12);
+            g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#d4af37');
+            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ballX, ballY, 12, 0, Math.PI*2); ctx.fill();
             ctx.restore();
         }
-
         ctx.restore();
     }
 
-    function renderPlayersList(pList) {
-        const el = document.getElementById("playersList");
-        if (!pList.length) {
-            el.innerHTML = '<div class="players-list-title">⚔️ المحاربون المسجلون بالجولة</div><div style="color:#444;font-size:12px;text-align:center;padding:15px;">لا أحد في ساحة التحدي...</div>';
-            return;
-        }
-        let total = pList.reduce((s, p) => s + p.amount, 0);
-        let html = '<div class="players-list-title">⚔️ المحاربون بميدان التحدي (' + pList.length + ')</div>';
-        pList.forEach(p => {
-            let pct = total > 0 ? Math.round(p.amount / total * 100) : 0;
-            let isMe = p.id === myId;
-            html += `
-            <div class="player-row" style="${isMe ? 'background:rgba(212,175,55,0.04);' : ''}">
-                <img src="${p.avatar || DEFAULT_AVATAR}" class="player-avatar" onerror="this.src='${DEFAULT_AVATAR}'">
-                <div class="player-details">
-                    <span class="p-name">${isMe ? '⭐ ' : ''}${p.name}</span>
-                    <span class="p-username">${p.username || '@no_user'}</span>
-                </div>
-                <div class="player-meta">
-                    <span class="bet-gold">${p.amount.toLocaleString()} ⭐</span>
-                    <span class="player-pct">المساحة: ${pct}%</span>
-                </div>
-            </div>`;
-        });
-        el.innerHTML = html;
+    function drawLabel(ctx, name, pct, x, y) {
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.font = "bold 14px sans-serif"; ctx.textAlign = "center";
+        ctx.fillText(name.substring(0,8), x, y - 6);
+        ctx.fillStyle = "#D4AF37"; ctx.font = "bold 13px sans-serif";
+        ctx.fillText(pct, x, y + 14);
+        ctx.restore();
     }
 
     function runPhysics(seed) {
-        if (isSpinning) return;
-        isSpinning = true;
-        showBall = true;
+        if(isSpinning) return; isSpinning = true; showBall = true;
+        document.getElementById("countdownOverlay").style.display = "none";
+        document.getElementById("statusDot").className = "status-dot playing";
+        document.getElementById("statusLabel").innerText = "جاري السحب والتدوير المستقر... 🎯";
 
-        ballX = 150 + (seed * 300);
-        ballY = 150 + ((seed * 5 % 1) * 300);
-
-        let finalLaunchAngle = (seed * 12.3) * Math.PI * 2;
-        let speedMod = 40 + (seed * 15); 
-        let vx = Math.cos(finalLaunchAngle) * speedMod, vy = Math.sin(finalLaunchAngle) * speedMod;
-
-        let zoomFactor = 1;
+        ballX = 200 + (seed * 200); ballY = 200 + ((seed * 3 % 1) * 200);
+        let angle = seed * Math.PI * 2;
+        let speed = 35 + (seed * 15);
+        let vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
+        let zoom = 1;
 
         function frame() {
             ballX += vx; ballY += vy;
-            
-            if (ballX <= 15) { vx = Math.abs(vx); ballX = 16; }
-            if (ballX >= 585) { vx = -Math.abs(vx); ballX = 584; }
-            if (ballY <= 15) { vy = Math.abs(vy); ballY = 16; }
-            if (ballY >= 585) { vy = -Math.abs(vy); ballY = 584; }
+            if(ballX <= 16 || ballX >= 584) vx *= -1;
+            if(ballY <= 16 || ballY >= 584) vy *= -1;
+            vx *= 0.985; vy *= 0.985;
 
-            vx *= 0.98; vy *= 0.98;
-            let currentSpeed = Math.sqrt(vx*vx + vy*vy);
-            
-            if (currentSpeed < 3.5) {
-                zoomFactor = Math.min(2.0, zoomFactor + 0.03);
-            }
+            let s = Math.sqrt(vx*vx + vy*vy);
+            if(s < 4) zoom = Math.min(1.8, zoom + 0.03);
 
-            drawMap(players, zoomFactor, ballX, ballY);
+            drawMap(players, zoom, ballX, ballY);
 
-            if (currentSpeed > 0.25) {
+            if(s > 0.25) {
                 requestAnimationFrame(frame);
             } else {
                 const canvas = document.getElementById("arenaCanvas");
                 const ctx = canvas.getContext("2d");
-                let pixel = ctx.getImageData(Math.round(ballX), Math.round(ballY), 1, 1).data;
+                let p = ctx.getImageData(Math.round(ballX), Math.round(ballY), 1, 1).data;
+                let hex = "#" + ("0" + p[0].toString(16)).slice(-2) + ("0" + p[1].toString(16)).slice(-2) + ("0" + p[2].toString(16)).slice(-2);
                 
-                function componentToHex(c) {
-                    var hex = c.toString(16);
-                    return hex.length == 1 ? "0" + hex : hex;
-                }
-                let hexColorStr = "#" + componentToHex(pixel[0]) + componentToHex(pixel[1]) + componentToHex(pixel[2]);
-
-                let win = players.find(p => p.colorHex && p.colorHex.toLowerCase() === hexColorStr.toLowerCase());
-                if (!win) win = players[0];
-                
-                finishGame(win);
+                let winner = players.find(x => x.colorHex && x.colorHex.toLowerCase() === hex.toLowerCase()) || players[0];
+                endRound(winner);
             }
         }
         requestAnimationFrame(frame);
     }
 
-    async function finishGame(win) {
-        let prize = players.reduce((s, p) => s + p.amount, 0);
-        let isWinner = win.id === myId;
-
+    function endRound(win) {
+        let pot = players.reduce((s, p) => s + p.amount, 0);
         document.getElementById("winnerOverlay").style.display = "flex";
         document.getElementById("winnerAvatar").src = win.avatar || DEFAULT_AVATAR;
-        document.getElementById("winnerName").innerText = `الفائز هو: ${win.name}`;
-        document.getElementById("winnerPrize").innerText = `+${prize.toLocaleString()} ⭐`;
+        document.getElementById("winnerName").innerText = `البطل الفائز: ${win.name}`;
+        document.getElementById("winnerPrize").innerText = `+${pot.toLocaleString()} ⭐`;
 
-        if (isWinner) {
-            myBal += prize; savebal(); updateBalUI();
-        }
+        if(win.id === myId) { myBal += pot; savebal(); updateUI(); }
 
         setTimeout(async () => {
-            try {
+            if(myId === players[0].id) {
                 await fetch(`${DB_PATH}.json`, { method: "DELETE" });
-            } catch(e) {}
+            }
             window.location.reload();
         }, 5000);
     }
 
+    function startLocalTimer() {
+        if(timerInterval) return;
+        gameState = "counting";
+        document.getElementById("statusDot").className = "status-dot counting";
+        document.getElementById("countdownOverlay").style.display = "flex";
+
+        timerInterval = setInterval(async () => {
+            localTimer--;
+            document.getElementById("countdownText").innerText = localTimer;
+            document.getElementById("statusLabel").innerText = `متبقي على قفل الباب وانطلاق الكرة: ${localTimer} ثانية`;
+
+            if(localTimer <= 0) {
+                clearInterval(timerInterval);
+                if(myId === players[0].id) {
+                    await fetch(`${DB_PATH}/match.json`, { method: "PUT", body: JSON.stringify({ seed: Math.random() }) });
+                }
+            }
+        }, 1000);
+    }
+
     async function joinGame() {
         let amt = parseInt(document.getElementById("betInput").value) || 0;
-        if (amt <= 0 || amt > myBal) { if (tg) tg.showAlert("الرصيد غير كافٍ"); return; }
+        if(amt <= 0 || amt > myBal) { alert("رصيدك الحالي لا يسمح!"); return; }
 
-        myBal -= amt; savebal(); updateBalUI();
+        myBal -= amt; savebal(); updateUI();
+        let exist = players.find(p => p.id === myId);
+        let finalBet = exist ? (exist.amount + amt) : amt;
 
-        let currentExist = players.find(p => p.id === myId);
-        let currentTotalBet = currentExist ? (currentExist.amount + amt) : amt;
-
-        let pData = {
-            id: myId, name: myName, username: myUsername, avatar: myAvatar, amount: currentTotalBet,
-            timestamp: currentExist ? currentExist.timestamp : Date.now()
-        };
-
-        try {
-            await fetch(`${DB_PATH}/players/${myId}.json`, {
-                method: "PUT",
-                body: JSON.stringify(pData),
-                headers: { "Content-Type": "application/json" }
-            });
-            
-            document.getElementById("controlTitle").innerText = "🔥 يمكنك زيادة رهانك وتكبير مساحتك الآن!";
-            document.getElementById("joinBtn").innerText = "زيادة المساحة والرهان ⚡";
-            const betStatus = document.getElementById("currentBetStatus");
-            betStatus.style.display = "block";
-            betStatus.innerText = `رهانك الحالي بالجولة: ${currentTotalBet.toLocaleString()} ⭐`;
-        } catch(e) {
-            myBal += amt; savebal(); updateBalUI();
-        }
+        let pData = { id: myId, name: myName, avatar: myAvatar, amount: finalBet };
+        await fetch(`${DB_PATH}/players/${myId}.json`, { method: "PUT", body: JSON.stringify(pData) });
     }
 
     async function sync() {
+        if(isSpinning) return;
         try {
             const res = await fetch(`${DB_PATH}.json?nc=${Date.now()}`);
             const data = await res.json();
 
-            if (!data || !data.players) {
-                players = []; gameState = "waiting"; showBall = false;
-                if (!isSpinning) {
-                    drawMap([], 1);
-                    document.getElementById("countdownOverlay").style.display = "none";
-                }
-                renderPlayersList([]);
-                setStatus("waiting", "بانتظار الأبطال...", "الميدان جاهز ومصفّر تماماً");
-                document.getElementById("playerCount").innerText = "0";
-                
-                let btn = document.getElementById("joinBtn");
-                btn.disabled = false; btn.innerText = "دخول الميدان الآن ⚔️";
-                document.getElementById("controlTitle").innerText = "حدد رهانك وادخل الميدان المربع";
-                document.getElementById("currentBetStatus").style.display = "none";
+            if(!data || !data.players) {
+                players = []; document.getElementById("playerCount").innerText = "0";
+                drawMap([]); document.getElementById("countdownOverlay").style.display = "none";
+                document.getElementById("statusLabel").innerText = "بانتظار دخول الأبطال للميدان المربع...";
+                document.getElementById("statusDot").className = "status-dot waiting";
+                document.getElementById("joinBtn").disabled = false;
+                if(timerInterval) { clearInterval(timerInterval); timerInterval = null; localTimer = 10; }
                 return;
             }
 
             players = Object.values(data.players);
-            gameState = data.state || "waiting";
+            document.getElementById("playerCount").innerText = players.length + " محارب";
 
-            document.getElementById("playerCount").innerText = players.length;
-            renderPlayersList(players);
-            if (!isSpinning) drawMap(players, 1);
+            // تحديث القائمة الجانبية
+            let listHtml = "";
+            players.forEach(p => {
+                listHtml += `<div class="player-row"><div class="player-info"><img src="${p.avatar}" class="player-avatar"><span>${p.name}</span></div><div><b>${p.amount.toLocaleString()} ⭐</b></div></div>`;
+            });
+            document.getElementById("playersList").innerHTML = listHtml;
 
-            let currentExist = players.find(p => p.id === myId);
-            if (currentExist) {
-                const betStatus = document.getElementById("currentBetStatus");
-                betStatus.style.display = "block";
-                betStatus.innerText = `رهانك الحالي بالجولة: ${currentExist.amount.toLocaleString()} ⭐`;
+            drawMap(players, 1);
+
+            // تفعيل العداد المحلي الذكي فوراً وبدون تعليق عند وجود لاعبين أو أكثر
+            if(players.length >= 2 && gameState === "waiting") {
+                startLocalTimer();
             }
 
-            let btn = document.getElementById("joinBtn");
-            if (gameState !== "waiting" && gameState !== "counting") {
-                btn.disabled = true; btn.innerText = "🔒 مغلق الآن";
-            } else {
-                btn.disabled = false;
+            if(data.match && data.match.seed) {
+                document.getElementById("joinBtn").disabled = true;
+                if(timerInterval) clearInterval(timerInterval);
+                runPhysics(data.match.seed);
             }
-
-            // نظام العد التنازلي المصلح والمضمون عند وجود لاعبين أو أكثر تلقائياً
-            if (players.length >= 2 && gameState === "waiting") {
-                await fetch(`${DB_PATH}.json`, {
-                    method: "PATCH",
-                    body: JSON.stringify({ state: "counting", startTime: Date.now() }),
-                    headers: { "Content-Type": "application/json" }
-                });
-                return;
-            }
-
-            if (gameState === "counting" && data.startTime) {
-                let elapsed = Math.floor((Date.now() - data.startTime) / 1000);
-                let remaining = Math.max(0, COUNTDOWN_FROM - elapsed);
-                
-                const overlay = document.getElementById("countdownOverlay");
-                overlay.style.display = "flex";
-                document.getElementById("countdownText").innerText = remaining;
-                setStatus("counting", "استعد للبدء! " + remaining + "ث", "يتم تحديث المساحات هندسياً ونشطاً");
-
-                if (remaining <= 0) {
-                    await fetch(`${DB_PATH}.json`, {
-                        method: "PATCH",
-                        body: JSON.stringify({ state: "playing", seed: Math.random() }),
-                        headers: { "Content-Type": "application/json" }
-                    });
-                }
-            } else if (gameState !== "playing") {
-                document.getElementById("countdownOverlay").style.display = "none";
-            }
-
-            if (gameState === "playing" && data.seed && !isSpinning) {
-                document.getElementById("countdownOverlay").style.display = "none";
-                setStatus("playing", "الكرة تدور في الميدان! 🎯", "جاري رصد الهدف الهندي المستقر...");
-                runPhysics(data.seed);
-            }
-
-            if (gameState === "waiting") {
-                setStatus("waiting", "بانتظار منافسين...", `${players.length} محارب في الميدان`);
-            }
-
-        } catch(e) { console.log(e); }
+        } catch(e) {}
     }
 
-    updateBalUI();
+    updateUI();
     setInterval(sync, 1000);
     sync();
 </script>
