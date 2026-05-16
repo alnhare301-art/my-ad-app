@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARENA V2 - الميدان المربع الآمن</title>
+    <title>ARENA V2 - الميدان المربع السريع</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -187,7 +187,7 @@
         .p-username { font-size: 10px; color: #666; }
 
         .player-meta { text-align: left; display: flex; flex-direction: column; }
-        .player-bet { color: var(--gold); font-weight: 800; font-size: 12px; }
+        .bet-gold { color: var(--gold); font-weight: 800; font-size: 12px; }
         .player-pct { color: #888; font-size: 10px; }
 
         /* ===== لوحة التحكم والرهانات ===== */
@@ -301,7 +301,7 @@
     <img src="" class="winner-avatar" id="winnerAvatar" alt="Winner Profile">
     <div class="winner-name" id="winnerName">مجهول</div>
     <div class="winner-prize" id="winnerPrize">⭐ 0</div>
-    <div class="winner-sub">جاري تصفير الساحة لجولة جديدة تلقائياً...</div>
+    <div class="winner-sub">جاري تهيئة وتصفير الساحة لجولة جديدة تلقائياً...</div>
 </div>
 
 <script>
@@ -329,6 +329,7 @@
     let myBal = parseInt(localStorage.getItem("arena_bal_fixed_v7"));
     let players = [], gameState = "waiting", isSpinning = false;
     let currentArrowAngle = 0, arrowTimer = 0;
+    let ballCanvasX = 300, ballCanvasY = 300; // لحفظ موقع الكرة على الكانفاس من أجل رسم السهم فوقها
 
     function savebal() { localStorage.setItem("arena_bal_fixed_v7", myBal); }
     function updateBalUI() { document.getElementById("balDisplay").innerText = myBal.toLocaleString() + " ⭐"; }
@@ -407,11 +408,14 @@
             startAngle = endAngle;
         });
 
+        // رسم السهم ليدور حول موقع الكرة تماماً بدلاً من المركز
         if (gameState === "playing" && arrowTimer > 0) {
-            ctx.save(); ctx.translate(300, 300); ctx.rotate(currentArrowAngle);
-            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 6; ctx.lineCap = "round";
-            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(70, 0); ctx.lineTo(60, -10);
-            ctx.moveTo(70, 0); ctx.lineTo(60, 10); ctx.stroke(); ctx.restore();
+            ctx.save(); 
+            ctx.translate(ballCanvasX, ballCanvasY); 
+            ctx.rotate(currentArrowAngle);
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 5; ctx.lineCap = "round";
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(50, 0); ctx.lineTo(42, -8);
+            ctx.moveTo(50, 0); ctx.lineTo(42, 8); ctx.stroke(); ctx.restore();
         }
     }
 
@@ -434,7 +438,7 @@
                     <span class="p-username">${p.username || '@no_user'}</span>
                 </div>
                 <div class="player-meta">
-                    <span class="player-bet">${p.amount.toLocaleString()} ⭐</span>
+                    <span class="bet-gold">${p.amount.toLocaleString()} ⭐</span>
                     <span class="player-pct">المساحة: ${pct}%</span>
                 </div>
             </div>`;
@@ -453,16 +457,24 @@
 
         let px = 40 + (seed * (W - 80));
         let py = 40 + ((seed * 7.7 % 1) * (H - 80));
+        
+        // حفظ موقع الكرة على إحداثيات الكانفاس لاستخدامها في تدوير السهم فوقها
+        ballCanvasX = px / scale;
+        ballCanvasY = py / scale;
+
         ball.style.left = `${px}px`; ball.style.top = `${py}px`; ball.style.display = "block";
 
-        arrowTimer = 120;
+        arrowTimer = 90; // مدة دوران السهم حول الكرة قبل الإطلاق
         let finalLaunchAngle = (seed * 9.44) * Math.PI * 2;
-        let speedMod = 15 + (seed * 7);
+        
+        // تم رفع معامل السرعة بشكل كبير جداً (سرعة مضاعفة وقوية في البداية)
+        let speedMod = 45 + (seed * 20); 
         let vx = Math.cos(finalLaunchAngle) * speedMod, vy = Math.sin(finalLaunchAngle) * speedMod;
 
         function frame() {
             if (arrowTimer > 0) {
-                arrowTimer--; currentArrowAngle += 0.15;
+                arrowTimer--; 
+                currentArrowAngle += 0.25; // سرعة دوران السهم حول الكرة
                 drawMap(players); requestAnimationFrame(frame); return;
             }
 
@@ -472,7 +484,8 @@
             if (py <= 8) { vy = Math.abs(vy); py = 9; }
             if (py >= H - 8) { vy = -Math.abs(vy); py = H - 9; }
 
-            vx *= 0.984; vy *= 0.984;
+            // معامل احتكاك قليل لتقليل السرعة تدريجياً وبنعومة بعد الانطلاقة الصاروخية
+            vx *= 0.988; vy *= 0.988;
             ball.style.left = `${px}px`; ball.style.top = `${py}px`;
 
             if (Math.abs(vx) > 0.25 || Math.abs(vy) > 0.25) {
@@ -505,14 +518,11 @@
 
         setTimeout(async () => {
             try {
-                // تصفير آمن وموجه: مسح الحالة والعداد والـ Seed، ولا نحذف مصفوفة اللاعبين القديمة بالكامل لمنع اختفاء حسابات الآخرين المضافة حديثاً
-                await fetch(`${DB_PATH}/state.json`, { method: "DELETE" });
-                await fetch(`${DB_PATH}/startTime.json`, { method: "DELETE" });
-                await fetch(`${DB_PATH}/seed.json`, { method: "DELETE" });
-                await fetch(`${DB_PATH}/players.json`, { method: "DELETE" });
+                // تصفير فوري وشامل بعد الفوز والعودة لـ waiting حقيقية ومنع التداخل التلقائي للعداد
+                await fetch(`${DB_PATH}.json`, { method: "DELETE" });
             } catch(e) {}
             window.location.reload();
-        }, 4000);
+        }, 4500);
     }
 
     async function joinGame() {
@@ -563,12 +573,11 @@
             renderPlayersList(players);
             if (!isSpinning) drawMap(players);
 
-            // [ميكانيكية تصفير التعليق الذكية المُصححة]: نقوم بمسح الحالات المعلقة فقط دون تصفير اللاعبين المتواجدين حالياً
+            // [ميكانيكية الفحص التلقائي ضد الكاش المعلق]
             if (gameState === "waiting" && players.length >= 1) {
                 let firstPlayerTime = players[0].timestamp || Date.now();
-                if (Date.now() - firstPlayerTime > 12000 && !isSpinning) {
-                    await fetch(`${DB_PATH}/state.json`, { method: "DELETE" });
-                    await fetch(`${DB_PATH}/startTime.json`, { method: "DELETE" });
+                if (Date.now() - firstPlayerTime > 15000 && !isSpinning) {
+                    await fetch(`${DB_PATH}.json`, { method: "DELETE" });
                     return;
                 }
             }
@@ -585,13 +594,13 @@
                 badge.style.display = "none";
             }
 
-            // العداد التنازلي المركزي
+            // تفعيل العداد التنازلي التلقائي لـ 10 ثواني
             if (gameState === "counting" && data.startTime) {
                 let elapsed = Math.floor((Date.now() - data.startTime) / 1000);
                 let remaining = Math.max(0, COUNTDOWN_FROM - elapsed);
                 document.getElementById("countdownOverlay").style.display = "flex";
                 document.getElementById("countdownText").innerText = remaining;
-                setStatus("counting", "استعد للبدء! " + remaining + "ث", "تم إغلاق الانضمام");
+                setStatus("counting", "استعد للبدء! " + remaining + "ث", "تم قفل باب الانضمام");
 
                 if (remaining <= 0 && myId === players[0]?.id) {
                     await fetch(`${DB_PATH}.json`, {
@@ -610,6 +619,7 @@
                 runPhysics(data.seed);
             }
 
+            // تعديل الشرط الصارم: لا يبدأ العداد التنازلي أبداً إلا إذا كان عدد اللاعبين في السيرفر لاعبين أو أكثر
             if (players.length >= 2 && gameState === "waiting" && myId === players[0]?.id) {
                 await fetch(`${DB_PATH}.json`, {
                     method: "PATCH",
