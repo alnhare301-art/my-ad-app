@@ -101,14 +101,14 @@
         .player-count .num { font-size: 22px; font-weight: 900; color: var(--gold); line-height: 1; }
         .player-count .lbl { font-size: 9px; color: #555; }
 
-        /* ===== الساحة المربعة المطلوبة (المساحات الداخلية غير مستطيلة) ===== */
+        /* ===== الساحة المربعة ===== */
         .arena-container {
             position: relative;
             width: 100%;
             aspect-ratio: 1;
             max-width: 360px;
             margin: 0 auto 12px;
-            border-radius: 20px; /* زوايا منحنية فخمة للمربع الحاضن */
+            border-radius: 20px;
             overflow: hidden;
             border: 4px solid rgba(212,175,55,0.3);
             box-shadow: 0 0 35px rgba(212,175,55,0.15), inset 0 0 30px rgba(0,0,0,0.8);
@@ -129,7 +129,6 @@
             transform: translate(-50%, -50%);
         }
 
-        /* شاشة العد التنازلي في وسط الميدان المربع */
         .countdown-overlay {
             position: absolute;
             inset: 0;
@@ -153,7 +152,7 @@
         @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
         .countdown-sub { font-size: 12px; color: #aaa; letter-spacing: 2px; }
 
-        /* ===== قائمة المحاربين الفخمة ===== */
+        /* ===== قائمة المحاربين ===== */
         .players-list {
             background: var(--card);
             border: 1px solid var(--border);
@@ -238,6 +237,12 @@
         .winner-sub { font-size: 12px; color: #555; }
 
         @keyframes bounceIn { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+        
+        /* زر تصفير إجباري للمشرف في حال التعليق */
+        .admin-reset-btn {
+            display: block; width: 100%; max-width: 150px; margin: 10px auto 0; background: rgba(229, 62, 62, 0.2);
+            border: 1px solid var(--red); color: #ff8888; font-size: 10px; padding: 4px; border-radius: 8px; cursor: pointer; text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -256,9 +261,9 @@
         <div class="status-info">
             <div class="status-state">
                 <div class="status-dot waiting" id="statusDot"></div>
-                <span id="statusLabel">بانتظار الأبطال...</span>
+                <span id="statusLabel">جاري المزامنة...</span>
             </div>
-            <div class="status-sub" id="statusSub">الميدان فارغ حالياً</div>
+            <div class="status-sub" id="statusSub">يرجى الانتظار</div>
         </div>
         <div class="player-count">
             <div class="num" id="playerCount">0</div>
@@ -295,6 +300,8 @@
         <div class="joined-badge" id="joinedBadge">✅ تم تسجيلك بالميدان! انتظر الخصوم...</div>
     </div>
 
+    <button class="admin-reset-btn" onclick="forceServerReset()">🛠️ تصفير إجباري للميدان</button>
+
 </div>
 
 <div class="winner-overlay" id="winnerOverlay">
@@ -306,20 +313,16 @@
 </div>
 
 <script>
-    // ===== ربط وتأمين بيئة تليجرام المدمجة =====
     const tg = window.Telegram?.WebApp;
     if (tg) {
-        tg.ready();
-        tg.expand();
-        tg.setHeaderColor('#060606');
-        tg.setBackgroundColor('#060606');
+        tg.ready(); tg.expand();
+        tg.setHeaderColor('#060606'); tg.setBackgroundColor('#060606');
     }
 
     const DB_PATH = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v8";
     const COUNTDOWN_FROM = 10;
     const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23555'><circle cx='50' cy='35' r='20'/><path d='M20,85 C20,60 80,60 80,85 Z'/></svg>";
 
-    // سحب بيانات المستخدم بالكامل من التليجرام
     const tgUser = tg?.initDataUnsafe?.user;
     let myId = tgUser ? `tg_${tgUser.id}` : (localStorage.getItem("arena_id") || "P" + Math.floor(Math.random() * 99999));
     let myName = tgUser ? (tgUser.first_name || "مجهول") : ("محارب " + myId.slice(-3));
@@ -327,44 +330,45 @@
     let myAvatar = tgUser?.photo_url || DEFAULT_AVATAR;
     localStorage.setItem("arena_id", myId);
 
-    // تصفير وضبط الرصيد الوهمي الثابت لكل شخص يدخل البوت لأول مرة بقيمة 100,000
-    if(!localStorage.getItem("arena_bal_v2")) {
-        localStorage.setItem("arena_bal_v2", "100000");
+    // تصفير إجباري للرصيد ليكون 100,000 دائمًا عند الدخول الأول
+    if(!localStorage.getItem("arena_bal_correct_v3")) {
+        localStorage.setItem("arena_bal_correct_v3", "100000");
     }
-    let myBal = parseInt(localStorage.getItem("arena_bal_v2"));
+    let myBal = parseInt(localStorage.getItem("arena_bal_correct_v3"));
     let players = [], gameState = "waiting", isSpinning = false;
+    let currentArrowAngle = 0, arrowTimer = 0;
 
-    let currentArrowAngle = 0;
-    let arrowTimer = 0;
-
-    function savebal() { localStorage.setItem("arena_bal_v2", myBal); }
+    function savebal() { localStorage.setItem("arena_bal_correct_v3", myBal); }
     function updateBalUI() { document.getElementById("balDisplay").innerText = myBal.toLocaleString() + " ⭐"; }
     function setBet(v) { document.getElementById("betInput").value = v; }
 
     function setStatus(state, label, sub) {
         const dot = document.getElementById("statusDot");
-        dot.className = "status-dot " + state;
+        if(dot) dot.className = "status-dot " + state;
         document.getElementById("statusLabel").innerText = label;
         document.getElementById("statusSub").innerText = sub;
     }
 
-    // ===== رسم مساحات عشوائية مائلة غير منتظمة الشكل داخل ساحة مربعة ومقفلة =====
+    // زر تصفير يدوي فوري للميدان بالكامل
+    async function forceServerReset() {
+        try {
+            await fetch(`${DB_PATH}.json`, { method: "DELETE" });
+            if (tg) tg.showAlert("🔄 تم تصفير قاعدة بيانات الميدان بنجاح!");
+            window.location.reload();
+        } catch(e) { alert("خطأ في التصفير"); }
+    }
+
     function drawMap(pList) {
         const canvas = document.getElementById("arenaCanvas");
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, 600, 600);
-
-        // رسم أرضية الساحة المربعة الافتراضية
         ctx.fillStyle = "#0c0c0c";
         ctx.fillRect(0, 0, 600, 600);
 
         let total = pList.reduce((s, p) => s + p.amount, 0);
         if (total === 0) return;
 
-        // زوايا توزيع عشوائية مائلة تلتقي في مركز المربع (300, 300)
         let startAngle = 0;
-        
-        // مصفوفة لتخزين نقاط وأركان المضلعات لكل لاعب لاستخدامها في حسابات الفوز الفيزيائية للكرة
         pList.forEach((p) => {
             let ratio = p.amount / total;
             let sliceAngle = ratio * Math.PI * 2;
@@ -372,12 +376,10 @@
 
             ctx.fillStyle = p.color;
             ctx.beginPath();
-            ctx.moveTo(300, 300); // النقطة المركزية المشتركة
+            ctx.moveTo(300, 300);
 
-            // حساب امتدادات الخطوط المائلة للوصول لأطراف المربع الخارجي
             let getBoxIntersection = (angle) => {
-                let cos = Math.cos(angle);
-                let sin = Math.sin(angle);
+                let cos = Math.cos(angle), sin = Math.sin(angle);
                 let t1 = cos !== 0 ? (300 / Math.abs(cos)) : Infinity;
                 let t2 = sin !== 0 ? (300 / Math.abs(sin)) : Infinity;
                 let t = Math.min(t1, t2);
@@ -386,13 +388,10 @@
 
             let ptStart = getBoxIntersection(startAngle);
             let ptEnd = getBoxIntersection(endAngle);
-
             ctx.lineTo(ptStart.x, ptStart.y);
 
-            // تتبع حواف وأركان المربع الخارجي لملء الفراغات المائلة بشكل هندسي غير مستطيل
-            let steps = 8;
-            for (let s = 1; s < steps; s++) {
-                let interAngle = startAngle + (sliceAngle * (s / steps));
+            for (let s = 1; s < 8; s++) {
+                let interAngle = startAngle + (sliceAngle * (s / 8));
                 let ptInter = getBoxIntersection(interAngle);
                 ctx.lineTo(ptInter.x, ptInter.y);
             }
@@ -401,16 +400,12 @@
             ctx.closePath();
             ctx.fill();
 
-            // حفظ الحدود الزاوية الخاصة باللاعب للاختبار الفيزيائي اللاحق عند توقف الكرة
             p.angles = { start: startAngle, end: endAngle };
 
-            // حقن تعتيم أنيق فوق الألوان مع طباعة الاسم والنسبة بالمنتصف المائل للمساحة
             ctx.save();
             let middleAngle = startAngle + sliceAngle / 2;
             let tx = 300 + Math.cos(middleAngle) * 160;
             let ty = 300 + Math.sin(middleAngle) * 160;
-
-            // كبح إحداثيات النصوص لتظل دوماً داخل المربع الـ 600x600 بمسافة آمنة
             tx = Math.max(50, Math.min(550, tx));
             ty = Math.max(50, Math.min(550, ty));
 
@@ -421,7 +416,7 @@
             ctx.font = "bold 15px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText(p.name.substring(0, 8), tx, ty - 10);
             
-            ctx.fillStyle = p.color.replace("50%)", "85%)");
+            ctx.fillStyle = "#fff";
             ctx.font = "bold 14px sans-serif";
             ctx.fillText(Math.round(ratio * 100) + "%", tx, ty + 12);
             ctx.restore();
@@ -429,26 +424,14 @@
             startAngle = endAngle;
         });
 
-        // رسم السهم الدوار والموجه لمدة ثانيتين في مركز المربع تماماً
         if (gameState === "playing" && arrowTimer > 0) {
-            ctx.save();
-            ctx.translate(300, 300);
-            ctx.rotate(currentArrowAngle);
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 6;
-            ctx.lineCap = "round";
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(70, 0);
-            ctx.lineTo(60, -10);
-            ctx.moveTo(70, 0);
-            ctx.lineTo(60, 10);
-            ctx.stroke();
-            ctx.restore();
+            ctx.save(); ctx.translate(300, 300); ctx.rotate(currentArrowAngle);
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 6; ctx.lineCap = "round";
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(70, 0); ctx.lineTo(60, -10);
+            ctx.moveTo(70, 0); ctx.lineTo(60, 10); ctx.stroke(); ctx.restore();
         }
     }
 
-    // ===== قائمة المحاربين ببيانات التليجرام الحية =====
     function renderPlayersList(pList) {
         const el = document.getElementById("playersList");
         if (!pList.length) {
@@ -469,67 +452,50 @@
                 </div>
                 <div class="player-meta">
                     <span class="player-bet">${p.amount.toLocaleString()} ⭐</span>
-                    <span class="player-pct">المساحة المائلة: ${pct}%</span>
+                    <span class="player-pct">المساحة: ${pct}%</span>
                 </div>
             </div>`;
         });
         el.innerHTML = html;
     }
 
-    // ===== المحرك الفيزيائي للكرة والسهم الدوار داخل المربع ومطابقة الفائز =====
     function runPhysics(seed) {
         if (isSpinning) return;
         isSpinning = true;
 
         const ball = document.getElementById("ball");
         const container = document.querySelector(".arena-container");
-        const W = container.clientWidth;
-        const H = container.clientHeight;
+        const W = container.clientWidth, H = container.clientHeight;
         const scale = W / 600;
 
-        // تظهر الكرة في مكان عشوائي تماماً داخل حدود المربع المتاحة
         let px = 40 + (seed * (W - 80));
         let py = 40 + ((seed * 7.7 % 1) * (H - 80));
+        ball.style.left = `${px}px`; ball.style.top = `${py}px`; ball.style.display = "block";
 
-        ball.style.left = `${px}px`;
-        ball.style.top = `${py}px`;
-        ball.style.display = "block";
-
-        arrowTimer = 120; // دوران السهم لمدة ثانيتين (120 إطار)
-        
+        arrowTimer = 120;
         let finalLaunchAngle = (seed * 9.44) * Math.PI * 2;
         let speedMod = 15 + (seed * 7);
-        let vx = Math.cos(finalLaunchAngle) * speedMod;
-        let vy = Math.sin(finalLaunchAngle) * speedMod;
+        let vx = Math.cos(finalLaunchAngle) * speedMod, vy = Math.sin(finalLaunchAngle) * speedMod;
 
         function frame() {
             if (arrowTimer > 0) {
-                arrowTimer--;
-                currentArrowAngle += 0.15; // سرعة دوران السهم الاستباقي
-                drawMap(players);
-                requestAnimationFrame(frame);
-                return;
+                arrowTimer--; currentArrowAngle += 0.15;
+                drawMap(players); requestAnimationFrame(frame); return;
             }
 
-            // حركة فيزيائية للكرة داخل المربع مع ارتدادات دقيقة عند ملامسة الحواف والحدود الزاويّة
             px += vx; py += vy;
-            
-            // ارتداد عن حواف الحاوية المربعة المنحوتة
             if (px <= 8) { vx = Math.abs(vx); px = 9; }
             if (px >= W - 8) { vx = -Math.abs(vx); px = W - 9; }
             if (py <= 8) { vy = Math.abs(vy); py = 9; }
             if (py >= H - 8) { vy = -Math.abs(vy); py = H - 9; }
 
-            vx *= 0.984; vy *= 0.984; // قوة الاحتكاك حتى التوقف الثابت
-            ball.style.left = `${px}px`;
-            ball.style.top = `${py}px`;
+            vx *= 0.984; vy *= 0.984;
+            ball.style.left = `${px}px`; ball.style.top = `${py}px`;
 
             if (Math.abs(vx) > 0.25 || Math.abs(vy) > 0.25) {
                 requestAnimationFrame(frame);
             } else {
-                // تحويل المخرجات النهائية إلى إحداثيات مركز المربع (300, 300) لمعرفة زاوية الاستقرار
-                let cx = px / scale;
-                let cy = py / scale;
+                let cx = px / scale, cy = py / scale;
                 let finalAngleFromCenter = Math.atan2(cy - 300, cx - 300);
                 if (finalAngleFromCenter < 0) finalAngleFromCenter += Math.PI * 2;
 
@@ -541,7 +507,6 @@
         requestAnimationFrame(frame);
     }
 
-    // ===== إعلان الفائز والتصفير التلقائي الفوري لمسح التعليق بجولات جديدة =====
     async function finishGame(win) {
         let prize = players.reduce((s, p) => s + p.amount, 0);
         let isWinner = win.id === myId;
@@ -552,39 +517,28 @@
         document.getElementById("winnerPrize").innerText = `+${prize.toLocaleString()} ⭐`;
 
         if (isWinner) {
-            myBal += prize;
-            savebal();
-            updateBalUI();
-            if (tg) tg.showAlert("🏆 مبروك الفوز الساحق بالجولة! ربحت: " + prize.toLocaleString() + " نجمة!");
+            myBal += prize; savebal(); updateBalUI();
+            if (tg) tg.showAlert("🏆 مبروك! ربحت: " + prize.toLocaleString() + " نجمة!");
         }
 
         setTimeout(async () => {
             try {
-                if (myId === players[0]?.id) {
-                    await fetch(`${DB_PATH}.json`, { method: "DELETE" });
-                }
+                await fetch(`${DB_PATH}.json`, { method: "DELETE" });
             } catch(e) {}
             window.location.reload();
-        }, 5000);
+        }, 4000);
     }
 
-    // ===== تقديم رهان الدخول للميدان =====
     async function joinGame() {
         let amt = parseInt(document.getElementById("betInput").value) || 0;
-        if (amt <= 0) { if (tg) tg.showAlert("الرجاء إدخال مبلغ رهان حقيقي صحيح"); return; }
-        if (amt > myBal) { if (tg) tg.showAlert("عذراً رصيدك الحالي غير كافٍ لتغطية الرهان"); return; }
+        if (amt <= 0 || amt > myBal) { if (tg) tg.showAlert("الرصيد غير كافٍ أو المبلغ خاطئ"); return; }
 
-        myBal -= amt;
-        savebal();
-        updateBalUI();
+        myBal -= amt; savebal(); updateBalUI();
 
         let pData = {
-            id: myId,
-            name: myName,
-            username: myUsername,
-            avatar: myAvatar,
-            amount: amt,
-            color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`
+            id: myId, name: myName, username: myUsername, avatar: myAvatar, amount: amt,
+            color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`,
+            timestamp: Date.now() // لحساب التعليق وضمان المزامنة
         };
 
         try {
@@ -593,37 +547,44 @@
                 body: JSON.stringify(pData),
                 headers: { "Content-Type": "application/json" }
             });
-
-            document.getElementById("joinBtn").disabled = true;
             document.getElementById("joinBtn").style.display = "none";
             document.getElementById("joinedBadge").style.display = "block";
         } catch(e) {
             myBal += amt; savebal(); updateBalUI();
-            if (tg) tg.showAlert("حدث خطأ غير متوقع بالاتصال، أعد المحاولة");
+            if (tg) tg.showAlert("خطأ في الاتصال بالسيرفر");
         }
     }
 
-    // ===== معالج المزامنة اللحظية الفورية الشاملة بكشف كاش التليجرام المدمج =====
+    // ===== المزامنة والمنظف الذكي ضد التعليق الكاش =====
     async function sync() {
         try {
             const res = await fetch(`${DB_PATH}.json?nc=${Date.now()}`);
             const data = await res.json();
 
-            if (!data) {
+            if (!data || !data.players) {
                 players = []; gameState = "waiting";
-                drawMap([]);
-                renderPlayersList([]);
-                setStatus("waiting", "بانتظار الأبطال...", "الميدان فارغ حالياً");
+                drawMap([]); renderPlayersList([]);
+                setStatus("waiting", "بانتظار الأبطال...", "الميدان جاهز ومصفّر تماماً");
                 document.getElementById("playerCount").innerText = "0";
                 return;
             }
 
-            players = data.players ? Object.values(data.players) : [];
+            players = Object.values(data.players);
             gameState = data.state || "waiting";
 
             document.getElementById("playerCount").innerText = players.length;
             renderPlayersList(players);
             if (!isSpinning) drawMap(players);
+
+            // [المنظف الذكي الفوري]: لو اللعبة معلقة waiting واللاعبين موجودين وما بدأت لأكثر من 6 ثوانٍ، أي لاعب يدخل يفرمت التعليق فوراً
+            if (gameState === "waiting" && players.length >= 1) {
+                let firstPlayerTime = players[0].timestamp || Date.now();
+                if (Date.now() - firstPlayerTime > 6000 && !isSpinning) {
+                    console.log("تم رصد تعليق قديم، جاري التنظيف الإجباري...");
+                    await fetch(`${DB_PATH}.json`, { method: "DELETE" });
+                    return;
+                }
+            }
 
             let alreadyIn = players.some(p => p.id === myId);
             let btn = document.getElementById("joinBtn");
@@ -637,13 +598,13 @@
                 badge.style.display = "none";
             }
 
-            // تفعيل نظام العد التنازلي المركزي (10 ثوانٍ) في قلب الميدان
+            // نظام العد التنازلي المركزي 10 ثوانٍ
             if (gameState === "counting" && data.startTime) {
                 let elapsed = Math.floor((Date.now() - data.startTime) / 1000);
                 let remaining = Math.max(0, COUNTDOWN_FROM - elapsed);
                 document.getElementById("countdownOverlay").style.display = "flex";
                 document.getElementById("countdownText").innerText = remaining;
-                setStatus("counting", "استعد لبدء المعركة! " + remaining + "ث", "يتم حالياً قفل وإغلاق باب الانضمام");
+                setStatus("counting", "استعد للبدء! " + remaining + "ث", "تم قفل باب الانضمام");
 
                 if (remaining <= 0 && myId === players[0]?.id) {
                     await fetch(`${DB_PATH}.json`, {
@@ -656,14 +617,13 @@
                 document.getElementById("countdownOverlay").style.display = "none";
             }
 
-            // تشغيل الفيزياء فوراً عند انتقال طور اللعبة إلى الرمي المشترك
             if (gameState === "playing" && data.seed && !isSpinning) {
                 document.getElementById("countdownOverlay").style.display = "none";
-                setStatus("playing", "الكرة تدور في الميدان المربع! 🎯", "حظاً موفقاً للمحاربين المسجلين");
+                setStatus("playing", "الكرة تدور في الميدان! 🎯", "حظاً موفقاً");
                 runPhysics(data.seed);
             }
 
-            // قيام اللاعب الأول بتشغيل شعلة العداد اللحظي عند وجود لاعبين اثنين أو أكثر
+            // تشغيل العداد عند وجود لاعبين
             if (players.length >= 2 && gameState === "waiting" && myId === players[0]?.id) {
                 await fetch(`${DB_PATH}.json`, {
                     method: "PATCH",
@@ -673,30 +633,17 @@
             }
 
             if (gameState === "waiting") {
-                setStatus("waiting",
-                    players.length === 0 ? "بانتظار الأبطال..." : "في انتظار منافس آخر...",
-                    players.length === 0 ? "كن أول من يقتحم الساحة" : `${players.length} محارب جاهز للاصطدام`
-                );
+                setStatus("waiting", "بانتظار منافسين...", `${players.length} محارب في الميدان`);
             }
 
         } catch(e) { console.log(e); }
     }
 
-    // تصفير تلقائي فوري أولي لبيانات السيرفر المعلقة لمنع ظهور الجولات السابقة عند بداية تشغيل البوت
-    async function initialResetOnOpen() {
-        try {
-            const checkRes = await fetch(`${DB_PATH}.json`);
-            const checkData = await checkRes.json();
-            // إذا فتح أول شخص البوت وكانت هناك بيانات قديمة تالفة أو معلقة، السيرفر يصفر نفسه فوراً تلقائياً
-            if (checkData && (!checkData.players || Object.keys(checkData.players).length === 0)) {
-                await fetch(`${DB_PATH}.json`, { method: "DELETE" });
-            }
-        } catch(e) {}
-    }
-
-    // ===== إطلاق تشغيل الساحة المربعة بشكل نظيف ومصَفّر =====
     updateBalUI();
-    initialResetOnOpen().then(() => {
+    // تصفير أولي عند تشغيل الصفحة الأولى لضمان مسح أي بقايا قديمة فورياً
+    fetch(`${DB_PATH}.json`).then(r => r.json()).then(d => {
+        if(!d || !d.players) fetch(`${DB_PATH}.json`, { method: "DELETE" });
+    }).finally(() => {
         setInterval(sync, 1000);
         sync();
     });
