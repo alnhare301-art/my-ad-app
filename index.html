@@ -238,10 +238,9 @@
 
         @keyframes bounceIn { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
         
-        /* زر تصفير إجباري للمشرف في حال التعليق */
         .admin-reset-btn {
-            display: block; width: 100%; max-width: 150px; margin: 10px auto 0; background: rgba(229, 62, 62, 0.2);
-            border: 1px solid var(--red); color: #ff8888; font-size: 10px; padding: 4px; border-radius: 8px; cursor: pointer; text-align: center;
+            display: block; width: 100%; max-width: 180px; margin: 12px auto 0; background: rgba(229, 62, 62, 0.15);
+            border: 1px solid var(--red); color: #ff8888; font-size: 11px; padding: 6px; border-radius: 8px; cursor: pointer; text-align: center;
         }
     </style>
 </head>
@@ -252,7 +251,7 @@
     <div class="header">
         <div class="header-brand">ARENA V2</div>
         <div class="bal-wrap">
-            <div class="bal-label">رصيدك الافتراضي</div>
+            <div class="bal-label">رصيدك الثابت</div>
             <div class="bal-amount" id="balDisplay">100,000 ⭐</div>
         </div>
     </div>
@@ -261,9 +260,9 @@
         <div class="status-info">
             <div class="status-state">
                 <div class="status-dot waiting" id="statusDot"></div>
-                <span id="statusLabel">جاري المزامنة...</span>
+                <span id="statusLabel">جاري تهيئة الميدان...</span>
             </div>
-            <div class="status-sub" id="statusSub">يرجى الانتظار</div>
+            <div class="status-sub" id="statusSub">الرجاء الانتظار ثانية</div>
         </div>
         <div class="player-count">
             <div class="num" id="playerCount">0</div>
@@ -300,7 +299,7 @@
         <div class="joined-badge" id="joinedBadge">✅ تم تسجيلك بالميدان! انتظر الخصوم...</div>
     </div>
 
-    <button class="admin-reset-btn" onclick="forceServerReset()">🛠️ تصفير إجباري للميدان</button>
+    <button class="admin-reset-btn" onclick="forceServerReset()">🛠️ تصفير فوري وإعادة تشغيل</button>
 
 </div>
 
@@ -319,9 +318,13 @@
         tg.setHeaderColor('#060606'); tg.setBackgroundColor('#060606');
     }
 
-    const DB_PATH = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v8";
+    // تم توحيد وتصحيح رابط الـ global_v7 الفعلي ليتطابق مع قاعدة البيانات التي تستخدمها حالياً بالكامل لمنع التعليق
+    const DB_PATH = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v7";
     const COUNTDOWN_FROM = 10;
     const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23555'><circle cx='50' cy='35' r='20'/><path d='M20,85 C20,60 80,60 80,85 Z'/></svg>";
+
+    // لوحة الألوان الفخمة الثابتة لمنع تكرار اللون الأخضر والأرجواني عند تشابك الحسابات
+    const PRESET_COLORS = ["#e53e3e", "#3182ce", "#38a169", "#805ad5", "#dd6b20", "#319795", "#d69e2e"];
 
     const tgUser = tg?.initDataUnsafe?.user;
     let myId = tgUser ? `tg_${tgUser.id}` : (localStorage.getItem("arena_id") || "P" + Math.floor(Math.random() * 99999));
@@ -330,15 +333,15 @@
     let myAvatar = tgUser?.photo_url || DEFAULT_AVATAR;
     localStorage.setItem("arena_id", myId);
 
-    // تصفير إجباري للرصيد ليكون 100,000 دائمًا عند الدخول الأول
-    if(!localStorage.getItem("arena_bal_correct_v3")) {
-        localStorage.setItem("arena_bal_correct_v3", "100000");
+    // تصفير الرصيد وجعله 100,000 إجبارياً لكل المستخدمين
+    if(!localStorage.getItem("arena_bal_fixed_v7")) {
+        localStorage.setItem("arena_bal_fixed_v7", "100000");
     }
-    let myBal = parseInt(localStorage.getItem("arena_bal_correct_v3"));
+    let myBal = parseInt(localStorage.getItem("arena_bal_fixed_v7"));
     let players = [], gameState = "waiting", isSpinning = false;
     let currentArrowAngle = 0, arrowTimer = 0;
 
-    function savebal() { localStorage.setItem("arena_bal_correct_v3", myBal); }
+    function savebal() { localStorage.setItem("arena_bal_fixed_v7", myBal); }
     function updateBalUI() { document.getElementById("balDisplay").innerText = myBal.toLocaleString() + " ⭐"; }
     function setBet(v) { document.getElementById("betInput").value = v; }
 
@@ -349,13 +352,13 @@
         document.getElementById("statusSub").innerText = sub;
     }
 
-    // زر تصفير يدوي فوري للميدان بالكامل
+    // وظيفة تصفير السيرفر الإجبارية لمسح أي كاش معلق
     async function forceServerReset() {
         try {
             await fetch(`${DB_PATH}.json`, { method: "DELETE" });
-            if (tg) tg.showAlert("🔄 تم تصفير قاعدة بيانات الميدان بنجاح!");
+            if (tg) tg.showAlert("🔄 تم تصفير كافة الحسابات المعلقة وبدء الميدان من جديد بنجاح!");
             window.location.reload();
-        } catch(e) { alert("خطأ في التصفير"); }
+        } catch(e) { alert("خطأ في الشبكة"); }
     }
 
     function drawMap(pList) {
@@ -369,12 +372,13 @@
         if (total === 0) return;
 
         let startAngle = 0;
-        pList.forEach((p) => {
+        pList.forEach((p, index) => {
             let ratio = p.amount / total;
             let sliceAngle = ratio * Math.PI * 2;
             let endAngle = startAngle + sliceAngle;
 
-            ctx.fillStyle = p.color;
+            // استخدام لون مميز ومختلف من مصفوفة الألوان الفخمة حسب ترتيب اللاعب
+            ctx.fillStyle = PRESET_COLORS[index % PRESET_COLORS.length];
             ctx.beginPath();
             ctx.moveTo(300, 300);
 
@@ -406,17 +410,17 @@
             let middleAngle = startAngle + sliceAngle / 2;
             let tx = 300 + Math.cos(middleAngle) * 160;
             let ty = 300 + Math.sin(middleAngle) * 160;
-            tx = Math.max(50, Math.min(550, tx));
-            ty = Math.max(50, Math.min(550, ty));
+            tx = Math.max(60, Math.min(540, tx));
+            ty = Math.max(60, Math.min(540, ty));
 
-            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.fillStyle = "rgba(0,0,0,0.6)";
             ctx.beginPath(); ctx.arc(tx, ty, 38, 0, Math.PI * 2); ctx.fill();
 
             ctx.fillStyle = "white";
             ctx.font = "bold 15px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText(p.name.substring(0, 8), tx, ty - 10);
             
-            ctx.fillStyle = "#fff";
+            ctx.fillStyle = var(--gold);
             ctx.font = "bold 14px sans-serif";
             ctx.fillText(Math.round(ratio * 100) + "%", tx, ty + 12);
             ctx.restore();
@@ -452,7 +456,7 @@
                 </div>
                 <div class="player-meta">
                     <span class="player-bet">${p.amount.toLocaleString()} ⭐</span>
-                    <span class="player-pct">المساحة: ${pct}%</span>
+                    <span class="player-pct">المساحة المائلة: ${pct}%</span>
                 </div>
             </div>`;
         });
@@ -518,7 +522,6 @@
 
         if (isWinner) {
             myBal += prize; savebal(); updateBalUI();
-            if (tg) tg.showAlert("🏆 مبروك! ربحت: " + prize.toLocaleString() + " نجمة!");
         }
 
         setTimeout(async () => {
@@ -531,14 +534,13 @@
 
     async function joinGame() {
         let amt = parseInt(document.getElementById("betInput").value) || 0;
-        if (amt <= 0 || amt > myBal) { if (tg) tg.showAlert("الرصيد غير كافٍ أو المبلغ خاطئ"); return; }
+        if (amt <= 0 || amt > myBal) { if (tg) tg.showAlert("الرصيد غير كافٍ أو الرهان خاطئ"); return; }
 
         myBal -= amt; savebal(); updateBalUI();
 
         let pData = {
             id: myId, name: myName, username: myUsername, avatar: myAvatar, amount: amt,
-            color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`,
-            timestamp: Date.now() // لحساب التعليق وضمان المزامنة
+            timestamp: Date.now()
         };
 
         try {
@@ -551,11 +553,9 @@
             document.getElementById("joinedBadge").style.display = "block";
         } catch(e) {
             myBal += amt; savebal(); updateBalUI();
-            if (tg) tg.showAlert("خطأ في الاتصال بالسيرفر");
         }
     }
 
-    // ===== المزامنة والمنظف الذكي ضد التعليق الكاش =====
     async function sync() {
         try {
             const res = await fetch(`${DB_PATH}.json?nc=${Date.now()}`);
@@ -576,11 +576,10 @@
             renderPlayersList(players);
             if (!isSpinning) drawMap(players);
 
-            // [المنظف الذكي الفوري]: لو اللعبة معلقة waiting واللاعبين موجودين وما بدأت لأكثر من 6 ثوانٍ، أي لاعب يدخل يفرمت التعليق فوراً
+            // [ميكانيكية تصفير التعليق التلقائي الذكي]
             if (gameState === "waiting" && players.length >= 1) {
                 let firstPlayerTime = players[0].timestamp || Date.now();
-                if (Date.now() - firstPlayerTime > 6000 && !isSpinning) {
-                    console.log("تم رصد تعليق قديم، جاري التنظيف الإجباري...");
+                if (Date.now() - firstPlayerTime > 12000 && !isSpinning) {
                     await fetch(`${DB_PATH}.json`, { method: "DELETE" });
                     return;
                 }
@@ -598,13 +597,13 @@
                 badge.style.display = "none";
             }
 
-            // نظام العد التنازلي المركزي 10 ثوانٍ
+            // العداد التنازلي التلقائي لبدء اللعب فوراً
             if (gameState === "counting" && data.startTime) {
                 let elapsed = Math.floor((Date.now() - data.startTime) / 1000);
                 let remaining = Math.max(0, COUNTDOWN_FROM - elapsed);
                 document.getElementById("countdownOverlay").style.display = "flex";
                 document.getElementById("countdownText").innerText = remaining;
-                setStatus("counting", "استعد للبدء! " + remaining + "ث", "تم قفل باب الانضمام");
+                setStatus("counting", "استعد للبدء! " + remaining + "ث", "يتم قفل الأبواب");
 
                 if (remaining <= 0 && myId === players[0]?.id) {
                     await fetch(`${DB_PATH}.json`, {
@@ -623,7 +622,6 @@
                 runPhysics(data.seed);
             }
 
-            // تشغيل العداد عند وجود لاعبين
             if (players.length >= 2 && gameState === "waiting" && myId === players[0]?.id) {
                 await fetch(`${DB_PATH}.json`, {
                     method: "PATCH",
@@ -640,13 +638,8 @@
     }
 
     updateBalUI();
-    // تصفير أولي عند تشغيل الصفحة الأولى لضمان مسح أي بقايا قديمة فورياً
-    fetch(`${DB_PATH}.json`).then(r => r.json()).then(d => {
-        if(!d || !d.players) fetch(`${DB_PATH}.json`, { method: "DELETE" });
-    }).finally(() => {
-        setInterval(sync, 1000);
-        sync();
-    });
+    setInterval(sync, 1000);
+    sync();
 </script>
 </body>
 </html>
