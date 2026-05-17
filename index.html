@@ -3,721 +3,426 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ARENA V2 – ساحة المواجهة</title>
+<title>ARENA V2</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
-:root {
-  --gold:   #D4AF37;
-  --gold2:  #FFE066;
-  --dark:   #07070A;
-  --card:   #10101A;
-  --card2:  #181825;
-  --border: rgba(212,175,55,0.18);
-  --red:    #ef4444;
-  --green:  #10b981;
-  --blue:   #3b82f6;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-html, body {
-  background: var(--dark);
-  color: #fff;
-  font-family: 'Tajawal', sans-serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* ─── NOISE OVERLAY ─── */
-body::before {
-  content: '';
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  opacity: .45;
-}
-
-.wrapper {
-  position: relative; z-index: 1;
-  padding: 10px 12px 24px;
-  max-width: 430px; margin: 0 auto;
-}
-
-/* ─── HEADER ─── */
-.header {
-  display: flex; align-items: center; justify-content: space-between;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 11px 16px;
-  margin-bottom: 10px;
-}
-.brand {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 15px; font-weight: 900; letter-spacing: 2px;
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.balance {
-  font-size: 17px; font-weight: 900;
-  color: var(--gold);
-  display: flex; align-items: center; gap: 5px;
-}
-.balance::before { content: '⭐'; font-size: 13px; }
-
-/* ─── STATUS BAR ─── */
-.status-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 14px; padding: 9px 15px; margin-bottom: 10px;
-  min-height: 44px;
-}
-.status-left { display: flex; align-items: center; gap: 8px; }
-.dot {
-  width: 9px; height: 9px; border-radius: 50%; background: #333;
-  flex-shrink: 0; transition: background .4s;
-}
-.dot.waiting  { background: #555; }
-.dot.counting { background: #f59e0b; animation: pulse 0.7s infinite; }
-.dot.playing  { background: var(--green); }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
-.status-label { font-size: 12px; font-weight: 700; color: #bbb; }
-
-.pcount-badge {
-  background: rgba(212,175,55,.12);
-  border: 1px solid rgba(212,175,55,.22);
-  border-radius: 10px; padding: 4px 12px;
-  font-size: 18px; font-weight: 900; color: var(--gold);
-  font-family: 'Orbitron', sans-serif;
-  min-width: 40px; text-align: center;
-}
-
-/* ─── ARENA ─── */
-.arena-wrap {
-  position: relative;
-  width: 100%; aspect-ratio: 1;
-  max-width: 390px; margin: 0 auto 10px;
-  border-radius: 22px; overflow: hidden;
-  border: 3px solid rgba(212,175,55,.28);
-  background: #050508;
-  box-shadow: 0 0 40px rgba(212,175,55,.06), 0 8px 32px rgba(0,0,0,.7);
-}
-#arenaCanvas {
-  width: 100%; height: 100%;
-  display: block; image-rendering: pixelated;
-}
-/* countdown overlay */
-.cd-overlay {
-  position: absolute; inset: 0;
-  display: none; align-items: center; justify-content: center;
-  background: rgba(0,0,0,.35); backdrop-filter: blur(2px);
-  z-index: 20;
-}
-.cd-num {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 108px; font-weight: 900; color: #fff;
-  text-shadow: 0 0 40px rgba(0,0,0,.95), 0 0 60px rgba(212,175,55,.3);
-  animation: cdPop .5s ease;
-}
-@keyframes cdPop { 0%{transform:scale(1.4);opacity:0} 100%{transform:scale(1);opacity:1} }
-
-/* ─── PLAYERS LIST ─── */
-.players-list {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 14px; padding: 8px 12px;
-  margin-bottom: 10px; max-height: 148px; overflow-y: auto;
-}
-.players-list::-webkit-scrollbar { width: 3px; }
-.players-list::-webkit-scrollbar-thumb { background: rgba(212,175,55,.25); border-radius: 3px; }
-.empty-msg { text-align: center; color: #333; font-size: 13px; padding: 14px 0; }
-.player-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.04);
-  font-size: 13px;
-}
-.player-row:last-child { border-bottom: none; }
-.player-info { display: flex; align-items: center; gap: 9px; }
-.p-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.p-avatar { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: #222; }
-.p-name { font-weight: 700; font-size: 13px; }
-.p-bar-wrap {
-  flex: 1; margin: 0 8px;
-  background: rgba(255,255,255,.06); border-radius: 4px; height: 5px; overflow: hidden;
-}
-.p-bar { height: 100%; border-radius: 4px; transition: width .5s; }
-.p-amt { font-size: 12px; font-weight: 900; color: var(--gold); white-space: nowrap; }
-
-/* ─── CONTROLS ─── */
-.controls {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 20px; padding: 15px 14px;
-}
-.bet-presets {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;
-}
-.preset-btn {
-  background: rgba(212,175,55,.07); border: 1px solid rgba(212,175,55,.18);
-  color: var(--gold); padding: 9px 0; border-radius: 10px;
-  font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700;
-  cursor: pointer; transition: background .2s, border-color .2s;
-}
-.preset-btn:hover { background: rgba(212,175,55,.15); border-color: rgba(212,175,55,.4); }
-.input-row { display: flex; gap: 8px; margin-bottom: 10px; }
-#betInput {
-  flex: 1; background: rgba(0,0,0,.4); border: 1px solid rgba(212,175,55,.22);
-  border-radius: 12px; color: var(--gold); font-size: 22px; font-weight: 900;
-  text-align: center; padding: 11px;
-  font-family: 'Orbitron', sans-serif;
-  outline: none; -moz-appearance: textfield;
-}
-#betInput::-webkit-inner-spin-button, #betInput::-webkit-outer-spin-button { -webkit-appearance: none; }
-#joinBtn {
-  width: 100%; background: linear-gradient(135deg, #c9970a, var(--gold), var(--gold2));
-  padding: 14px; border-radius: 14px; border: none;
-  color: #000; font-weight: 900; font-size: 15px; letter-spacing: .5px;
-  cursor: pointer; box-shadow: 0 4px 18px rgba(212,175,55,.22);
-  font-family: 'Tajawal', sans-serif;
-  transition: opacity .2s, box-shadow .2s;
-}
-#joinBtn:disabled { background: #1a1a1a; color: #444; cursor: not-allowed; box-shadow: none; }
-#joinBtn:not(:disabled):hover { box-shadow: 0 6px 28px rgba(212,175,55,.35); }
-
-/* ─── WINNER OVERLAY ─── */
-.winner-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.97);
-  display: none; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 100; text-align: center; padding: 20px;
-}
-.win-trophy { font-size: 64px; margin-bottom: 6px; animation: bounceIn .6s; }
-@keyframes bounceIn { 0%{transform:scale(0)} 70%{transform:scale(1.15)} 100%{transform:scale(1)} }
-.win-avatar {
-  width: 90px; height: 90px; border-radius: 50%;
-  border: 3px solid var(--gold); margin: 10px 0;
-  box-shadow: 0 0 30px rgba(212,175,55,.35);
-}
-.win-name { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
-.win-prize {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 44px; font-weight: 900; color: var(--gold);
-  text-shadow: 0 0 25px rgba(212,175,55,.4);
-  margin-bottom: 10px;
-}
-.win-sub { color: #444; font-size: 12px; }
-
-/* ─── TOAST ─── */
-.toast {
-  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-  background: var(--card2); border: 1px solid var(--border);
-  border-radius: 12px; padding: 10px 20px;
-  font-size: 13px; font-weight: 700; color: #fff;
-  z-index: 200; opacity: 0; transition: opacity .3s; pointer-events: none;
-  white-space: nowrap;
-}
-.toast.show { opacity: 1; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--gold:#D4AF37;--gold2:#FFE066;--dark:#07070A;--card:#0F0F18;--border:rgba(212,175,55,0.18)}
+body{background:var(--dark);color:#fff;font-family:'Tajawal',sans-serif;min-height:100vh;padding-bottom:20px}
+.wrap{max-width:420px;margin:0 auto;padding:10px 12px}
+.hdr{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:11px 16px;margin-bottom:10px}
+.brand{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.bal{font-size:16px;font-weight:900;color:var(--gold)}
+.sbar{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:9px 15px;margin-bottom:10px}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-left:8px}
+.dot.w{background:#444}.dot.c{background:#f59e0b;animation:blink .7s infinite}.dot.p{background:#10b981}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.slabel{font-size:12px;color:#aaa;font-weight:700}
+.pcnt{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--gold);background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.2);border-radius:10px;padding:4px 12px}
+.arena{position:relative;width:100%;aspect-ratio:1;max-width:380px;margin:0 auto 10px;border-radius:20px;overflow:hidden;border:3px solid rgba(212,175,55,.25);background:#050508;box-shadow:0 6px 30px rgba(0,0,0,.7)}
+#cv{width:100%;height:100%;display:block}
+.cdov{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.4);backdrop-filter:blur(3px);z-index:10}
+.cdnum{font-family:'Orbitron',sans-serif;font-size:110px;font-weight:900;color:#fff;text-shadow:0 0 40px rgba(0,0,0,1),0 0 60px rgba(212,175,55,.4)}
+.plist{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:8px 12px;margin-bottom:10px;max-height:145px;overflow-y:auto}
+.prow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.prow:last-child{border:none}
+.pcd{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.pavt{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#222}
+.pnm{font-weight:700;flex:1}
+.pbar{flex:1;height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.pbf{height:100%;border-radius:3px;transition:width .5s}
+.pamt{font-size:12px;font-weight:900;color:var(--gold);white-space:nowrap}
+.pempty{text-align:center;color:#333;font-size:13px;padding:16px 0}
+.ctrl{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px}
+.presets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.pb{background:rgba(212,175,55,.07);border:1px solid rgba(212,175,55,.18);color:var(--gold);padding:9px 0;border-radius:10px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer}
+.pb:active{background:rgba(212,175,55,.18)}
+#binput{width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.2);border-radius:12px;color:var(--gold);font-size:22px;font-weight:900;text-align:center;padding:11px;font-family:'Orbitron',sans-serif;outline:none;margin-bottom:10px;-moz-appearance:textfield}
+#binput::-webkit-inner-spin-button{-webkit-appearance:none}
+#joinbtn{width:100%;background:linear-gradient(135deg,#b8860c,var(--gold),var(--gold2));padding:14px;border-radius:14px;border:none;color:#000;font-weight:900;font-size:15px;cursor:pointer;font-family:'Tajawal',sans-serif;box-shadow:0 4px 16px rgba(212,175,55,.2)}
+#joinbtn:disabled{background:#1a1a1a;color:#444;cursor:not-allowed;box-shadow:none}
+#dbg{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:10px;color:#666;font-family:monospace;line-height:1.6;display:none;max-height:80px;overflow-y:auto}
+.wov{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;text-align:center;padding:20px}
+.wtrophy{font-size:70px;animation:pop .5s}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.wavt{width:90px;height:90px;border-radius:50%;border:3px solid var(--gold);margin:12px 0;box-shadow:0 0 30px rgba(212,175,55,.3)}
+.wnm{font-size:22px;font-weight:900;margin-bottom:6px}
+.wprz{font-family:'Orbitron',sans-serif;font-size:42px;font-weight:900;color:var(--gold);text-shadow:0 0 20px rgba(212,175,55,.4);margin-bottom:10px}
+.wsub{color:#444;font-size:12px}
 </style>
 </head>
 <body>
-
-<div class="wrapper">
-  <!-- HEADER -->
-  <div class="header">
+<div class="wrap">
+  <div class="hdr">
     <div class="brand">ARENA V2</div>
-    <div class="balance" id="balDisplay">100,000</div>
+    <div class="bal" id="balEl">100,000 ⭐</div>
   </div>
-
-  <!-- STATUS BAR -->
-  <div class="status-bar">
-    <div class="status-left">
-      <div class="dot waiting" id="statusDot"></div>
-      <div class="status-label" id="statusLabel">بانتظار المنافسين...</div>
+  <div class="sbar">
+    <div style="display:flex;align-items:center">
+      <div class="dot w" id="dot"></div>
+      <div class="slabel" id="slabel">جاري الاتصال...</div>
     </div>
-    <div class="pcount-badge" id="playerCount">0</div>
+    <div class="pcnt" id="pcnt">0</div>
   </div>
-
-  <!-- ARENA CANVAS -->
-  <div class="arena-wrap">
-    <canvas id="arenaCanvas" width="600" height="600"></canvas>
-    <div class="cd-overlay" id="cdOverlay">
-      <div class="cd-num" id="cdNum">10</div>
+  <div class="arena">
+    <canvas id="cv" width="600" height="600"></canvas>
+    <div class="cdov" id="cdov">
+      <div class="cdnum" id="cdnum">10</div>
     </div>
   </div>
-
-  <!-- PLAYERS LIST -->
-  <div class="players-list" id="playersList">
-    <div class="empty-msg">لا يوجد لاعبون بعد — كن أول المنافسين!</div>
-  </div>
-
-  <!-- CONTROLS -->
-  <div class="controls">
-    <div class="bet-presets">
-      <button class="preset-btn" onclick="setBet(500)">500</button>
-      <button class="preset-btn" onclick="setBet(1000)">1K</button>
-      <button class="preset-btn" onclick="setBet(5000)">5K</button>
-      <button class="preset-btn" onclick="setBet(10000)">10K</button>
+  <div class="plist" id="plist"><div class="pempty">لا يوجد لاعبون بعد</div></div>
+  <div id="dbg"></div>
+  <div class="ctrl">
+    <div class="presets">
+      <button class="pb" onclick="setBet(500)">500</button>
+      <button class="pb" onclick="setBet(1000)">1K</button>
+      <button class="pb" onclick="setBet(5000)">5K</button>
+      <button class="pb" onclick="setBet(10000)">10K</button>
     </div>
-    <div class="input-row">
-      <input type="number" id="betInput" value="1000" min="100">
-    </div>
-    <button id="joinBtn" onclick="joinGame()">⚔️ دخول ساحة المواجهة</button>
+    <input type="number" id="binput" value="1000">
+    <button id="joinbtn" onclick="joinGame()">⚔️ دخول ساحة المواجهة</button>
   </div>
 </div>
-
-<!-- WINNER OVERLAY -->
-<div class="winner-overlay" id="winnerOverlay">
-  <div class="win-trophy">🏆</div>
-  <img src="" class="win-avatar" id="winnerAvatar">
-  <div class="win-name" id="winnerName">—</div>
-  <div class="win-prize" id="winnerPrize">0</div>
-  <div class="win-sub">الانتقال التلقائي للجولة القادمة...</div>
+<div class="wov" id="wov">
+  <div class="wtrophy">🏆</div>
+  <img src="" class="wavt" id="wavt">
+  <div class="wnm" id="wnm"></div>
+  <div class="wprz" id="wprz"></div>
+  <div class="wsub">الانتقال التلقائي للجولة القادمة خلال 5 ثوانٍ...</div>
 </div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
 
 <script>
-/* ═══════════════════════════════════════════════
-   CONFIG
-═══════════════════════════════════════════════ */
-const DB   = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v7";
-const SYNC = 1000; // polling interval ms
+/* ══ CONFIG ══ */
+const DB = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v7";
+const COLORS = ["#3b82f6","#ef4444","#10b981","#a855f7","#f97316","#eab308","#06b6d4","#ec4899","#84cc16","#f43f5e"];
+const AVT = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='38' r='22' fill='%23555'/><path d='M15,90 C15,62 85,62 85,90 Z' fill='%23555'/></svg>`;
 
-const PLAYER_COLORS = [
-  "#3b82f6","#ef4444","#10b981","#a855f7",
-  "#f97316","#eab308","#06b6d4","#ec4899","#84cc16"
-];
-
-const DEFAULT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'
-  viewBox='0 0 100 100'><circle cx='50' cy='38' r='22' fill='%23555'/>
-  <path d='M15,90 C15,62 85,62 85,90 Z' fill='%23555'/></svg>`;
-
-/* ═══════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════ */
+/* ══ IDENTITY ══ */
 const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); }
+if(tg){tg.ready();tg.expand();}
+let myId   = tg?.initDataUnsafe?.user?.id ? "tg_"+tg.initDataUnsafe.user.id : (localStorage.getItem("aid")||"P"+(Math.random()*99999|0));
+let myName = tg?.initDataUnsafe?.user?.first_name || "محارب";
+let myAvt  = tg?.initDataUnsafe?.user?.photo_url  || AVT;
+localStorage.setItem("aid",myId);
 
-let myId     = tg?.initDataUnsafe?.user ? `tg_${tg.initDataUnsafe.user.id}` :
-               (localStorage.getItem("arena_pid") || "P" + ~~(Math.random()*99999));
-let myName   = tg?.initDataUnsafe?.user?.first_name || "محارب#" + myId.slice(-3);
-let myAvatar = tg?.initDataUnsafe?.user?.photo_url || DEFAULT_AVATAR;
-localStorage.setItem("arena_pid", myId);
+/* ══ BALANCE ══ */
+if(!localStorage.getItem("abal"))localStorage.setItem("abal","100000");
+let bal = +localStorage.getItem("abal");
+function saveBal(){localStorage.setItem("abal",bal);}
+function updBal(){document.getElementById("balEl").textContent=bal.toLocaleString()+" ⭐";}
 
-const BAL_KEY = "arena_bal_v2";
-if (!localStorage.getItem(BAL_KEY)) localStorage.setItem(BAL_KEY, "100000");
-let myBal = parseInt(localStorage.getItem(BAL_KEY));
+/* ══ STATE ══ */
+let players=[], phase="waiting", cdSecs=10, cdTimer=null, spinning=false;
+let bx=300,by=300,bvx=0,bvy=0;
 
-let players      = [];
-let gameState    = "waiting";
-let timerInt     = null;
-let localTimer   = 10;
-let isSpinning   = false;
-let ballX = 300, ballY = 300;
-let showBall     = false;
-let colorMap     = {}; // id → hex
-
-/* ═══════════════════════════════════════════════
-   UI HELPERS
-═══════════════════════════════════════════════ */
-function saveBal()  { localStorage.setItem(BAL_KEY, myBal); }
-function updBal()   { document.getElementById("balDisplay").textContent = myBal.toLocaleString(); }
-
-function toast(msg, dur = 2000) {
-  const el = document.getElementById("toast");
-  el.textContent = msg; el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), dur);
+/* ══ DEBUG (حط DEBUG=true لو تبي ترى اللوق) ══ */
+const DEBUG=false;
+function log(m){
+  if(!DEBUG)return;
+  const el=document.getElementById("dbg");
+  el.style.display="block";
+  el.innerHTML+=`<div>${new Date().toLocaleTimeString()} — ${m}</div>`;
+  el.scrollTop=el.scrollHeight;
 }
 
-function setBet(v) { document.getElementById("betInput").value = v; }
+function setBet(v){document.getElementById("binput").value=v;}
 
-/* ═══════════════════════════════════════════════
-   VORONOI SEED GENERATION
-   Seeds are deterministic from player id, so they
-   don't jump around on re-render.
-═══════════════════════════════════════════════ */
-function deterministicXY(id, salt = 0) {
-  let h = salt;
-  for (let i = 0; i < id.length; i++) h = id.charCodeAt(i) + ((h << 5) - h);
-  // Use sin/cos of hash to scatter well inside canvas (margin 80)
-  const x = 80 + Math.abs(Math.sin(h * 0.00137) * 440);
-  const y = 80 + Math.abs(Math.cos(h * 0.00251) * 440);
-  return { x, y };
+/* ══ SEED POINT (ثابت لكل لاعب) ══ */
+function seedXY(id){
+  let h=5381;
+  for(let i=0;i<id.length;i++)h=((h<<5)+h)^id.charCodeAt(i);
+  h=Math.abs(h);
+  return{x:80+(h%441), y:80+((h*7919)%441)};
 }
 
-/* ═══════════════════════════════════════════════
-   BUILD SEEDS  (weighted voronoi approach:
-   distance divided by ratio gives proportional area)
-═══════════════════════════════════════════════ */
-function buildSeeds(pList) {
-  const total = pList.reduce((s, p) => s + (p.amount || 0), 0) || 1;
-  return pList.map((p, i) => {
-    const { x, y } = deterministicXY(p.id);
-    const ratio    = p.amount / total;
-    return {
-      id: p.id, name: p.name, avatar: p.avatar,
-      amount: p.amount, ratio,
-      x, y,
-      color: PLAYER_COLORS[i % PLAYER_COLORS.length]
-    };
-  });
-}
-
-/* ═══════════════════════════════════════════════
-   DRAW VORONOI MAP
-   True pixel-by-pixel distance with ratio weighting
-═══════════════════════════════════════════════ */
-function drawVoronoi(pList, zoom = 1, focusX = 300, focusY = 300) {
-  const canvas = document.getElementById("arenaCanvas");
-  const ctx    = canvas.getContext("2d");
-  ctx.clearRect(0, 0, 600, 600);
+/* ══ VORONOI DRAW ══ */
+function drawArena(pArr,zoom,focX,focY){
+  const cv=document.getElementById("cv");
+  const ctx=cv.getContext("2d");
+  ctx.clearRect(0,0,600,600);
   ctx.save();
+  if(zoom&&zoom>1){ctx.translate(300,300);ctx.scale(zoom,zoom);ctx.translate(-focX,-focY);}
 
-  if (zoom > 1) {
-    ctx.translate(300, 300);
-    ctx.scale(zoom, zoom);
-    ctx.translate(-focusX, -focusY);
-  }
-
-  if (!pList.length) {
-    // Empty arena — dark grid pattern
-    ctx.fillStyle = "#08080F"; ctx.fillRect(0, 0, 600, 600);
-    ctx.strokeStyle = "rgba(212,175,55,.05)"; ctx.lineWidth = 1;
-    for (let i = 0; i <= 600; i += 60) {
-      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 600); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(600, i); ctx.stroke();
+  if(!pArr||!pArr.length){
+    ctx.fillStyle="#08080F";ctx.fillRect(0,0,600,600);
+    ctx.strokeStyle="rgba(212,175,55,.05)";ctx.lineWidth=1;
+    for(let i=0;i<=600;i+=60){
+      ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,600);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(600,i);ctx.stroke();
     }
-    ctx.restore(); return;
+    ctx.restore();return;
   }
 
-  const seeds = buildSeeds(pList);
-  colorMap    = {};
-  seeds.forEach(s => { colorMap[s.id] = s.color; });
-
-  if (seeds.length === 1) {
-    ctx.fillStyle = seeds[0].color;
-    ctx.fillRect(0, 0, 600, 600);
-    drawLabel(ctx, seeds[0], 300, 300);
-    pList[0].colorHex = seeds[0].color;
-    ctx.restore(); return;
-  }
-
-  /* ── Pixel-by-pixel Voronoi ── */
-  const imgData = ctx.createImageData(600, 600);
-  const d       = imgData.data;
-
-  for (let py = 0; py < 600; py++) {
-    for (let px = 0; px < 600; px++) {
-      let minD = Infinity, closest = null;
-      for (let k = 0; k < seeds.length; k++) {
-        const s  = seeds[k];
-        const dx = px - s.x, dy = py - s.y;
-        // Weighted distance: divide by ratio^2 so larger bets cover more area
-        const dist = (dx*dx + dy*dy) / (s.ratio * s.ratio * 16 + 0.001);
-        if (dist < minD) { minD = dist; closest = s; }
-      }
-      if (closest) {
-        const idx = (py * 600 + px) * 4;
-        const c   = closest.color;
-        d[idx]   = parseInt(c.slice(1,3), 16);
-        d[idx+1] = parseInt(c.slice(3,5), 16);
-        d[idx+2] = parseInt(c.slice(5,7), 16);
-        d[idx+3] = 255;
-      }
-    }
-  }
-  ctx.putImageData(imgData, 0, 0);
-
-  /* ── Voronoi edge highlight ── */
-  const edge = ctx.createImageData(600, 600);
-  for (let py = 1; py < 599; py++) {
-    for (let px = 1; px < 599; px++) {
-      const c  = (py * 600 + px) * 4;
-      const cR = (py * 600 + px + 1) * 4;
-      const cD = ((py+1) * 600 + px) * 4;
-      if (d[c] !== d[cR] || d[c+1] !== d[cR+1] ||
-          d[c] !== d[cD] || d[c+1] !== d[cD+1]) {
-        edge.data[c] = edge.data[c+1] = edge.data[c+2] = 0;
-        edge.data[c+3] = 200;
-      }
-    }
-  }
-  ctx.putImageData(edge, 0, 0, 0, 0, 600, 600);
-
-  /* ── Labels ── */
-  seeds.forEach((s, i) => {
-    pList[i].colorHex = s.color;
-    drawLabel(ctx, s, s.x, s.y);
+  const tot=pArr.reduce((s,p)=>s+(p.amount||0),0)||1;
+  const seeds=pArr.map((p,i)=>{
+    const{x,y}=seedXY(p.id);
+    const ratio=(p.amount||0)/tot;
+    const color=COLORS[i%COLORS.length];
+    p.colorHex=color;
+    return{id:p.id,name:p.name||"؟",ratio,x,y,color};
   });
 
-  /* ── Border ── */
-  ctx.strokeStyle = "rgba(0,0,0,.9)"; ctx.lineWidth = 10;
-  ctx.strokeRect(0, 0, 600, 600);
-
-  /* ── Ball ── */
-  if (showBall) drawBall(ctx, ballX, ballY);
-
-  ctx.restore();
-}
-
-function drawLabel(ctx, seed, x, y) {
-  const pct = Math.round(seed.ratio * 100) + "%";
-  ctx.save();
-  // Shadow circle
-  ctx.shadowBlur = 10; ctx.shadowColor = "rgba(0,0,0,.8)";
-  ctx.fillStyle = "rgba(0,0,0,.7)";
-  ctx.beginPath(); ctx.arc(x, y, 36, 0, Math.PI*2); ctx.fill();
-  ctx.shadowBlur = 0;
-  // Name
-  ctx.fillStyle = "#fff"; ctx.font = "bold 12px Tajawal"; ctx.textAlign = "center";
-  ctx.fillText((seed.name||"?").substring(0, 9), x, y - 4);
-  // Pct
-  ctx.fillStyle = "#D4AF37"; ctx.font = "bold 13px Orbitron";
-  ctx.fillText(pct, x, y + 15);
-  ctx.restore();
-}
-
-function drawBall(ctx, bx, by) {
-  ctx.save();
-  ctx.shadowBlur = 20; ctx.shadowColor = "rgba(255,255,255,.7)";
-  const g = ctx.createRadialGradient(bx-4, by-4, 1, bx, by, 13);
-  g.addColorStop(0, "#ffffff");
-  g.addColorStop(0.5, "#FFE066");
-  g.addColorStop(1, "#D4AF37");
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(bx, by, 13, 0, Math.PI*2); ctx.fill();
-  ctx.restore();
-}
-
-/* ═══════════════════════════════════════════════
-   PLAYERS LIST UI
-═══════════════════════════════════════════════ */
-function renderPlayersList(pList) {
-  const el   = document.getElementById("playersList");
-  const tot  = pList.reduce((s, p) => s + (p.amount || 0), 0) || 1;
-  if (!pList.length) {
-    el.innerHTML = '<div class="empty-msg">لا يوجد لاعبون بعد — كن أول المنافسين!</div>';
-    return;
+  /* pixel voronoi */
+  const img=ctx.createImageData(600,600);
+  const d=img.data;
+  for(let py=0;py<600;py++){
+    for(let px=0;px<600;px++){
+      let best=Infinity,who=null;
+      for(let k=0;k<seeds.length;k++){
+        const s=seeds[k];
+        const dx=px-s.x,dy=py-s.y;
+        const r2=s.ratio*s.ratio||0.0001;
+        const dist=(dx*dx+dy*dy)/r2;
+        if(dist<best){best=dist;who=s;}
+      }
+      const idx=(py*600+px)*4;
+      d[idx]  =parseInt(who.color.slice(1,3),16);
+      d[idx+1]=parseInt(who.color.slice(3,5),16);
+      d[idx+2]=parseInt(who.color.slice(5,7),16);
+      d[idx+3]=255;
+    }
   }
-  const seeds = buildSeeds(pList);
-  el.innerHTML = seeds.map(s => `
-    <div class="player-row">
-      <div class="player-info">
-        <div class="p-dot" style="background:${s.color}"></div>
-        <img src="${s.avatar || DEFAULT_AVATAR}" class="p-avatar" onerror="this.src='${DEFAULT_AVATAR}'">
-        <span class="p-name">${(s.name||"؟").substring(0,12)}</span>
-      </div>
-      <div class="p-bar-wrap"><div class="p-bar" style="width:${Math.round(s.ratio*100)}%;background:${s.color}"></div></div>
-      <div class="p-amt">${s.amount.toLocaleString()} ⭐</div>
-    </div>
-  `).join("");
-}
+  ctx.putImageData(img,0,0);
 
-/* ═══════════════════════════════════════════════
-   LOCAL TIMER
-═══════════════════════════════════════════════ */
-function startLocalTimer() {
-  if (timerInt) return;
-  gameState = "counting";
-  localTimer = 10;
-  document.getElementById("statusDot").className   = "dot counting";
-  document.getElementById("cdOverlay").style.display = "flex";
-  document.getElementById("cdNum").textContent      = "10";
-
-  timerInt = setInterval(async () => {
-    localTimer--;
-    document.getElementById("cdNum").textContent = localTimer;
-    document.getElementById("statusLabel").textContent =
-      `قفل الباب بعد ${localTimer} ثانية ⏳`;
-
-    if (localTimer <= 0) {
-      clearInterval(timerInt); timerInt = null;
-      // Only the first player triggers the seed to avoid race condition
-      if (players.length > 0 && players[0].id === myId) {
-        await fetch(`${DB}/match.json`, {
-          method: "PUT",
-          body: JSON.stringify({ seed: Math.random(), ts: Date.now() })
-        });
+  /* cell borders */
+  const edge=ctx.createImageData(600,600);
+  for(let py=1;py<599;py++){
+    for(let px=1;px<599;px++){
+      const c=(py*600+px)*4,r=(py*600+px+1)*4,b=((py+1)*600+px)*4;
+      if(d[c]!==d[r]||d[c+1]!==d[r+1]||d[c]!==d[b]||d[c+1]!==d[b+1]){
+        edge.data[c]=edge.data[c+1]=edge.data[c+2]=0;edge.data[c+3]=210;
       }
     }
-  }, 1000);
+  }
+  ctx.putImageData(edge,0,0,0,0,600,600);
+
+  /* labels */
+  seeds.forEach(s=>{
+    ctx.save();
+    ctx.fillStyle="rgba(0,0,0,.72)";ctx.beginPath();ctx.arc(s.x,s.y,36,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#fff";ctx.font="bold 12px Tajawal";ctx.textAlign="center";
+    ctx.fillText(s.name.substring(0,9),s.x,s.y-3);
+    ctx.fillStyle=s.color;ctx.font="bold 12px Orbitron";
+    ctx.fillText(Math.round(s.ratio*100)+"%",s.x,s.y+16);
+    ctx.restore();
+  });
+
+  ctx.strokeStyle="rgba(0,0,0,.9)";ctx.lineWidth=10;ctx.strokeRect(0,0,600,600);
+  ctx.restore();
 }
 
-function stopLocalTimer() {
-  if (timerInt) { clearInterval(timerInt); timerInt = null; }
-  localTimer = 10;
-  document.getElementById("cdOverlay").style.display = "none";
+function drawBall(zoom,focX,focY){
+  const cv=document.getElementById("cv");
+  const ctx=cv.getContext("2d");
+  ctx.save();
+  if(zoom&&zoom>1){ctx.translate(300,300);ctx.scale(zoom,zoom);ctx.translate(-focX,-focY);}
+  ctx.shadowBlur=22;ctx.shadowColor="rgba(255,255,255,.8)";
+  const g=ctx.createRadialGradient(bx-4,by-4,1,bx,by,14);
+  g.addColorStop(0,"#fff");g.addColorStop(.5,"#FFE066");g.addColorStop(1,"#D4AF37");
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(bx,by,13,0,Math.PI*2);ctx.fill();
+  ctx.restore();
 }
 
-/* ═══════════════════════════════════════════════
-   PHYSICS ENGINE
-═══════════════════════════════════════════════ */
-function runPhysics(seed) {
-  if (isSpinning) return;
-  isSpinning = true; showBall = true;
-  stopLocalTimer();
-  document.getElementById("joinBtn").disabled     = true;
-  document.getElementById("statusDot").className  = "dot playing";
-  document.getElementById("statusLabel").textContent = "الكرة تتحرك... 🎯";
-  document.getElementById("cdOverlay").style.display = "none";
+/* ══ PLAYERS LIST ══ */
+function renderList(pArr){
+  const el=document.getElementById("plist");
+  if(!pArr||!pArr.length){el.innerHTML='<div class="pempty">لا يوجد لاعبون بعد</div>';return;}
+  const tot=pArr.reduce((s,p)=>s+(p.amount||0),0)||1;
+  el.innerHTML=pArr.map((p,i)=>{
+    const color=COLORS[i%COLORS.length];
+    const pct=Math.round((p.amount||0)/tot*100);
+    return`<div class="prow">
+      <div class="pcd" style="background:${color}"></div>
+      <img src="${p.avatar||AVT}" class="pavt" onerror="this.src='${AVT}'">
+      <span class="pnm">${(p.name||"؟").substring(0,12)}</span>
+      <div class="pbar"><div class="pbf" style="width:${pct}%;background:${color}"></div></div>
+      <span class="pamt">${(p.amount||0).toLocaleString()} ⭐</span>
+    </div>`;
+  }).join("");
+}
 
-  // Deterministic start pos from seed
-  ballX = 140 + (seed * 320);
-  ballY = 140 + ((seed * 7.3 % 1) * 320);
-  let angle = seed * Math.PI * 2;
-  let speed = 30 + (seed * 20);
-  let vx = Math.cos(angle) * speed;
-  let vy = Math.sin(angle) * speed;
-  let zoom = 1;
+/* ══ COUNTDOWN ══ */
+function startCD(){
+  if(cdTimer)return;
+  phase="counting";cdSecs=10;
+  document.getElementById("dot").className="dot c";
+  document.getElementById("slabel").textContent="قفل الباب بعد 10 ثوانٍ ⏳";
+  document.getElementById("cdov").style.display="flex";
+  document.getElementById("cdnum").textContent="10";
+  log("countdown started");
 
-  function frame() {
-    ballX += vx; ballY += vy;
-
-    // Bounce off walls (ball radius = 13)
-    if (ballX <= 13)  { ballX = 13;  vx = Math.abs(vx); }
-    if (ballX >= 587) { ballX = 587; vx = -Math.abs(vx); }
-    if (ballY <= 13)  { ballY = 13;  vy = Math.abs(vy); }
-    if (ballY >= 587) { ballY = 587; vy = -Math.abs(vy); }
-
-    // Friction
-    vx *= 0.987; vy *= 0.987;
-
-    const spd = Math.hypot(vx, vy);
-    if (spd < 5) zoom = Math.min(2.0, zoom + 0.025);
-
-    drawVoronoi(players, zoom, ballX, ballY);
-
-    if (spd > 0.3) {
-      requestAnimationFrame(frame);
-    } else {
-      // Sample pixel beneath ball
-      const canvas = document.getElementById("arenaCanvas");
-      const ctx    = canvas.getContext("2d");
-      // Draw without zoom for accurate color sampling
-      drawVoronoi(players, 1, 300, 300);
-      const px   = ctx.getImageData(Math.round(ballX), Math.round(ballY), 1, 1).data;
-      const hex  = "#" +
-        ("0" + px[0].toString(16)).slice(-2) +
-        ("0" + px[1].toString(16)).slice(-2) +
-        ("0" + px[2].toString(16)).slice(-2);
-
-      const winner = players.find(p => p.colorHex &&
-        p.colorHex.toLowerCase() === hex.toLowerCase()) || players[0];
-
-      endRound(winner);
+  cdTimer=setInterval(async()=>{
+    cdSecs--;
+    document.getElementById("cdnum").textContent=cdSecs;
+    document.getElementById("slabel").textContent=`قفل الباب بعد ${cdSecs} ثانية ⏳`;
+    if(cdSecs<=0){
+      clearInterval(cdTimer);cdTimer=null;
+      /* أول لاعب (أصغر id) يرسل الـ seed */
+      const sorted=[...players].sort((a,b)=>a.id.localeCompare(b.id));
+      if(sorted.length&&sorted[0].id===myId){
+        const seed=Math.random();
+        log("I am host, posting seed "+seed);
+        await fbPut("match",{seed,ts:Date.now()});
+      }
     }
+  },1000);
+}
+
+function stopCD(){
+  if(cdTimer){clearInterval(cdTimer);cdTimer=null;}
+  cdSecs=10;
+  document.getElementById("cdov").style.display="none";
+}
+
+/* ══ PHYSICS ══ */
+function launchBall(seed){
+  if(spinning)return;
+  spinning=true;
+  stopCD();
+  phase="playing";
+  document.getElementById("dot").className="dot p";
+  document.getElementById("slabel").textContent="الكرة تتحرك 🎯";
+  document.getElementById("joinbtn").disabled=true;
+
+  bx=130+(seed*340);
+  by=130+((seed*Math.PI%1)*340);
+  const angle=seed*Math.PI*2;
+  const spd=28+seed*18;
+  bvx=Math.cos(angle)*spd;
+  bvy=Math.sin(angle)*spd;
+  let zoom=1;
+
+  function frame(){
+    bx+=bvx;by+=bvy;
+    if(bx<13){bx=13;bvx=Math.abs(bvx);}
+    if(bx>587){bx=587;bvx=-Math.abs(bvx);}
+    if(by<13){by=13;bvy=Math.abs(bvy);}
+    if(by>587){by=587;bvy=-Math.abs(bvy);}
+    bvx*=0.986;bvy*=0.986;
+    const sp=Math.hypot(bvx,bvy);
+    if(sp<6)zoom=Math.min(2.2,zoom+0.028);
+
+    drawArena(players,zoom,bx,by);
+    drawBall(zoom,bx,by);
+
+    if(sp>0.35){requestAnimationFrame(frame);}
+    else{detectWinner();}
   }
   requestAnimationFrame(frame);
 }
 
-/* ═══════════════════════════════════════════════
-   END ROUND
-═══════════════════════════════════════════════ */
-function endRound(win) {
-  const pot = players.reduce((s, p) => s + (p.amount || 0), 0);
+function detectWinner(){
+  /* redraw flat for accurate pixel read */
+  drawArena(players,1,300,300);
+  const ctx=document.getElementById("cv").getContext("2d");
+  const px=ctx.getImageData(Math.round(bx),Math.round(by),1,1).data;
+  const hex="#"+("0"+px[0].toString(16)).slice(-2)+("0"+px[1].toString(16)).slice(-2)+("0"+px[2].toString(16)).slice(-2);
+  log("ball at "+Math.round(bx)+","+Math.round(by)+" color="+hex);
 
-  document.getElementById("winnerAvatar").src   = win.avatar || DEFAULT_AVATAR;
-  document.getElementById("winnerName").textContent  = `🥇 ${win.name}`;
-  document.getElementById("winnerPrize").textContent = `+${pot.toLocaleString()} ⭐`;
-  document.getElementById("winnerOverlay").style.display = "flex";
+  let winner=players.find(p=>p.colorHex&&p.colorHex.toLowerCase()===hex.toLowerCase());
+  if(!winner){
+    winner=[...players].sort((a,b)=>(b.amount||0)-(a.amount||0))[0];
+    log("fallback to biggest: "+winner?.name);
+  }
+  showWinner(winner);
+}
 
-  if (win.id === myId) {
-    myBal += pot; saveBal(); updBal();
-    toast("🎉 أنت الفائز! تمت إضافة جائزتك.", 4000);
+function showWinner(win){
+  const pot=players.reduce((s,p)=>s+(p.amount||0),0);
+  document.getElementById("wavt").src=win.avatar||AVT;
+  document.getElementById("wnm").textContent="🥇 "+win.name;
+  document.getElementById("wprz").textContent="+"+pot.toLocaleString()+" ⭐";
+  document.getElementById("wov").style.display="flex";
+  if(win.id===myId){bal+=pot;saveBal();updBal();}
+
+  const sorted=[...players].sort((a,b)=>a.id.localeCompare(b.id));
+  if(sorted.length&&sorted[0].id===myId){
+    setTimeout(async()=>{await fbDelete();},5000);
+  }
+  setTimeout(()=>location.reload(),5500);
+}
+
+/* ══ FIREBASE ══ */
+async function fbGet(){
+  const r=await fetch(`${DB}.json?nc=${Date.now()}`);
+  return r.json();
+}
+async function fbPut(path,data){
+  return fetch(`${DB}/${path}.json`,{method:"PUT",body:JSON.stringify(data)});
+}
+async function fbDelete(){
+  return fetch(`${DB}.json`,{method:"DELETE"});
+}
+
+/* ══ JOIN ══ */
+async function joinGame(){
+  if(phase==="playing"||phase==="done"){alert("الجولة بدأت!");return;}
+  const amt=parseInt(document.getElementById("binput").value)||0;
+  if(amt<=0){alert("أدخل مبلغاً صحيحاً");return;}
+  if(amt>bal){alert("رصيدك غير كافٍ!");return;}
+  bal-=amt;saveBal();updBal();
+  document.getElementById("joinbtn").disabled=true;
+  const exist=players.find(p=>p.id===myId);
+  const newAmt=exist?(exist.amount||0)+amt:amt;
+  await fbPut(`players/${myId}`,{id:myId,name:myName,avatar:myAvt,amount:newAmt});
+  document.getElementById("joinbtn").disabled=false;
+}
+
+/* ══ SYNC LOOP ══ */
+let lastMatchTs=null;
+
+async function sync(){
+  if(spinning)return;
+  let data;
+  try{data=await fbGet();}catch(e){log("fetch err: "+e.message);return;}
+
+  /* room empty */
+  if(!data||!data.players){
+    if(phase!=="waiting"){
+      phase="waiting";stopCD();players=[];
+      drawArena([]);renderList([]);
+      document.getElementById("pcnt").textContent="0";
+      document.getElementById("dot").className="dot w";
+      document.getElementById("slabel").textContent="بانتظار المنافسين...";
+      document.getElementById("joinbtn").disabled=false;
+    }
+    return;
   }
 
-  setTimeout(async () => {
-    // First player resets the round
-    if (players.length && players[0].id === myId) {
-      await fetch(`${DB}.json`, { method: "DELETE" });
-    }
-    window.location.reload();
-  }, 5000);
-}
+  players=Object.values(data.players);
+  document.getElementById("pcnt").textContent=players.length;
+  renderList(players);
 
-/* ═══════════════════════════════════════════════
-   JOIN GAME
-═══════════════════════════════════════════════ */
-async function joinGame() {
-  const amt = parseInt(document.getElementById("betInput").value) || 0;
-  if (amt <= 0)      { toast("أدخل مبلغاً صحيحاً"); return; }
-  if (amt > myBal)   { toast("رصيدك غير كافٍ!"); return; }
-  if (gameState === "playing") { toast("الجولة بدأت! انتظر الجولة القادمة."); return; }
+  /* match seed → launch */
+  if(data.match&&data.match.seed&&data.match.ts!==lastMatchTs){
+    lastMatchTs=data.match.ts;
+    log("seed received: "+data.match.seed);
+    document.getElementById("joinbtn").disabled=true;
+    launchBall(data.match.seed);
+    return;
+  }
 
-  myBal -= amt; saveBal(); updBal();
+  if(phase!=="playing")drawArena(players);
 
-  const existing   = players.find(p => p.id === myId);
-  const finalBet   = existing ? (existing.amount + amt) : amt;
-  const pData      = { id: myId, name: myName, avatar: myAvatar, amount: finalBet };
-
-  await fetch(`${DB}/players/${myId}.json`, {
-    method: "PUT", body: JSON.stringify(pData)
-  });
-  toast(`تم الرهان بـ ${amt.toLocaleString()} ⭐ ✅`);
-}
-
-/* ═══════════════════════════════════════════════
-   SYNC LOOP  (polling Firebase REST)
-═══════════════════════════════════════════════ */
-async function sync() {
-  if (isSpinning) return;
-  try {
-    const res  = await fetch(`${DB}.json?nc=${Date.now()}`);
-    const data = await res.json();
-
-    /* ── Empty room ── */
-    if (!data || !data.players) {
-      if (players.length || gameState !== "waiting") {
-        players   = [];
-        gameState = "waiting";
-        stopLocalTimer();
-        document.getElementById("playerCount").textContent     = "0";
-        document.getElementById("statusLabel").textContent     = "بانتظار المنافسين...";
-        document.getElementById("statusDot").className         = "dot waiting";
-        document.getElementById("joinBtn").disabled            = false;
-        renderPlayersList([]);
-        drawVoronoi([]);
-      }
-      return;
-    }
-
-    players = Object.values(data.players);
-    document.getElementById("playerCount").textContent = players.length;
-    renderPlayersList(players);
-    drawVoronoi(players, 1);
-
-    /* ── Match seed published → start physics ── */
-    if (data.match && data.match.seed) {
-      gameState = "playing";
-      document.getElementById("joinBtn").disabled = true;
-      runPhysics(data.match.seed);
-      return;
-    }
-
-    /* ── Start local timer once 2+ players present ── */
-    if (players.length >= 2 && gameState === "waiting") {
-      startLocalTimer();
-    }
-
-    /* ── If somehow went back to 1 player mid-countdown, reset timer ── */
-    if (players.length < 2 && gameState === "counting") {
-      stopLocalTimer();
-      gameState = "waiting";
-      document.getElementById("statusDot").className     = "dot waiting";
-      document.getElementById("statusLabel").textContent = "بانتظار المنافسين...";
-    }
-
-  } catch (e) {
-    // Network error — keep UI as-is
+  /* 2+ players → start countdown */
+  if(players.length>=2&&phase==="waiting"){
+    log("2 players found, starting countdown");
+    startCD();
+  }
+  /* dropped below 2 → stop */
+  if(players.length<2&&phase==="counting"){
+    stopCD();phase="waiting";
+    document.getElementById("dot").className="dot w";
+    document.getElementById("slabel").textContent="بانتظار المنافسين...";
   }
 }
 
-/* ═══════════════════════════════════════════════
-   BOOT
-═══════════════════════════════════════════════ */
+/* ══ BOOT ══ */
 updBal();
-drawVoronoi([]);
+drawArena([]);
 sync();
-setInterval(sync, SYNC);
+setInterval(sync,1200);
 </script>
 </body>
 </html>
