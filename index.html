@@ -1,187 +1,160 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
-import { motion, AnimatePresence } from "motion/react";
-import { Trophy, LogIn } from "lucide-react";
-import confetti from "canvas-confetti";
+import express from "express";
+import path from "path";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { createServer as createViteServer } from "vite";
 
-// الثوابت
-const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23555'><circle cx='50' cy='35' r='20'/><path d='M20,85 C20,60 80,60 80,85 Z'/></svg>";
+const PORT = 3000;
 
-export default function App() {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [tgUser, setTgUser] = useState<any>(null);
-  const [gameState, setGameState] = useState<any>({
-    gameState: "waiting",
-    players: [],
-    countdown: 10,
+async function startServer() {
+  const app = express();
+  const httpServer = createServer(app);
+  const io = new Server(httpServer, {
+    cors: { origin: "*", methods: ["GET", "POST"] },
   });
-  const [myBalance, setMyBalance] = useState<number>(() => {
-    const saved = localStorage.getItem("arena_bal_tg_v2");
-    return saved ? parseInt(saved) : 100000;
-  });
-  const [betAmount, setBetAmount] = useState<number>(1000);
-  const [loading, setLoading] = useState(true);
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const physicsRef = useRef<any>({ ballX: 300, ballY: 300, vx: 0, vy: 0, zoom: 1, active: false });
+  // حالة اللعبة
+  interface Player {
+    id: string;
+    name: string;
+    avatar: string;
+    amount: number;
+    color: string;
+  }
 
-  // 1. تهيئة Telegram WebApp
-  useEffect(() => {
-    const tg = (window as any).Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      setTgUser(tg.initDataUnsafe?.user || { id: "test_dev", first_name: "مطور" });
-    }
-    setLoading(false);
-  }, []);
+  let playersMap: Map<string, Player> = new Map();
+  let gameState: "waiting" | "counting" | "playing" | "winner" = "waiting";
+  let countdown = 10;
+  let timerInterval: NodeJS.Timeout | null = null;
+  let gameSeed = 0;
+  let winner: Player | null = null;
+  let pot = 0;
 
-  // 2. الاتصال بـ Socket.io
-  useEffect(() => {
-    if (!tgUser) return;
-    const newSocket = io();
-    setSocket(newSocket);
+  const COLORS = ["#3b82f6", "#ef4444", "#10b981", "#a855f7", "#f97316", "#eab308", "#06b6d4"];
 
-    newSocket.on("gameUpdate", (data) => setGameState(data));
-    newSocket.on("countdown", (count) => setGameState((prev: any) => ({ ...prev, countdown: count })));
-    newSocket.on("gameStart", ({ seed, players }) => {
-      setGameState((prev: any) => ({ ...prev, gameState: "playing", players }));
-      startPhysics(seed);
+  // دالة تصفير الساحة بالكامل
+  function resetGame() {
+    console.log("♻️ جاري تصفير الساحة لجولة جديدة...");
+    playersMap.clear();
+    gameState = "waiting";
+    countdown = 10;
+    gameSeed = 0;
+    winner = null;
+    pot = 0;
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    
+    // إرسال تحديث التصفير لجميع المتصلين
+    io.emit("gameUpdate", { 
+      gameState, 
+      players: [], 
+      countdown, 
+      winner: null, 
+      pot: 0 
     });
-    newSocket.on("gameWinner", ({ winner, pot }) => {
-      setGameState((prev: any) => ({ ...prev, gameState: "winner", winner, pot }));
-      if (String(winner.id) === String(tgUser.id)) {
-        setMyBalance(p => {
-          const next = p + pot;
-          localStorage.setItem("arena_bal_tg_v2", next.toString());
-          return next;
+  }
+
+  function startGame() {
+    gameState = "playing";
+    gameSeed = Math.random();
+    io.emit("gameStart", { seed: gameSeed, players: Array.from(playersMap.values()) });
+
+    // وقت حركة الكرة (12 ثانية)
+    setTimeout(() => {
+      calculateWinner();
+    }, 12000);
+  }
+
+  function calculateWinner() {
+    if (playersMap.size === 0) {
+      resetGame();
+      return;
+    }
+    
+    const playerList = Array.from(playersMap.values());
+    const totalAmount = playerList.reduce((sum, p) => sum + p.amount, 0);
+    let random = Math.random() * totalAmount;
+    let current = 0;
+    
+    for (const p of playerList) {
+      current += p.amount;
+      if (random <= current) {
+        winner = p;
+        break;
+      }
+    }
+
+    if (!winner) winner = playerList[0];
+
+    gameState = "winner";
+    io.emit("gameWinner", { winner, pot: totalAmount });
+
+    // عرض شاشة الفوز لمدة 8 ثوانٍ ثم التصفير التلقائي
+    setTimeout(() => {
+      resetGame();
+    }, 8000);
+  }
+
+  io.on("connection", (socket) => {
+    // إرسال الحالة الحالية للمستخدم الجديد
+    socket.emit("gameUpdate", { 
+      gameState, 
+      players: Array.from(playersMap.values()), 
+      countdown,
+      winner,
+      pot
+    });
+
+    socket.on("join", (playerData: { id: string; name: string; avatar: string; amount: number }) => {
+      if (gameState !== "waiting" && gameState !== "counting") return;
+
+      const existingPlayer = playersMap.get(playerData.id);
+      if (existingPlayer) {
+        existingPlayer.amount += playerData.amount;
+      } else {
+        playersMap.set(playerData.id, {
+          ...playerData,
+          color: COLORS[playersMap.size % COLORS.length]
         });
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      }
+
+      io.emit("gameUpdate", { gameState, players: Array.from(playersMap.values()), countdown });
+
+      // بدء العد التنازلي عند رصد لاعبين
+      if (playersMap.size >= 2 && gameState === "waiting") {
+        gameState = "counting";
+        countdown = 10;
+        timerInterval = setInterval(() => {
+          countdown--;
+          io.emit("countdown", countdown);
+          if (countdown <= 0) {
+            clearInterval(timerInterval!);
+            timerInterval = null;
+            startGame();
+          }
+        }, 1000);
       }
     });
 
-    return () => { newSocket.disconnect(); };
-  }, [tgUser]);
-
-  // 3. نظام الفيزياء (الكرة والتقسيم)
-  const startPhysics = (seed: number) => {
-    physicsRef.current = {
-      ballX: 200 + (seed * 200),
-      ballY: 200 + ((seed * 3 % 1) * 200),
-      vx: Math.cos(seed * Math.PI * 2) * (35 + seed * 15),
-      vy: Math.sin(seed * Math.PI * 2) * (35 + seed * 15),
-      zoom: 1,
-      active: true,
-    };
-
-    const animate = () => {
-      const state = physicsRef.current;
-      if (!state.active) return;
-
-      state.ballX += state.vx; state.ballY += state.vy;
-      if (state.ballX <= 15 || state.ballX >= 585) state.vx *= -1;
-      if (state.ballY <= 15 || state.ballY >= 585) state.vy *= -1;
-      state.vx *= 0.985; state.vy *= 0.985;
-
-      const speed = Math.sqrt(state.vx ** 2 + state.vy ** 2);
-      if (speed < 4) state.zoom = Math.min(1.8, state.zoom + 0.03);
-
-      const ctx = canvasRef.current?.getContext("2d");
-      if (ctx && offscreenCanvasRef.current) {
-        ctx.save();
-        ctx.clearRect(0,0,600,600);
-        if (state.zoom > 1) {
-          ctx.translate(300, 300); ctx.scale(state.zoom, state.zoom); ctx.translate(-state.ballX, -state.ballY);
-        }
-        ctx.drawImage(offscreenCanvasRef.current, 0, 0);
-        // رسم الكرة
-        ctx.fillStyle = "#fff"; ctx.shadowBlur = 15; ctx.shadowColor = "#D4AF37";
-        ctx.beginPath(); ctx.arc(state.ballX, state.ballY, 12, 0, Math.PI*2); ctx.fill();
-        ctx.restore();
-      }
-
-      if (speed > 0.2) requestAnimationFrame(animate); 
-      else state.active = false;
-    };
-    requestAnimationFrame(animate);
-  };
-
-  // 4. رسم المخطط الهندسي (Voronoi-like)
-  useEffect(() => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 600; canvas.height = 600;
-    const ctx = canvas.getContext("2d")!;
-    if (gameState.players.length === 0) {
-      ctx.fillStyle = "#0c0c0c"; ctx.fillRect(0,0,600,600);
-    } else {
-      // (كود رسم المناطق الهندسي بناءً على حصص اللاعبين...)
-      // ملاحظة: هذا الكود تم تبسيطه للعرض، وهو مدمج بشكل كامل في التطبيق الحي.
-      ctx.fillStyle = "#111"; ctx.fillRect(0,0,600,600);
-      gameState.players.forEach((p: any, i: number) => {
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = 0.4;
-        ctx.beginPath(); ctx.arc(300, 300, 300 * (p.amount / 10000), 0, Math.PI*2); ctx.fill();
-        ctx.globalAlpha = 1.0;
-      });
-    }
-    offscreenCanvasRef.current = canvas;
-  }, [gameState.players]);
-
-  const joinGame = () => {
-    if (!socket || !tgUser || betAmount > myBalance) return;
-    setMyBalance(b => {
-      const n = b - betAmount;
-      localStorage.setItem("arena_bal_tg_v2", n.toString());
-      return n;
+    // إضافة ميزة التصفير اليدوي للمطور (اختياري)
+    socket.on("forceReset", () => {
+       resetGame();
     });
-    socket.emit("join", { 
-      id: String(tgUser.id), 
-      name: tgUser.first_name, 
-      avatar: tgUser.photo_url || DEFAULT_AVATAR, 
-      amount: betAmount 
-    });
-  };
+  });
 
-  if (loading) return <div className="h-screen bg-black flex items-center justify-center text-gold">جاري التحميل...</div>;
+  // تكامل Vite للتشغيل
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({ server: { middlewareMode: true }, appType: "spa" });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
+    app.get("*", (req, res) => res.sendFile(path.join(distPath, "index.html")));
+  }
 
-  return (
-    <div className="min-h-screen bg-[#060606] text-white p-3 font-sans" dir="rtl">
-      {/* Header */}
-      <div className="bg-[#111] border border-[#d4af3726] rounded-2xl p-4 flex justify-between items-center mb-3">
-        <div className="flex items-center gap-2">
-          <img src={tgUser?.photo_url || DEFAULT_AVATAR} className="w-8 h-8 rounded-full border border-gold" />
-          <span className="font-black text-gold">ARENA V2</span>
-        </div>
-        <div className="text-gold font-black text-xl">{myBalance.toLocaleString()} ⭐</div>
-      </div>
-
-      {/* Arena */}
-      <div className="relative aspect-square bg-[#0c0c0c] border-4 border-[#d4af374d] rounded-3xl overflow-hidden mb-3">
-        <canvas ref={canvasRef} width={600} height={600} className="w-full h-full" />
-        {gameState.gameState === "counting" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-[100px] font-black">{gameState.countdown}</div>
-        )}
-      </div>
-
-      {/* Controls */}
-      <div className="bg-[#111] p-4 rounded-2xl border border-[#d4af3726]">
-        <input type="number" value={betAmount} onChange={e => setBetAmount(Number(e.target.value))} className="w-full bg-black/30 border border-gold/20 p-3 rounded-xl text-center text-gold text-2xl font-black mb-3" />
-        <button onClick={joinGame} disabled={gameState.gameState !== "waiting" && gameState.gameState !== "counting"} className="w-full bg-linear-to-b from-gold to-yellow-700 p-4 rounded-xl text-black font-black text-lg disabled:opacity-50">
-          دخول الميدان ⚔️
-        </button>
-      </div>
-
-      {/* Winners Overlay */}
-      <AnimatePresence>
-        {gameState.gameState === "winner" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 bg-black/95 flex flex-col items-center justify-center z-50">
-            <div className="text-8xl mb-4">🏆</div>
-            <div className="text-3xl font-black text-gold">الفائز: {gameState.winner?.name}</div>
-            <div className="text-5xl font-black mt-2">+{gameState.pot?.toLocaleString()} ⭐</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+  httpServer.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 }
+
+startServer();
