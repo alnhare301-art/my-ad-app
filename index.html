@@ -1,197 +1,428 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARENA V2 - تجربة سريعة</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root { --gold: #D4AF37; --dark: #060606; --card: #111111; --border: rgba(212,175,55,0.15); }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--dark); color: white; font-family: sans-serif; padding: 12px; }
-        .wrapper { max-width: 420px; margin: 0 auto; }
-        .header, .status-bar { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .arena-container { position: relative; width: 100%; aspect-ratio: 1; border-radius: 20px; overflow: hidden; border: 4px solid rgba(212,175,55,0.3); background: #0c0c0c; }
-        #arenaCanvas { width: 100%; height: 100%; display: block; }
-        .countdown-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); font-size: 80px; font-weight: 900; }
-        .controls { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-top: 12px; }
-        #joinBtn { width: 100%; background: linear-gradient(135deg, var(--gold), #b8960c); padding: 15px; border-radius: 12px; border: none; color: #000; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .winner-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ARENA V2</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--gold:#D4AF37;--gold2:#FFE066;--dark:#07070A;--card:#0F0F18;--border:rgba(212,175,55,0.18)}
+body{background:var(--dark);color:#fff;font-family:'Tajawal',sans-serif;min-height:100vh;padding-bottom:20px}
+.wrap{max-width:420px;margin:0 auto;padding:10px 12px}
+.hdr{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:11px 16px;margin-bottom:10px}
+.brand{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.bal{font-size:16px;font-weight:900;color:var(--gold)}
+.sbar{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:9px 15px;margin-bottom:10px}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-left:8px}
+.dot.w{background:#444}.dot.c{background:#f59e0b;animation:blink .7s infinite}.dot.p{background:#10b981}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.slabel{font-size:12px;color:#aaa;font-weight:700}
+.pcnt{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--gold);background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.2);border-radius:10px;padding:4px 12px}
+.arena{position:relative;width:100%;aspect-ratio:1;max-width:380px;margin:0 auto 10px;border-radius:20px;overflow:hidden;border:3px solid rgba(212,175,55,.25);background:#050508;box-shadow:0 6px 30px rgba(0,0,0,.7)}
+#cv{width:100%;height:100%;display:block}
+.cdov{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.4);backdrop-filter:blur(3px);z-index:10}
+.cdnum{font-family:'Orbitron',sans-serif;font-size:110px;font-weight:900;color:#fff;text-shadow:0 0 40px rgba(0,0,0,1),0 0 60px rgba(212,175,55,.4)}
+.plist{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:8px 12px;margin-bottom:10px;max-height:145px;overflow-y:auto}
+.prow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.prow:last-child{border:none}
+.pcd{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.pavt{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#222}
+.pnm{font-weight:700;flex:1}
+.pbar{flex:1;height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.pbf{height:100%;border-radius:3px;transition:width .5s}
+.pamt{font-size:12px;font-weight:900;color:var(--gold);white-space:nowrap}
+.pempty{text-align:center;color:#333;font-size:13px;padding:16px 0}
+.ctrl{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px}
+.presets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.pb{background:rgba(212,175,55,.07);border:1px solid rgba(212,175,55,.18);color:var(--gold);padding:9px 0;border-radius:10px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer}
+.pb:active{background:rgba(212,175,55,.18)}
+#binput{width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.2);border-radius:12px;color:var(--gold);font-size:22px;font-weight:900;text-align:center;padding:11px;font-family:'Orbitron',sans-serif;outline:none;margin-bottom:10px;-moz-appearance:textfield}
+#binput::-webkit-inner-spin-button{-webkit-appearance:none}
+#joinbtn{width:100%;background:linear-gradient(135deg,#b8860c,var(--gold),var(--gold2));padding:14px;border-radius:14px;border:none;color:#000;font-weight:900;font-size:15px;cursor:pointer;font-family:'Tajawal',sans-serif;box-shadow:0 4px 16px rgba(212,175,55,.2)}
+#joinbtn:disabled{background:#1a1a1a;color:#444;cursor:not-allowed;box-shadow:none}
+#dbg{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:10px;color:#666;font-family:monospace;line-height:1.6;display:none;max-height:80px;overflow-y:auto}
+.wov{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;text-align:center;padding:20px}
+.wtrophy{font-size:70px;animation:pop .5s}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.wavt{width:90px;height:90px;border-radius:50%;border:3px solid var(--gold);margin:12px 0;box-shadow:0 0 30px rgba(212,175,55,.3)}
+.wnm{font-size:22px;font-weight:900;margin-bottom:6px}
+.wprz{font-family:'Orbitron',sans-serif;font-size:42px;font-weight:900;color:var(--gold);text-shadow:0 0 20px rgba(212,175,55,.4);margin-bottom:10px}
+.wsub{color:#444;font-size:12px}
+</style>
 </head>
 <body>
-
-<div class="wrapper">
-    <div class="header">
-        <div style="color:var(--gold); font-weight:bold;">ميدان فورونوي التجريبي 🧪</div>
-        <div id="balDisplay">100,000 ⭐</div>
+<div class="wrap">
+  <div class="hdr">
+    <div class="brand">ARENA V2</div>
+    <div class="bal" id="balEl">100,000 ⭐</div>
+  </div>
+  <div class="sbar">
+    <div style="display:flex;align-items:center">
+      <div class="dot w" id="dot"></div>
+      <div class="slabel" id="slabel">جاري الاتصال...</div>
     </div>
-
-    <div class="status-bar">
-        <span id="statusLabel">اضغط بالأسفل لدخول المنافسة فوراً!</span>
-        <div style="background:rgba(212,175,55,0.2); padding:4px 10px; border-radius:8px;" id="playerCount">0 لاعبين</div>
+    <div class="pcnt" id="pcnt">0</div>
+  </div>
+  <div class="arena">
+    <canvas id="cv" width="600" height="600"></canvas>
+    <div class="cdov" id="cdov">
+      <div class="cdnum" id="cdnum">10</div>
     </div>
-
-    <div class="arena-container">
-        <canvas id="arenaCanvas" width="600" height="600"></canvas>
-        <div class="countdown-overlay" id="countdownOverlay">10</div>
+  </div>
+  <div class="plist" id="plist"><div class="pempty">لا يوجد لاعبون بعد</div></div>
+  <div id="dbg"></div>
+  <div class="ctrl">
+    <div class="presets">
+      <button class="pb" onclick="setBet(500)">500</button>
+      <button class="pb" onclick="setBet(1000)">1K</button>
+      <button class="pb" onclick="setBet(5000)">5K</button>
+      <button class="pb" onclick="setBet(10000)">10K</button>
     </div>
-
-    <div class="controls">
-        <button id="joinBtn" onclick="botSimulation()">اضغط لبدء التحدي التجريبي الفوري ⚔️</button>
-    </div>
+    <input type="number" id="binput" value="1000">
+    <button id="joinbtn" onclick="joinGame()">⚔️ دخول ساحة المواجهة</button>
+  </div>
 </div>
-
-<div class="winner-overlay" id="winnerOverlay">
-    <h1 style="font-size:40px;">🏆 الفائز بالجولة 🏆</h1>
-    <h2 id="winnerName" style="color:var(--gold); margin: 20px 0;">-</h2>
-    <p>سيتم تصفير الساحة تلقائياً بعد ثوانٍ للتجربة مجدداً...</p>
+<div class="wov" id="wov">
+  <div class="wtrophy">🏆</div>
+  <img src="" class="wavt" id="wavt">
+  <div class="wnm" id="wnm"></div>
+  <div class="wprz" id="wprz"></div>
+  <div class="wsub">الانتقال التلقائي للجولة القادمة خلال 5 ثوانٍ...</div>
 </div>
 
 <script>
-    // إعدادات افتراضية سريعة للتجربة الفورية بدون سيرفر
-    let myBal = 100000;
-    let players = [];
-    let isSpinning = false, showBall = false;
-    let ballX = 300, ballY = 300;
-    const COLORS = ["#3b82f6", "#ef4444", "#10b981", "#a855f7"];
+/* ══ CONFIG ══ */
+const DB = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v7";
+const COLORS = ["#3b82f6","#ef4444","#10b981","#a855f7","#f97316","#eab308","#06b6d4","#ec4899","#84cc16","#f43f5e"];
+const AVT = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='38' r='22' fill='%23555'/><path d='M15,90 C15,62 85,62 85,90 Z' fill='%23555'/></svg>`;
 
-    // محاكاة سريعة: عند الضغط، يدخل المستخدم ومعه 3 لاعبين وهميين فوراً لتجربة التقسيم والكرة!
-    function botSimulation() {
-        if(isSpinning) return;
-        document.getElementById("joinBtn").disabled = true;
-        
-        // إضافة المستخدم + 3 بوتات وهمية لملء الساحة فوراً
-        players = [
-            { id: "me", name: "أنت (المحارب)", amount: 5000 },
-            { id: "bot1", name: "المنافس الذكي", amount: 3000 },
-            { id: "bot2", name: "صائد الجوائز", amount: 7000 },
-            { id: "bot3", name: "المغامر المحترف", amount: 4000 }
-        ];
-        
-        document.getElementById("playerCount").innerText = players.length + " لاعبين";
-        drawMap(players);
+/* ══ IDENTITY ══ */
+const tg = window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();}
+let myId   = tg?.initDataUnsafe?.user?.id ? "tg_"+tg.initDataUnsafe.user.id : (localStorage.getItem("aid")||"P"+(Math.random()*99999|0));
+let myName = tg?.initDataUnsafe?.user?.first_name || "محارب";
+let myAvt  = tg?.initDataUnsafe?.user?.photo_url  || AVT;
+localStorage.setItem("aid",myId);
 
-        // بدء عد تنازلي سريع (3 ثوانٍ فقط للتجربة السريعة)
-        let count = 3;
-        const overlay = document.getElementById("countdownOverlay");
-        overlay.style.display = "flex";
-        overlay.innerText = count;
+/* ══ BALANCE ══ */
+if(!localStorage.getItem("abal"))localStorage.setItem("abal","100000");
+let bal = +localStorage.getItem("abal");
+function saveBal(){localStorage.setItem("abal",bal);}
+function updBal(){document.getElementById("balEl").textContent=bal.toLocaleString()+" ⭐";}
 
-        let timer = setInterval(() => {
-            count--;
-            overlay.innerText = count;
-            if(count <= 0) {
-                clearInterval(timer);
-                overlay.style.display = "none";
-                runPhysics(); // انطلاق الكرة!
-            }
-        }, 1000);
+/* ══ STATE ══ */
+let players=[], phase="waiting", cdSecs=10, cdTimer=null, spinning=false;
+let bx=300,by=300,bvx=0,bvy=0;
+
+/* ══ DEBUG (حط DEBUG=true لو تبي ترى اللوق) ══ */
+const DEBUG=false;
+function log(m){
+  if(!DEBUG)return;
+  const el=document.getElementById("dbg");
+  el.style.display="block";
+  el.innerHTML+=`<div>${new Date().toLocaleTimeString()} — ${m}</div>`;
+  el.scrollTop=el.scrollHeight;
+}
+
+function setBet(v){document.getElementById("binput").value=v;}
+
+/* ══ SEED POINT (ثابت لكل لاعب) ══ */
+function seedXY(id){
+  let h=5381;
+  for(let i=0;i<id.length;i++)h=((h<<5)+h)^id.charCodeAt(i);
+  h=Math.abs(h);
+  return{x:80+(h%441), y:80+((h*7919)%441)};
+}
+
+/* ══ VORONOI DRAW ══ */
+function drawArena(pArr,zoom,focX,focY){
+  const cv=document.getElementById("cv");
+  const ctx=cv.getContext("2d");
+  ctx.clearRect(0,0,600,600);
+  ctx.save();
+  if(zoom&&zoom>1){ctx.translate(300,300);ctx.scale(zoom,zoom);ctx.translate(-focX,-focY);}
+
+  if(!pArr||!pArr.length){
+    ctx.fillStyle="#08080F";ctx.fillRect(0,0,600,600);
+    ctx.strokeStyle="rgba(212,175,55,.05)";ctx.lineWidth=1;
+    for(let i=0;i<=600;i+=60){
+      ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,600);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(600,i);ctx.stroke();
     }
+    ctx.restore();return;
+  }
 
-    function getSeeds(pList) {
-        let total = pList.reduce((s, p) => s + p.amount, 0);
-        // توزيع مراكز ثابتة ومثالية للمربع التجريبي
-        const fixedPositions = [{x:150, y:150}, {x:450, y:150}, {x:150, y:450}, {x:450, y:450}];
-        return pList.map((p, idx) => ({
-            ...p,
-            ratio: p.amount / total,
-            x: fixedPositions[idx].x,
-            y: fixedPositions[idx].y,
-            color: COLORS[idx % COLORS.length]
-        }));
+  const tot=pArr.reduce((s,p)=>s+(p.amount||0),0)||1;
+  const seeds=pArr.map((p,i)=>{
+    const{x,y}=seedXY(p.id);
+    const ratio=(p.amount||0)/tot;
+    const color=COLORS[i%COLORS.length];
+    p.colorHex=color;
+    return{id:p.id,name:p.name||"؟",ratio,x,y,color};
+  });
+
+  /* pixel voronoi */
+  const img=ctx.createImageData(600,600);
+  const d=img.data;
+  for(let py=0;py<600;py++){
+    for(let px=0;px<600;px++){
+      let best=Infinity,who=null;
+      for(let k=0;k<seeds.length;k++){
+        const s=seeds[k];
+        const dx=px-s.x,dy=py-s.y;
+        const r2=s.ratio*s.ratio||0.0001;
+        const dist=(dx*dx+dy*dy)/r2;
+        if(dist<best){best=dist;who=s;}
+      }
+      const idx=(py*600+px)*4;
+      d[idx]  =parseInt(who.color.slice(1,3),16);
+      d[idx+1]=parseInt(who.color.slice(3,5),16);
+      d[idx+2]=parseInt(who.color.slice(5,7),16);
+      d[idx+3]=255;
     }
+  }
+  ctx.putImageData(img,0,0);
 
-    function drawMap(pList) {
-        const canvas = document.getElementById("arenaCanvas");
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, 600, 600);
-
-        if(pList.length === 0) { ctx.fillStyle = "#0c0c0c"; ctx.fillRect(0, 0, 600, 600); return; }
-
-        let seeds = getSeeds(pList);
-        let imgData = ctx.createImageData(600, 600);
-        let d = imgData.data;
-
-        for (let y = 0; y < 600; y++) {
-            for (let x = 0; x < 600; x++) {
-                let minDist = Infinity, closest = null;
-                for (let i = 0; i < seeds.length; i++) {
-                    let s = seeds[i];
-                    let dx = x - s.x, dy = y - s.y;
-                    let dist = (dx*dx + dy*dy) / (s.ratio * s.ratio * 8 + 0.1);
-                    if(dist < minDist) { minDist = dist; closest = s; }
-                }
-                if(closest) {
-                    let idx = (y * 600 + x) * 4;
-                    let c = closest.color;
-                    d[idx] = parseInt(c.slice(1,3), 16);
-                    d[idx+1] = parseInt(c.slice(3,5), 16);
-                    d[idx+2] = parseInt(c.slice(5,7), 16);
-                    d[idx+3] = 255;
-                }
-            }
-        }
-        ctx.putImageData(imgData, 0, 0);
-
-        seeds.forEach(s => {
-            ctx.fillStyle = "rgba(0,0,0,0.5)";
-            ctx.beginPath(); ctx.arc(s.x, s.y, 35, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = "#fff"; ctx.font = "bold 14px sans-serif"; ctx.textAlign = "center";
-            ctx.fillText(s.name.substring(0,10), s.x, s.y + 5);
-        });
-
-        if(showBall) {
-            ctx.fillStyle = "#fff"; ctx.shadowBlur = 10; ctx.shadowColor = "#fff";
-            ctx.beginPath(); ctx.arc(ballX, ballY, 12, 0, Math.PI*2); ctx.fill();
-            ctx.shadowBlur = 0;
-        }
+  /* cell borders */
+  const edge=ctx.createImageData(600,600);
+  for(let py=1;py<599;py++){
+    for(let px=1;px<599;px++){
+      const c=(py*600+px)*4,r=(py*600+px+1)*4,b=((py+1)*600+px)*4;
+      if(d[c]!==d[r]||d[c+1]!==d[r+1]||d[c]!==d[b]||d[c+1]!==d[b+1]){
+        edge.data[c]=edge.data[c+1]=edge.data[c+2]=0;edge.data[c+3]=210;
+      }
     }
+  }
+  ctx.putImageData(edge,0,0,0,0,600,600);
 
-    function runPhysics() {
-        isSpinning = true; showBall = true;
-        ballX = 300; ballY = 300;
-        let speed = 25;
-        let angle = Math.random() * Math.PI * 2;
-        let vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
+  /* labels */
+  seeds.forEach(s=>{
+    ctx.save();
+    ctx.fillStyle="rgba(0,0,0,.72)";ctx.beginPath();ctx.arc(s.x,s.y,36,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#fff";ctx.font="bold 12px Tajawal";ctx.textAlign="center";
+    ctx.fillText(s.name.substring(0,9),s.x,s.y-3);
+    ctx.fillStyle=s.color;ctx.font="bold 12px Orbitron";
+    ctx.fillText(Math.round(s.ratio*100)+"%",s.x,s.y+16);
+    ctx.restore();
+  });
 
-        function frame() {
-            ballX += vx; ballY += vy;
-            if(ballX <= 15 || ballX >= 585) vx *= -1;
-            if(ballY <= 15 || ballY >= 585) vy *= -1;
-            vx *= 0.98; vy *= 0.98;
+  ctx.strokeStyle="rgba(0,0,0,.9)";ctx.lineWidth=10;ctx.strokeRect(0,0,600,600);
+  ctx.restore();
+}
 
-            drawMap(players);
+function drawBall(zoom,focX,focY){
+  const cv=document.getElementById("cv");
+  const ctx=cv.getContext("2d");
+  ctx.save();
+  if(zoom&&zoom>1){ctx.translate(300,300);ctx.scale(zoom,zoom);ctx.translate(-focX,-focY);}
+  ctx.shadowBlur=22;ctx.shadowColor="rgba(255,255,255,.8)";
+  const g=ctx.createRadialGradient(bx-4,by-4,1,bx,by,14);
+  g.addColorStop(0,"#fff");g.addColorStop(.5,"#FFE066");g.addColorStop(1,"#D4AF37");
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(bx,by,13,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
 
-            if(Math.sqrt(vx*vx + vy*vy) > 0.3) {
-                requestAnimationFrame(frame);
-            } else {
-                // الكشف عن الفائز بالبكسل فورا
-                const canvas = document.getElementById("arenaCanvas");
-                const ctx = canvas.getContext("2d");
-                let p = ctx.getImageData(Math.round(ballX), Math.round(ballY), 1, 1).data;
-                let hex = "#" + ("0" + p[0].toString(16)).slice(-2) + ("0" + p[1].toString(16)).slice(-2) + ("0" + p[2].toString(16)).slice(-2);
-                
-                let seeds = getSeeds(players);
-                let winner = seeds.find(s => s.color.toLowerCase() === hex.toLowerCase()) || players[0];
-                
-                document.getElementById("winnerOverlay").style.display = "flex";
-                document.getElementById("winnerName").innerText = winner.name;
+/* ══ PLAYERS LIST ══ */
+function renderList(pArr){
+  const el=document.getElementById("plist");
+  if(!pArr||!pArr.length){el.innerHTML='<div class="pempty">لا يوجد لاعبون بعد</div>';return;}
+  const tot=pArr.reduce((s,p)=>s+(p.amount||0),0)||1;
+  el.innerHTML=pArr.map((p,i)=>{
+    const color=COLORS[i%COLORS.length];
+    const pct=Math.round((p.amount||0)/tot*100);
+    return`<div class="prow">
+      <div class="pcd" style="background:${color}"></div>
+      <img src="${p.avatar||AVT}" class="pavt" onerror="this.src='${AVT}'">
+      <span class="pnm">${(p.name||"؟").substring(0,12)}</span>
+      <div class="pbar"><div class="pbf" style="width:${pct}%;background:${color}"></div></div>
+      <span class="pamt">${(p.amount||0).toLocaleString()} ⭐</span>
+    </div>`;
+  }).join("");
+}
 
-                // إعادة تصفير تلقائي بعد 4 ثوانٍ للتجربة مرة أخرى
-                setTimeout(() => {
-                    document.getElementById("winnerOverlay").style.display = "none";
-                    document.getElementById("joinBtn").disabled = false;
-                    isSpinning = false; showBall = false;
-                    players = [];
-                    document.getElementById("playerCount").innerText = "0 لاعبين";
-                    drawMap([]);
-                }, 4000);
-            }
-        }
-        requestAnimationFrame(frame);
+/* ══ COUNTDOWN ══ */
+function startCD(){
+  if(cdTimer)return;
+  phase="counting";cdSecs=10;
+  document.getElementById("dot").className="dot c";
+  document.getElementById("slabel").textContent="قفل الباب بعد 10 ثوانٍ ⏳";
+  document.getElementById("cdov").style.display="flex";
+  document.getElementById("cdnum").textContent="10";
+  log("countdown started");
+
+  cdTimer=setInterval(async()=>{
+    cdSecs--;
+    document.getElementById("cdnum").textContent=cdSecs;
+    document.getElementById("slabel").textContent=`قفل الباب بعد ${cdSecs} ثانية ⏳`;
+    if(cdSecs<=0){
+      clearInterval(cdTimer);cdTimer=null;
+      /* أول لاعب (أصغر id) يرسل الـ seed */
+      const sorted=[...players].sort((a,b)=>a.id.localeCompare(b.id));
+      if(sorted.length&&sorted[0].id===myId){
+        const seed=Math.random();
+        log("I am host, posting seed "+seed);
+        await fbPut("match",{seed,ts:Date.now()});
+      }
     }
-    drawMap([]);
+  },1000);
+}
+
+function stopCD(){
+  if(cdTimer){clearInterval(cdTimer);cdTimer=null;}
+  cdSecs=10;
+  document.getElementById("cdov").style.display="none";
+}
+
+/* ══ PHYSICS ══ */
+function launchBall(seed){
+  if(spinning)return;
+  spinning=true;
+  stopCD();
+  phase="playing";
+  document.getElementById("dot").className="dot p";
+  document.getElementById("slabel").textContent="الكرة تتحرك 🎯";
+  document.getElementById("joinbtn").disabled=true;
+
+  bx=130+(seed*340);
+  by=130+((seed*Math.PI%1)*340);
+  const angle=seed*Math.PI*2;
+  const spd=28+seed*18;
+  bvx=Math.cos(angle)*spd;
+  bvy=Math.sin(angle)*spd;
+  let zoom=1;
+
+  function frame(){
+    bx+=bvx;by+=bvy;
+    if(bx<13){bx=13;bvx=Math.abs(bvx);}
+    if(bx>587){bx=587;bvx=-Math.abs(bvx);}
+    if(by<13){by=13;bvy=Math.abs(bvy);}
+    if(by>587){by=587;bvy=-Math.abs(bvy);}
+    bvx*=0.986;bvy*=0.986;
+    const sp=Math.hypot(bvx,bvy);
+    if(sp<6)zoom=Math.min(2.2,zoom+0.028);
+
+    drawArena(players,zoom,bx,by);
+    drawBall(zoom,bx,by);
+
+    if(sp>0.35){requestAnimationFrame(frame);}
+    else{detectWinner();}
+  }
+  requestAnimationFrame(frame);
+}
+
+function detectWinner(){
+  /* redraw flat for accurate pixel read */
+  drawArena(players,1,300,300);
+  const ctx=document.getElementById("cv").getContext("2d");
+  const px=ctx.getImageData(Math.round(bx),Math.round(by),1,1).data;
+  const hex="#"+("0"+px[0].toString(16)).slice(-2)+("0"+px[1].toString(16)).slice(-2)+("0"+px[2].toString(16)).slice(-2);
+  log("ball at "+Math.round(bx)+","+Math.round(by)+" color="+hex);
+
+  let winner=players.find(p=>p.colorHex&&p.colorHex.toLowerCase()===hex.toLowerCase());
+  if(!winner){
+    winner=[...players].sort((a,b)=>(b.amount||0)-(a.amount||0))[0];
+    log("fallback to biggest: "+winner?.name);
+  }
+  showWinner(winner);
+}
+
+function showWinner(win){
+  const pot=players.reduce((s,p)=>s+(p.amount||0),0);
+  document.getElementById("wavt").src=win.avatar||AVT;
+  document.getElementById("wnm").textContent="🥇 "+win.name;
+  document.getElementById("wprz").textContent="+"+pot.toLocaleString()+" ⭐";
+  document.getElementById("wov").style.display="flex";
+  if(win.id===myId){bal+=pot;saveBal();updBal();}
+
+  const sorted=[...players].sort((a,b)=>a.id.localeCompare(b.id));
+  if(sorted.length&&sorted[0].id===myId){
+    setTimeout(async()=>{await fbDelete();},5000);
+  }
+  setTimeout(()=>location.reload(),5500);
+}
+
+/* ══ FIREBASE ══ */
+async function fbGet(){
+  const r=await fetch(`${DB}.json?nc=${Date.now()}`);
+  return r.json();
+}
+async function fbPut(path,data){
+  return fetch(`${DB}/${path}.json`,{method:"PUT",body:JSON.stringify(data)});
+}
+async function fbDelete(){
+  return fetch(`${DB}.json`,{method:"DELETE"});
+}
+
+/* ══ JOIN ══ */
+async function joinGame(){
+  if(phase==="playing"||phase==="done"){alert("الجولة بدأت!");return;}
+  const amt=parseInt(document.getElementById("binput").value)||0;
+  if(amt<=0){alert("أدخل مبلغاً صحيحاً");return;}
+  if(amt>bal){alert("رصيدك غير كافٍ!");return;}
+  bal-=amt;saveBal();updBal();
+  document.getElementById("joinbtn").disabled=true;
+  const exist=players.find(p=>p.id===myId);
+  const newAmt=exist?(exist.amount||0)+amt:amt;
+  await fbPut(`players/${myId}`,{id:myId,name:myName,avatar:myAvt,amount:newAmt});
+  document.getElementById("joinbtn").disabled=false;
+}
+
+/* ══ SYNC LOOP ══ */
+let lastMatchTs=null;
+
+async function sync(){
+  if(spinning)return;
+  let data;
+  try{data=await fbGet();}catch(e){log("fetch err: "+e.message);return;}
+
+  /* room empty */
+  if(!data||!data.players){
+    if(phase!=="waiting"){
+      phase="waiting";stopCD();players=[];
+      drawArena([]);renderList([]);
+      document.getElementById("pcnt").textContent="0";
+      document.getElementById("dot").className="dot w";
+      document.getElementById("slabel").textContent="بانتظار المنافسين...";
+      document.getElementById("joinbtn").disabled=false;
+    }
+    return;
+  }
+
+  players=Object.values(data.players);
+  document.getElementById("pcnt").textContent=players.length;
+  renderList(players);
+
+  /* match seed → launch */
+  if(data.match&&data.match.seed&&data.match.ts!==lastMatchTs){
+    lastMatchTs=data.match.ts;
+    log("seed received: "+data.match.seed);
+    document.getElementById("joinbtn").disabled=true;
+    launchBall(data.match.seed);
+    return;
+  }
+
+  if(phase!=="playing")drawArena(players);
+
+  /* 2+ players → start countdown */
+  if(players.length>=2&&phase==="waiting"){
+    log("2 players found, starting countdown");
+    startCD();
+  }
+  /* dropped below 2 → stop */
+  if(players.length<2&&phase==="counting"){
+    stopCD();phase="waiting";
+    document.getElementById("dot").className="dot w";
+    document.getElementById("slabel").textContent="بانتظار المنافسين...";
+  }
+}
+
+/* ══ BOOT ══ */
+updBal();
+drawArena([]);
+sync();
+setInterval(sync,1200);
 </script>
 </body>
 </html>
