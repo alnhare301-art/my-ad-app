@@ -3,275 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ARENA V2 - الميدان الهندسي الناعم</title>
-    <!-- استدعاء مكتبة تليجرام الرسمية للتطبيقات المصغرة -->
+    <title>ARENA V2 - تجربة سريعة</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
     <style>
-        /* تعريف المتغيرات اللونية الأساسية للميدان المظلم والذهبي */
-        :root {
-            --gold: #D4AF37;
-            --gold2: #f0d060;
-            --dark: #060606;
-            --card: #111111;
-            --border: rgba(212,175,55,0.15);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            background: var(--dark);
-            color: white;
-            font-family: -apple-system, 'Segoe UI', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-            padding-bottom: 20px;
-        }
-
-        .wrapper { position: relative; z-index: 1; padding: 12px; max-width: 420px; margin: 0 auto; }
-
-        /* تنسيق الهيدر العلوي وعرض الرصيد */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 12px 16px;
-            margin-bottom: 12px;
-        }
-
-        .header-brand {
-            font-size: 16px;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--gold), var(--gold2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .bal-amount { font-size: 18px; font-weight: 900; color: var(--gold); }
-
-        /* شريط حالة اللعبة (انتظار، عد تنازلي، جاري السحب) */
-        .status-bar {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 10px 16px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .status-state { font-size: 13px; font-weight: 700; color: var(--gold); display: flex; align-items: center; gap: 6px; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; }
-        .status-dot.counting { background: #f59e0b; animation: blink 0.8s infinite; }
-        .status-dot.playing { background: #10b981; }
-        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-        .player-count {
-            background: rgba(212,175,55,0.1);
-            border: 1px solid rgba(212,175,55,0.2);
-            border-radius: 10px;
-            padding: 6px 14px;
-        }
-        .player-count .num { font-size: 20px; font-weight: 900; color: var(--gold); text-align: center; }
-
-        /* حاوية ساحة الرسم المربعة */
-        .arena-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 1;
-            max-width: 360px;
-            margin: 0 auto 12px;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 4px solid rgba(212,175,55,0.3);
-            background: #0c0c0c;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-        }
-
+        :root { --gold: #D4AF37; --dark: #060606; --card: #111111; --border: rgba(212,175,55,0.15); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--dark); color: white; font-family: sans-serif; padding: 12px; }
+        .wrapper { max-width: 420px; margin: 0 auto; }
+        .header, .status-bar { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .arena-container { position: relative; width: 100%; aspect-ratio: 1; border-radius: 20px; overflow: hidden; border: 4px solid rgba(212,175,55,0.3); background: #0c0c0c; }
         #arenaCanvas { width: 100%; height: 100%; display: block; }
-
-        /* شاشة غطاء العداد التنازلي فوق الساحة */
-        .countdown-overlay {
-            position: absolute;
-            inset: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.25);
-            backdrop-filter: blur(1px);
-            z-index: 20;
-        }
-
-        .countdown-num {
-            font-size: 100px;
-            font-weight: 950;
-            color: white;
-            text-shadow: 0 0 25px rgba(0,0,0,0.9);
-        }
-
-        /* قائمة عرض اللاعبين المشاركين */
-        .players-list {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 10px 14px;
-            margin-bottom: 12px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .player-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            font-size: 13px;
-        }
-
-        .player-info { display: flex; align-items: center; gap: 8px; }
-        .player-avatar { width: 28px; height: 28px; border-radius: 50%; background: #333; object-fit: cover; }
-
-        /* أزرار وحقول التحكم بالرهان */
-        .controls { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; }
-        .bet-row { display: flex; gap: 6px; margin-bottom: 12px; }
-        .bet-btn {
-            flex: 1; background: rgba(212,175,55,0.06); border: 1px solid rgba(212,175,55,0.15);
-            color: var(--gold); padding: 10px 0; border-radius: 10px; font-size: 12px; font-weight: 700;
-            cursor: pointer;
-        }
-
-        #betInput {
-            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(212,175,55,0.2);
-            padding: 12px; border-radius: 12px; color: var(--gold); font-size: 20px;
-            font-weight: 900; text-align: center; margin-bottom: 12px;
-        }
-
-        #joinBtn {
-            width: 100%; background: linear-gradient(135deg, var(--gold), #b8960c); padding: 15px;
-            border-radius: 14px; border: none; color: #000; font-weight: 900; font-size: 15px;
-            cursor: pointer; box-shadow: 0 4px 15px rgba(212,175,55,0.2);
-        }
-        #joinBtn:disabled { background: #222; color: #555; cursor: not-allowed; box-shadow: none; }
-
-        /* شاشة إعلان البطل الفائز بالنظام السحابي */
-        .winner-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.96); display: none;
-            flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center;
-        }
-        .winner-avatar { width: 85px; height: 85px; border-radius: 50%; border: 3px solid var(--gold); margin: 15px 0; }
-        .winner-name { font-size: 24px; font-weight: 900; }
-        .winner-prize { font-size: 45px; font-weight: 900; color: var(--gold); }
+        .countdown-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); font-size: 80px; font-weight: 900; }
+        .controls { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-top: 12px; }
+        #joinBtn { width: 100%; background: linear-gradient(135deg, var(--gold), #b8960c); padding: 15px; border-radius: 12px; border: none; color: #000; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .winner-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
     </style>
 </head>
 <body>
 
 <div class="wrapper">
     <div class="header">
-        <div class="header-brand">ARENA V2</div>
-        <div class="bal-amount" id="balDisplay">100,000 ⭐</div>
+        <div style="color:var(--gold); font-weight:bold;">ميدان فورونوي التجريبي 🧪</div>
+        <div id="balDisplay">100,000 ⭐</div>
     </div>
 
     <div class="status-bar">
-        <div class="status-info">
-            <div class="status-state">
-                <div class="status-dot waiting" id="statusDot"></div>
-                <span id="statusLabel">بانتظار المنافسين...</span>
-            </div>
-        </div>
-        <div class="player-count">
-            <div class="num" id="playerCount">0</div>
-        </div>
+        <span id="statusLabel">اضغط بالأسفل لدخول المنافسة فوراً!</span>
+        <div style="background:rgba(212,175,55,0.2); padding:4px 10px; border-radius:8px;" id="playerCount">0 لاعبين</div>
     </div>
 
     <div class="arena-container">
         <canvas id="arenaCanvas" width="600" height="600"></canvas>
-        <div class="countdown-overlay" id="countdownOverlay">
-            <div class="countdown-num" id="countdownText">10</div>
-        </div>
+        <div class="countdown-overlay" id="countdownOverlay">10</div>
     </div>
 
-    <div class="players-list" id="playersList"></div>
-
     <div class="controls">
-        <div class="bet-row">
-            <button class="bet-btn" onclick="setBet(1000)">1K</button>
-            <button class="bet-btn" onclick="setBet(5000)">5K</button>
-            <button class="bet-btn" onclick="setBet(10000)">10K</button>
-        </div>
-        <input type="number" id="betInput" value="1000">
-        <button id="joinBtn" onclick="joinGame()">دخول ساحة المواجهة ⚔️</button>
+        <button id="joinBtn" onclick="botSimulation()">اضغط لبدء التحدي التجريبي الفوري ⚔️</button>
     </div>
 </div>
 
 <div class="winner-overlay" id="winnerOverlay">
-    <div style="font-size:60px;">🏆</div>
-    <img src="" class="winner-avatar" id="winnerAvatar">
-    <div class="winner-name" id="winnerName">-</div>
-    <div class="winner-prize" id="winnerPrize">⭐ 0</div>
-    <div style="color:#555; font-size:12px; margin-top:10px;">جاري الانتقال التلقائي لجولة جديدة...</div>
+    <h1 style="font-size:40px;">🏆 الفائز بالجولة 🏆</h1>
+    <h2 id="winnerName" style="color:var(--gold); margin: 20px 0;">-</h2>
+    <p>سيتم تصفير الساحة تلقائياً بعد ثوانٍ للتجربة مجدداً...</p>
 </div>
 
 <script>
-    // تهيئة ربط ميزات ميني أب تليجرام المدمجة
-    const tg = window.Telegram?.WebApp;
-    if(tg) { tg.ready(); tg.expand(); }
+    // إعدادات افتراضية سريعة للتجربة الفورية بدون سيرفر
+    let myBal = 100000;
+    let players = [];
+    let isSpinning = false, showBall = false;
+    let ballX = 300, ballY = 300;
+    const COLORS = ["#3b82f6", "#ef4444", "#10b981", "#a855f7"];
 
-    // معلمات قابلة للتعديل: رابط قاعدة بيانات الفايربيس الخاصة بك
-    const DB_PATH = "https://sarab-app-84448-default-rtdb.firebaseio.com/global_v7";
-    const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23555'><circle cx='50' cy='35' r='20'/><path d='M20,85 C20,60 80,60 80,85 Z'/></svg>";
-    const COLORS = ["#3b82f6", "#ef4444", "#10b981", "#a855f7", "#f97316", "#eab308", "#06b6d4"];
+    // محاكاة سريعة: عند الضغط، يدخل المستخدم ومعه 3 لاعبين وهميين فوراً لتجربة التقسيم والكرة!
+    function botSimulation() {
+        if(isSpinning) return;
+        document.getElementById("joinBtn").disabled = true;
+        
+        // إضافة المستخدم + 3 بوتات وهمية لملء الساحة فوراً
+        players = [
+            { id: "me", name: "أنت (المحارب)", amount: 5000 },
+            { id: "bot1", name: "المنافس الذكي", amount: 3000 },
+            { id: "bot2", name: "صائد الجوائز", amount: 7000 },
+            { id: "bot3", name: "المغامر المحترف", amount: 4000 }
+        ];
+        
+        document.getElementById("playerCount").innerText = players.length + " لاعبين";
+        drawMap(players);
 
-    // تجهيز معرف اللاعب واسمه وصورته بشكل آمن وديناميكي
-    let myId = tg?.initDataUnsafe?.user ? `tg_${tg.initDataUnsafe.user.id}` : (localStorage.getItem("arena_id") || "P" + Math.floor(Math.random()*9999));
-    let myName = tg?.initDataUnsafe?.user?.first_name || "محارب " + myId.slice(-3);
-    let myAvatar = tg?.initDataUnsafe?.user?.photo_url || DEFAULT_AVATAR;
-    localStorage.setItem("arena_id", myId);
+        // بدء عد تنازلي سريع (3 ثوانٍ فقط للتجربة السريعة)
+        let count = 3;
+        const overlay = document.getElementById("countdownOverlay");
+        overlay.style.display = "flex";
+        overlay.innerText = count;
 
-    if(!localStorage.getItem("arena_bal_fixed_v7")) localStorage.setItem("arena_bal_fixed_v7", "100000");
-    let myBal = parseInt(localStorage.getItem("arena_bal_fixed_v7"));
-
-    let players = [], currentServerState = "waiting", isSpinning = false;
-    let ballX = 300, ballY = 300, showBall = false;
-
-    // استخدام لوحة رسم مخفية (Offscreen Canvas) لتخزين الخريطة كاش لرفع الأداء من الهاتف
-    const voronoiCanvas = document.createElement("canvas");
-    voronoiCanvas.width = 600;
-    voronoiCanvas.height = 600;
-    let isVoronoiCacheValid = false;
-
-    function savebal() { localStorage.setItem("arena_bal_fixed_v7", myBal); }
-    function updateUI() { document.getElementById("balDisplay").innerText = myBal.toLocaleString() + " ⭐"; }
-    function setBet(v) { document.getElementById("betInput").value = v; }
-
-    // حساب بذور خلايا فورونوي الثابتة هندسياً بناءً على الـ User ID لمنع الاهتزاز
-    function getSeeds(pList) {
-        let total = pList.reduce((s, p) => s + p.amount, 0);
-        return pList.map((p, idx) => {
-            let hash = 0;
-            for (let i = 0; i < p.id.length; i++) hash = p.id.charCodeAt(i) + ((hash << 5) - hash);
-            let x = Math.abs(Math.sin(hash + 1)) * 340 + 130;
-            let y = Math.abs(Math.cos(hash + 2)) * 340 + 130;
-            return { id: p.id, name: p.name, amount: p.amount, ratio: total > 0 ? (p.amount / total) : 0, x, y, color: COLORS[idx % COLORS.length] };
-        });
+        let timer = setInterval(() => {
+            count--;
+            overlay.innerText = count;
+            if(count <= 0) {
+                clearInterval(timer);
+                overlay.style.display = "none";
+                runPhysics(); // انطلاق الكرة!
+            }
+        }, 1000);
     }
 
-    // توليد خريطة فورونوي وتلوين البكسلات وحفظها في ذاكرة الكاش
-    function generateVoronoiCache(seeds) {
-        const vCtx = voronoiCanvas.getContext("2d");
-        vCtx.clearRect(0, 0, 600, 600);
+    function getSeeds(pList) {
+        let total = pList.reduce((s, p) => s + p.amount, 0);
+        // توزيع مراكز ثابتة ومثالية للمربع التجريبي
+        const fixedPositions = [{x:150, y:150}, {x:450, y:150}, {x:150, y:450}, {x:450, y:450}];
+        return pList.map((p, idx) => ({
+            ...p,
+            ratio: p.amount / total,
+            x: fixedPositions[idx].x,
+            y: fixedPositions[idx].y,
+            color: COLORS[idx % COLORS.length]
+        }));
+    }
 
-        if(seeds.length === 1) {
-            vCtx.fillStyle = seeds[0].color;
-            vCtx.fillRect(0, 0, 600, 600);
-            return;
-        }
+    function drawMap(pList) {
+        const canvas = document.getElementById("arenaCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, 600, 600);
 
-        let imgData = vCtx.createImageData(600, 600);
+        if(pList.length === 0) { ctx.fillStyle = "#0c0c0c"; ctx.fillRect(0, 0, 600, 600); return; }
+
+        let seeds = getSeeds(pList);
+        let imgData = ctx.createImageData(600, 600);
         let d = imgData.data;
 
         for (let y = 0; y < 600; y++) {
@@ -280,7 +119,7 @@
                 for (let i = 0; i < seeds.length; i++) {
                     let s = seeds[i];
                     let dx = x - s.x, dy = y - s.y;
-                    let dist = (dx*dx + dy*dy) / (s.ratio * s.ratio * 12 + 0.05);
+                    let dist = (dx*dx + dy*dy) / (s.ratio * s.ratio * 8 + 0.1);
                     if(dist < minDist) { minDist = dist; closest = s; }
                 }
                 if(closest) {
@@ -293,193 +132,66 @@
                 }
             }
         }
-        vCtx.putImageData(imgData, 0, 0);
-        isVoronoiCacheValid = true;
-    }
+        ctx.putImageData(imgData, 0, 0);
 
-    // دالة الرسم الأساسية التي تستدعي الكاش لعرض سريع جداً (60 إطار بالثانية)
-    function drawMap(pList, zoom = 1, tX = 300, tY = 300) {
-        const canvas = document.getElementById("arenaCanvas");
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, 600, 600);
-
-        ctx.save();
-        if(zoom > 1) {
-            ctx.translate(300, 300); ctx.scale(zoom, zoom); ctx.translate(-tX, -tY);
-        }
-
-        if(pList.length === 0) {
-            ctx.fillStyle = "#0c0c0c"; ctx.fillRect(0, 0, 600, 600);
-            ctx.restore(); return;
-        }
-
-        let seeds = getSeeds(pList);
-
-        if (!isVoronoiCacheValid) {
-            generateVoronoiCache(seeds);
-        }
-
-        ctx.drawImage(voronoiCanvas, 0, 0);
-
-        seeds.forEach((s, idx) => {
-            pList[idx].colorHex = s.color;
-            drawLabel(ctx, s.name, Math.round(s.ratio * 100) + "%", s.x, s.y);
+        seeds.forEach(s => {
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.beginPath(); ctx.arc(s.x, s.y, 35, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "#fff"; ctx.font = "bold 14px sans-serif"; ctx.textAlign = "center";
+            ctx.fillText(s.name.substring(0,10), s.x, s.y + 5);
         });
 
-        ctx.strokeStyle = "#000000"; ctx.lineWidth = 8; ctx.strokeRect(0, 0, 600, 600);
-
         if(showBall) {
-            ctx.save();
-            ctx.shadowBlur = 15; ctx.shadowColor = "#fff";
-            let g = ctx.createRadialGradient(ballX-3, ballY-3, 1, ballX, ballY, 12);
-            g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#d4af37');
-            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ballX, ballY, 12, 0, Math.PI*2); ctx.fill();
-            ctx.restore();
+            ctx.fillStyle = "#fff"; ctx.shadowBlur = 10; ctx.shadowColor = "#fff";
+            ctx.beginPath(); ctx.arc(ballX, ballY, 12, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
         }
-        ctx.restore();
     }
 
-    function drawLabel(ctx, name, pct, x, y) {
-        ctx.save();
-        ctx.fillStyle = "rgba(0,0,0,0.6)";
-        ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#fff"; ctx.font = "bold 14px sans-serif"; ctx.textAlign = "center";
-        ctx.fillText(name.substring(0,8), x, y - 6);
-        ctx.fillStyle = "#D4AF37"; ctx.font = "bold 13px sans-serif";
-        ctx.fillText(pct, x, y + 14);
-        ctx.restore();
-    }
-
-    // محرك الحركة الفيزيائي ودائرة الاصطدام بالبكسلات الفائزة
-    function runPhysics(seed) {
-        if(isSpinning) return; 
-        isSpinning = true; 
-        showBall = true;
-        document.getElementById("countdownOverlay").style.display = "none";
-        document.getElementById("statusDot").className = "status-dot playing";
-        document.getElementById("statusLabel").innerText = "جاري السحب والتدوير المستقر... 🎯";
-
+    function runPhysics() {
+        isSpinning = true; showBall = true;
         ballX = 300; ballY = 300;
-        let angle = seed * Math.PI * 2;
-        let speed = 25 + (seed * 10);
+        let speed = 25;
+        let angle = Math.random() * Math.PI * 2;
         let vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
-        let zoom = 1;
 
         function frame() {
             ballX += vx; ballY += vy;
-            if(ballX <= 16 || ballX >= 584) vx *= -1;
-            if(ballY <= 16 || ballY >= 584) vy *= -1;
-            vx *= 0.985; vy *= 0.985;
+            if(ballX <= 15 || ballX >= 585) vx *= -1;
+            if(ballY <= 15 || ballY >= 585) vy *= -1;
+            vx *= 0.98; vy *= 0.98;
 
-            let s = Math.sqrt(vx*vx + vy*vy);
-            if(s < 4) zoom = Math.min(1.5, zoom + 0.02);
+            drawMap(players);
 
-            drawMap(players, zoom, ballX, ballY);
-
-            if(s > 0.15) {
+            if(Math.sqrt(vx*vx + vy*vy) > 0.3) {
                 requestAnimationFrame(frame);
             } else {
-                const vCtx = voronoiCanvas.getContext("2d");
-                let p = vCtx.getImageData(Math.round(ballX), Math.round(ballY), 1, 1).data;
+                // الكشف عن الفائز بالبكسل فورا
+                const canvas = document.getElementById("arenaCanvas");
+                const ctx = canvas.getContext("2d");
+                let p = ctx.getImageData(Math.round(ballX), Math.round(ballY), 1, 1).data;
                 let hex = "#" + ("0" + p[0].toString(16)).slice(-2) + ("0" + p[1].toString(16)).slice(-2) + ("0" + p[2].toString(16)).slice(-2);
                 
-                let winner = players.find(x => x.colorHex && x.colorHex.toLowerCase() === hex.toLowerCase()) || players[0];
-                endRound(winner);
+                let seeds = getSeeds(players);
+                let winner = seeds.find(s => s.color.toLowerCase() === hex.toLowerCase()) || players[0];
+                
+                document.getElementById("winnerOverlay").style.display = "flex";
+                document.getElementById("winnerName").innerText = winner.name;
+
+                // إعادة تصفير تلقائي بعد 4 ثوانٍ للتجربة مرة أخرى
+                setTimeout(() => {
+                    document.getElementById("winnerOverlay").style.display = "none";
+                    document.getElementById("joinBtn").disabled = false;
+                    isSpinning = false; showBall = false;
+                    players = [];
+                    document.getElementById("playerCount").innerText = "0 لاعبين";
+                    drawMap([]);
+                }, 4000);
             }
         }
         requestAnimationFrame(frame);
     }
-
-    function endRound(win) {
-        let pot = players.reduce((s, p) => s + p.amount, 0);
-        document.getElementById("winnerOverlay").style.display = "flex";
-        document.getElementById("winnerAvatar").src = win.avatar || DEFAULT_AVATAR;
-        document.getElementById("winnerName").innerText = `البطل الفائز: ${win.name}`;
-        document.getElementById("winnerPrize").innerText = `+${pot.toLocaleString()} ⭐`;
-
-        if(win.id === myId) { myBal += pot; savebal(); updateUI(); }
-
-        setTimeout(() => {
-            isSpinning = false;
-            showBall = false;
-            isVoronoiCacheValid = false;
-            document.getElementById("winnerOverlay").style.display = "none";
-        }, 4800);
-    }
-
-    async function joinGame() {
-        let amt = parseInt(document.getElementById("betInput").value) || 0;
-        if(amt <= 0 || amt > myBal) { alert("رصيدك الحالي لا يسمح!"); return; }
-        if(currentServerState !== "waiting" && currentServerState !== "counting") { alert("الجولة مغلقة حالياً!"); return; }
-
-        myBal -= amt; savebal(); updateUI();
-        let exist = players.find(p => p.id === myId);
-        let finalBet = exist ? (exist.amount + amt) : amt;
-
-        let pData = { id: myId, name: myName, avatar: myAvatar, amount: finalBet };
-        await fetch(`${DB_PATH}/players/${myId}.json`, { method: "PUT", body: JSON.stringify(pData) });
-    }
-
-    // دالة المزامنة المصلحة لقراءة التوقيت المركزي من السيرفر لمنع الـ Race Condition
-    async function sync() {
-        if(isSpinning) return; 
-        try {
-            const res = await fetch(`${DB_PATH}.json?nc=${Date.now()}`);
-            const data = await res.json();
-
-            if(!data || !data.players) {
-                players = []; 
-                currentServerState = "waiting";
-                document.getElementById("playerCount").innerText = "0";
-                isVoronoiCacheValid = false;
-                drawMap([]); 
-                document.getElementById("countdownOverlay").style.display = "none";
-                document.getElementById("statusLabel").innerText = "بانتظار دخول الأبطال للميدان المربع...";
-                document.getElementById("statusDot").className = "status-dot waiting";
-                document.getElementById("joinBtn").disabled = false;
-                return;
-            }
-
-            let newPlayers = Object.values(data.players);
-            if (JSON.stringify(newPlayers) !== JSON.stringify(players)) {
-                players = newPlayers;
-                isVoronoiCacheValid = false; 
-                document.getElementById("playerCount").innerText = players.length + " محارب";
-
-                let listHtml = "";
-                players.forEach(p => {
-                    listHtml += `<div class="player-row"><div class="player-info"><img src="${p.avatar}" class="player-avatar"><span>${p.name}</span></div><div><b>${p.amount.toLocaleString()} ⭐</b></div></div>`;
-                });
-                document.getElementById("playersList").innerHTML = listHtml;
-                drawMap(players, 1);
-            }
-
-            currentServerState = data.state || "waiting";
-
-            if(currentServerState === "counting" && data.startTime) {
-                let elapsed = Math.floor((Date.now() - data.startTime) / 1000);
-                let remain = Math.max(0, 10 - elapsed);
-                
-                document.getElementById("statusDot").className = "status-dot counting";
-                document.getElementById("countdownOverlay").style.display = "flex";
-                document.getElementById("countdownText").innerText = remain;
-                document.getElementById("statusLabel").innerText = `متبقي على قفل الباب وانطلاق الكرة: ${remain} ثانية`;
-                
-                if (remain <= 0) {
-                    document.getElementById("joinBtn").disabled = true;
-                }
-            }
-
-            if(data.match && data.match.seed) {
-                document.getElementById("joinBtn").disabled = true;
-                runPhysics(data.match.seed);
-            }
-        } catch(e) {}
-    }
-
-    updateUI();
-    setInterval(sync, 1000);
-    sync();
+    drawMap([]);
 </script>
 </body>
 </html>
