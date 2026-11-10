@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>تعيين رمز الحالة</title>
+  <title>فعالية روليت سراب</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * {
@@ -14,7 +14,7 @@
       -webkit-tap-highlight-color: transparent;
     }
     body {
-      background-color: var(--tg-theme-bg-color, #0f172a);
+      background-color: var(--tg-theme-bg-color, #0b0f19);
       color: var(--tg-theme-text-color, #f8fafc);
       display: flex;
       flex-direction: column;
@@ -25,56 +25,72 @@
       text-align: center;
     }
     .card {
-      background-color: var(--tg-theme-secondary-bg-color, #1e293b);
-      border-radius: 20px;
-      padding: 28px 20px;
+      background: var(--tg-theme-secondary-bg-color, #151d30);
+      border-radius: 22px;
+      padding: 28px 22px;
       width: 100%;
-      max-width: 320px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      max-width: 340px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .emoji-preview {
-      font-size: 60px;
-      margin-bottom: 12px;
+    .badge {
       display: inline-block;
-      animation: bounce 2s infinite ease-in-out;
+      background: rgba(37, 99, 235, 0.2);
+      color: #60a5fa;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(96, 165, 250, 0.3);
     }
-    @keyframes bounce {
+    .emoji-slot {
+      font-size: 64px;
+      margin-bottom: 10px;
+      display: inline-block;
+      animation: float 2.5s infinite ease-in-out;
+    }
+    @keyframes float {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+      50% { transform: translateY(-7px); }
     }
     h2 {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 8px;
+      font-size: 21px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: #ffffff;
     }
-    p {
-      font-size: 13.5px;
+    .desc {
+      font-size: 14px;
       color: var(--tg-theme-hint-color, #94a3b8);
-      margin-bottom: 24px;
-      line-height: 1.5;
+      margin-bottom: 22px;
+      line-height: 1.6;
+    }
+    .highlight {
+      color: #38bdf8;
+      font-weight: 700;
     }
     button {
       background-color: var(--tg-theme-button-color, #2563eb);
       color: var(--tg-theme-button-text-color, #ffffff);
       border: none;
-      padding: 14px 20px;
+      padding: 15px 20px;
       font-size: 16px;
-      font-weight: 600;
+      font-weight: 700;
       border-radius: 14px;
       width: 100%;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-      transition: opacity 0.2s, transform 0.1s;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+      transition: transform 0.1s, opacity 0.2s;
     }
     button:active {
-      opacity: 0.85;
       transform: scale(0.98);
+      opacity: 0.9;
     }
     #status {
-      margin-top: 16px;
+      margin-top: 15px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       min-height: 20px;
     }
   </style>
@@ -82,10 +98,13 @@
 <body>
 
   <div class="card">
-    <div class="emoji-preview">🎰</div>
-    <h2>تثبيت رمز الحالة</h2>
-    <p>اضغط بالأسفل لتعيين هذا الرمز في شريط حسابك الشخصي (لمشتركي Premium).</p>
-    <button id="setBtn" onclick="applyStatus()">تعيين الرمز 🎰</button>
+    <div class="badge">فعالية روليت سراب 🎰</div>
+    <div class="emoji-slot">🎰</div>
+    <h2>أضف رمز الحالة</h2>
+    <p class="desc">
+      أضف الآن رمز الإيموجي الخاص بـ <span class="highlight">روليت سراب</span> إلى ملفك الشخصي للدخول في الفعالية!
+    </p>
+    <button id="setBtn" onclick="applyEmoji()">إضافة الرمز إلى ملفي 🎰</button>
     <div id="status"></div>
   </div>
 
@@ -96,18 +115,18 @@
 
     const EMOJI_ID = "6033009431044692127";
 
-    function applyStatus() {
+    function applyEmoji() {
       const statusDiv = document.getElementById("status");
       const btn = document.getElementById("setBtn");
 
       if (tg.isVersionAtLeast && !tg.isVersionAtLeast('7.0')) {
         statusDiv.style.color = "#f59e0b";
-        statusDiv.innerText = "يرجى تحديث تطبيق تيليجرام لآخر إصدار.";
+        statusDiv.innerText = "يرجى تحديث تطبيق تيليجرام.";
         return;
       }
 
       btn.disabled = true;
-      btn.style.opacity = "0.6";
+      btn.style.opacity = "0.7";
 
       if (typeof tg.setEmojiStatus === 'function') {
         tg.setEmojiStatus(EMOJI_ID, {}, (success) => {
@@ -115,37 +134,18 @@
           btn.style.opacity = "1";
           if (success) {
             statusDiv.style.color = "#22c55e";
-            statusDiv.innerText = "تم تعيين الرمز بنجاح!";
-            setTimeout(() => tg.close(), 1200);
+            statusDiv.innerText = "تمت إضافة الرمز إلى ملفك بنجاح! 🎉";
+            setTimeout(() => tg.close(), 1500);
           } else {
             statusDiv.style.color = "#ef4444";
-            statusDiv.innerText = "تم إلغاء الطلب.";
-          }
-        });
-      } else if (typeof tg.requestEmojiStatusAccess === 'function') {
-        tg.requestEmojiStatusAccess((granted) => {
-          if (granted) {
-            tg.setEmojiStatus(EMOJI_ID, {}, (success) => {
-              btn.disabled = false;
-              btn.style.opacity = "1";
-              if (success) {
-                statusDiv.style.color = "#22c55e";
-                statusDiv.innerText = "تم تعيين الرمز بنجاح!";
-                setTimeout(() => tg.close(), 1200);
-              }
-            });
-          } else {
-            btn.disabled = false;
-            btn.style.opacity = "1";
-            statusDiv.style.color = "#ef4444";
-            statusDiv.innerText = "لم يتم منح الصلاحية.";
+            statusDiv.innerText = "تم إلغاء التعيين.";
           }
         });
       } else {
         btn.disabled = false;
         btn.style.opacity = "1";
         statusDiv.style.color = "#ef4444";
-        statusDiv.innerText = "الميزة غير مدعومة في جهازك الحالي.";
+        statusDiv.innerText = "الميزة تتطلب تيليجرام بريميوم وتطبيقاً محدثاً.";
       }
     }
   </script>
